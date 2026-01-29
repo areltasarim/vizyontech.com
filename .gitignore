@@ -372,3 +372,6 @@ vizyontech.com/wwwroot/Content/Theme/img/*.mp4
 bin/
 obj/
 .vs/
+
+# Secrets
+vizyontech.com/wwwroot/Configs/*.json
