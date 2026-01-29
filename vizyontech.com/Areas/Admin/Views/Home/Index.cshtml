@@ -241,22 +241,28 @@
         async function loadPageViews() {
             try {
                 const response = await fetch('/Admin/Home/GetLivePageData');
-                const data = await response.json();
+                const result = await response.json();
 
                 const tbody = document.querySelector('#pageTable tbody');
                 tbody.innerHTML = '';
 
-                const entries = Object.entries(data);
+                if (result.success && result.data) {
+                    const entries = Object.entries(result.data);
 
-                if (entries.length > 0) {
-                    entries.forEach(([title, count]) => {
+                    if (entries.length > 0) {
+                        entries.forEach(([title, count]) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${title}</td><td>${count}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
                         const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${title}</td><td>${count}</td>`;
+                        tr.innerHTML = `<td colspan="2">Veri bulunamadı</td>`;
                         tbody.appendChild(tr);
-                    });
+                    }
                 } else {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td colspan="2">Veri bulunamadı</td>`;
+                    tr.innerHTML = `<td colspan="2">${result.error || 'Veri bulunamadı'}</td>`;
                     tbody.appendChild(tr);
                 }
 
@@ -273,16 +279,34 @@
 
         //cihaz bazlı
         async function loadDeviceData() {
-            const response = await fetch('/Admin/Home/GetLiveDeviceData');
-            const data = await response.json();
+            try {
+                const response = await fetch('/Admin/Home/GetLiveDeviceData');
+                const result = await response.json();
 
-            const tbody = document.querySelector('#deviceTable tbody');
-            tbody.innerHTML = '';
+                const tbody = document.querySelector('#deviceTable tbody');
+                tbody.innerHTML = '';
 
-            for (const device in data) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${device}</td><td>${data[device]}</td>`;
-                tbody.appendChild(tr);
+                if (result.success && result.data) {
+                    const entries = Object.entries(result.data);
+
+                    if (entries.length > 0) {
+                        entries.forEach(([device, count]) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${device}</td><td>${count}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td colspan="2">Veri bulunamadı</td>`;
+                        tbody.appendChild(tr);
+                    }
+                } else {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="2">${result.error || 'Veri bulunamadı'}</td>`;
+                    tbody.appendChild(tr);
+                }
+            } catch (error) {
+                console.error("Cihaz verisi alınamadı:", error);
             }
         }
 
