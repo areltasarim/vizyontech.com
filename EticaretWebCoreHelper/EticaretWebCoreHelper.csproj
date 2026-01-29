@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EticaretWebCoreCaching\EticaretWebCoreCaching.csproj" />
     <ProjectReference Include="..\EticaretWebCoreEntity\EticaretWebCoreEntity.csproj" />
     <ProjectReference Include="..\EticaretWebCoreViewModel\EticaretWebCoreViewModel.csproj" />
   </ItemGroup>

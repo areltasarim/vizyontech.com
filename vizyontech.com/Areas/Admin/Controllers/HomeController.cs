@@ -49,47 +49,110 @@ namespace vizyontech.com.Areas.Admin.Controllers
 
         public async Task<ActionResult> Index()
         {
-            //var data = await _analyticsService.GetActiveUsersByCountryAsync();
-            //var data = await _analyticsService.GetActiveUsersByCityAsync();
-            //var data = await _analyticsService.GetRealtimeUsersByCityAsync();
-            
-            //var ziraat = await _ziraatPayService.StartPaymentAsync();
             return View();
         }
 
-
+        /// <summary>
+        /// Şehir bazlı canlı kullanıcı verileri
+        /// Cache: 5 dakika, Rate Limit: 1 concurrent request
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetLiveCityData()
         {
-            var cityData = await _analyticsService.GetRealtimeUsersByCityAsync();
-            int total = cityData.Values.Sum();
-
-            return Json(new
+            try
             {
-                total,
-                cities = cityData
-            });
+                var cityData = await _analyticsService.GetRealtimeUsersByCityAsync();
+                int total = cityData?.Values.Sum() ?? 0;
+
+                return Json(new
+                {
+                    success = true,
+                    total,
+                    cities = cityData ?? new Dictionary<string, int>()
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
-
+        /// <summary>
+        /// Canlı aktif kullanıcı sayısı
+        /// Cache: 5 dakika, Rate Limit: 1 concurrent request
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetLiveUsers()
         {
-            var count = await _analyticsService.GetRealtimeActiveUsersAsync();
-            return Json(new { activeUsers = count });
+            try
+            {
+                var count = await _analyticsService.GetRealtimeActiveUsersAsync();
+                return Json(new { success = true, activeUsers = count });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
+
+        /// <summary>
+        /// En çok ziyaret edilen sayfalar (günlük)
+        /// Cache: 5 dakika, Rate Limit: 1 concurrent request
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetLivePageData()
         {
-            var result = await _analyticsService.GetTopPagesAsync(); // <-- await EKLENDİ
-            return Json(result);
+            try
+            {
+                var result = await _analyticsService.GetTopPagesAsync();
+                return Json(new { success = true, data = result ?? new Dictionary<string, int>() });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
+        /// <summary>
+        /// Cihaz bazlı canlı kullanıcı verileri
+        /// Cache: 5 dakika, Rate Limit: 1 concurrent request
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetLiveDeviceData()
         {
-            var result = await _analyticsService.GetRealtimeUsersByDeviceAsync();
-            return Json(result);
+            try
+            {
+                var result = await _analyticsService.GetRealtimeUsersByDeviceAsync();
+                return Json(new { success = true, data = result ?? new Dictionary<string, int>() });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Analytics cache'ini temizler (test/debug için)
+        /// </summary>
+        [HttpGet]
+        public IActionResult ClearAnalyticsCache()
+        {
+            try
+            {
+                var cacheService = HttpContext.RequestServices.GetRequiredService<EticaretWebCoreCaching.Abstraction.ICacheService>();
+                
+                // Tüm analytics cache'lerini temizle
+                cacheService.Remove("analytics:active_users");
+                cacheService.Remove("analytics:users_by_city");
+                cacheService.Remove("analytics:top_pages");
+                cacheService.Remove("analytics:users_by_device");
+                
+                return Json(new { success = true, message = "Analytics cache temizlendi. Lütfen sayfayı yenileyin." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
         }
 
 

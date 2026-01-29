@@ -29,7 +29,13 @@ namespace vizyontech.com.Code
 {
     public class JobIslemUyeler : IJob
     {
-        private readonly string _connectionString = "Server=185.149.103.157,1433;Database=VIZYONTECHELK2024;User Id=sa;Password=Opk.159753;";
+        private readonly string _connectionString;
+
+        public JobIslemUyeler(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("OpakSqlServer");
+        }
+
         public virtual async Task Execute(IJobExecutionContext context)
         {
             AppDbContext _context = new AppDbContext();

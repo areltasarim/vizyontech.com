@@ -35,12 +35,13 @@ namespace vizyontech.com.Code
 {
     public class JobIslemUrunler : IJob
     {
-        private readonly string _connectionString = "Server=185.149.103.157,1433;Database=VIZYONTECHELK2024;User Id=sa;Password=Opk.159753;";
+        private readonly string _connectionString;
         private readonly SeoServis _seoServis;
         private readonly ICacheService _cacheService;
 
-        public JobIslemUrunler(SeoServis seoServis, ICacheService cacheService)
+        public JobIslemUrunler(IConfiguration configuration, SeoServis seoServis, ICacheService cacheService)
         {
+            _connectionString = configuration.GetConnectionString("OpakSqlServer");
             _seoServis = seoServis;
             _cacheService = cacheService;
         }
