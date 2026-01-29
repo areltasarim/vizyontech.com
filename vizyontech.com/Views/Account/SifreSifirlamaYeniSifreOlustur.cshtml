@@ -1,0 +1,52 @@
+﻿@model SifremiUnuttumViewModel
+@{
+    var _context = new AppDbContext();
+}
+
+
+<!-- breadcrumb -->
+<div class="bg-gray-13 bg-md-transparent">
+    <div class="container">
+        <!-- breadcrumb -->
+        <div class="my-md-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-3 flex-nowrap flex-xl-wrap overflow-auto overflow-xl-visble">
+                    <li class="breadcrumb-item flex-shrink-0 flex-xl-shrink-1"><a href="#">Hesabım</a></li>
+                    <li class="breadcrumb-item flex-shrink-0 flex-xl-shrink-1 active" aria-current="page">Şifre Sıfırlama</li>
+                </ol>
+            </nav>
+        </div>
+        <!-- End breadcrumb -->
+    </div>
+</div>
+<!-- End breadcrumb -->
+
+<div class="container">
+    <div class="d-flex justify-content-center">
+        <div class="col-md-6 col-mb-8 mb-md-0">
+            <!-- Title -->
+            <div class="border-bottom border-color-1 mb-6">
+                <h3 class="d-inline-block section-title mb-0 pb-2 font-size-26">Giriş Bilgileri</h3>
+            </div>
+            <!-- End Title -->
+            <form class="js-validate" method="post">
+                <partial name="_BilgiMesaji" />
+                <!-- Form Group -->
+                <div class="js-form-message form-group">
+                    <label class="form-label" for="signinSrPasswordExample2">Yeni Şifre <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" asp-for="YeniSifre" placeholder="Şifre" required>
+                    <span asp-validation-for="YeniSifre" class="text-danger"></span>
+
+                </div>
+                <!-- End Form Group -->
+                <!-- Button -->
+                <div class="mb-1">
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary-dark-w px-5">Şifre Sıfırla</button>
+                    </div>
+                </div>
+                <!-- End Button -->
+            </form>
+        </div>
+    </div>
+</div>

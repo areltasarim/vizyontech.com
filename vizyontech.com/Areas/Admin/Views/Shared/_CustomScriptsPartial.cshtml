@@ -1,0 +1,74 @@
+﻿@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+}
+
+
+<script>
+
+    //Checkbox Tümünü Seçme
+    //$("#pagecheck").click(function () {
+    //    $('input:checkbox').not(this).prop('checked', this.checked);
+    //});
+    //Checkbox Tümünü Seçme
+
+
+    //Modal Silme Başlangıç
+    $(function () {
+        var checklength = 0;
+        $("#tablolist input:checkbox").on("change", function () {
+            checklength = $("#tablolist input[name='Deletes']:checked").length;
+        });
+
+        $("#pagecheck").click(function () {
+            checklength = $("#tablolist input[name='Deletes']:checked").length;
+        });
+
+        var removeUrl = "";
+
+        $("body").on('click', '.remove', function () {
+            var selectedValue = $(this).attr('value');
+            console.log(selectedValue);
+            if (selectedValue == "SeciliKayitlariSil") {
+                if (checklength == 0) {
+                    alert("Lütfen Silmek İstediğiniz Verileri Seçiniz");
+                    return false;
+                }
+                else {
+
+                    $('#itemName').text("Seçili Olan Kayıtlar Silinecektir.");
+                    $('#staticBackdrop').modal('show');
+                    removeUrl = $("#pageForm").attr('action');
+                    return false;
+                }
+
+            }
+            else {
+                $('#itemName').text($(this).attr("data-name") + " isimli kayıt tamamen silinecektir.");
+
+                if ($(this).attr("data-subcategory") > 0) {
+                    $('#itemSubcategory').css("display", "block");
+                }
+                else {
+                    $('#itemSubcategory').css("display", "none");
+                }
+
+                $('#staticBackdrop').modal('show');
+
+                removeUrl = $(this).attr('href');
+                return false;
+            }
+        });
+
+        $('#remove').click(function () {
+
+            if (removeUrl == "/Admin/@controllerValue/DeleteAll") {
+                $('form#pageForm').submit();
+            }
+            else {
+                window.location = removeUrl;
+            }
+        })
+    })
+    //Modal Silme Bitiş
+
+</script>

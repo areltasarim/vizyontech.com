@@ -1,0 +1,29 @@
+﻿@model IEnumerable<FotografGalerileri>
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+
+    var metaBilgi = _context.SabitMenulerTranslate.Where(p => p.SabitMenuId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    ViewBag.MetaTitle = metaBilgi?.MetaBaslik ?? metaBilgi.MenuAdi;
+    ViewBag.MetaAnahtar = metaBilgi?.MetaAnahtar ?? siteAyari?.MetaBaslik;
+    ViewBag.MetaAciklama = metaBilgi?.MetaAciklama ?? siteAyari?.MetaAciklama;
+}
+
+@section Style
+{
+    <partial name="_HighslidePartial" />
+}
+
+@section Scripts
+
+    {
+
+}

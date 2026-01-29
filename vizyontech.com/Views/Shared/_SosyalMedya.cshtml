@@ -1,0 +1,80 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var siteAyari = _context.SiteAyarlariTranslate.ToList().Where(p => p.SiteAyarId == 1).FirstOrDefault();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Facebook))
+{
+    <li>
+        <a class="ps-social__link facebook" href="@(siteAyari?.SiteAyarlari.Facebook)" target="_blank">
+            <i class="fa fa-facebook"> </i><span class="ps-tooltip">Facebook</span>
+        </a>
+    </li>
+}
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Instagram))
+{
+    <li>
+        <a class="ps-social__link instagram" href="@(siteAyari?.SiteAyarlari.Instagram)" target="_blank">
+            <i class="fa fa-instagram"></i><span class="ps-tooltip">Instagram</span>
+        </a>
+    </li>
+}
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Twitter))
+{
+    <li>
+        <a class="ps-social__link twitter" href="@(siteAyari?.SiteAyarlari.Twitter ?? "")" target="_blank">
+            <i class="fa fa-twitter"></i><span class="ps-tooltip">Twitter</span>
+        </a>
+    </li>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Linkedin))
+{
+    <li>
+        <a class="ps-social__link linkedin" href="@(siteAyari?.SiteAyarlari.Linkedin)" target="_blank">
+            <i class="fa fa-linkedin"></i><span class="ps-tooltip">Linkedin</span>
+        </a>
+    </li>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Pinterest))
+{
+    <li>
+        <a class="ps-social__link pinterest" href="@(siteAyari?.SiteAyarlari.Pinterest)" target="_blank">
+            <i class="fa fa-pinterest-p"></i><span class="ps-tooltip">Pinterest</span>
+        </a>
+    </li>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.GooglePlus))
+{
+    <li>
+        <a class="google-plus" href="@(siteAyari?.SiteAyarlari.GooglePlus)" target="_blank">
+            <i class="lastudioicon lastudioicon-b-google"></i>
+        </a>
+    </li>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Youtube))
+{
+    <li>
+        <a class="ps-social__link youtube" href="@(siteAyari?.SiteAyarlari.Youtube)" target="_blank">
+            <i class="fa fa-youtube-play"></i><span class="ps-tooltip">Youtube</span>
+        </a>
+    </li>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Whatsapp))
+{
+    <li>
+        <a class="ps-social__link whatsapp" href="https://wa.me/@(siteAyari?.SiteAyarlari.Whatsapp ?? "")"><i class="fa fa-whatsapp"></i></a>
+    </li>
+}
+
+
+
+

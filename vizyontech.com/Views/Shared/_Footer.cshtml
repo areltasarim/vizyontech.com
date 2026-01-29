@@ -1,0 +1,11 @@
+﻿@{
+    var _context = new AppDbContext();
+    var siteAyari = _context.SiteAyarlariTranslate.ToList().Where(p => p.SiteAyarId == 1).FirstOrDefault();
+    var footerLogo = siteAyari?.SiteAyarlari.FooterLogo ?? "";
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+
+}
+
+

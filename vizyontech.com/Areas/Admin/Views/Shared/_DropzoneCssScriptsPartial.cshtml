@@ -1,0 +1,129 @@
+﻿@{ 
+    var routeValues = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+}
+<link href="~/Admin/Content/Theme/assets/css/bootstrap.css" rel="stylesheet" />
+<link href="~/Admin/Content/Theme/assets/css/ozel.css" rel="stylesheet" />
+<link href="~/Admin/Content/Theme/assets/libs/dropzone/min/dropzone.min.css" rel="stylesheet" type="text/css" />
+<style>
+    .Liste {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+        .Liste li {
+            margin: 3px 3px 3px 0;
+            padding: 1px;
+            float: left;
+            width: 150px;
+            height: 210px;
+            font-size: 12px;
+            text-align: center;
+            cursor: move;
+            border: 1px solid #ddd;
+            margin: 3px;
+        }
+</style>
+
+<script src="~/Admin/Content/Theme/assets/libs/dropzone/min/dropzone.min.js"></script>
+<script src="~/Admin/Content/Theme/ozel/jquery.min.js"></script>
+<script src="~/Admin/Content/Theme/ozel/bootbox.min.js"></script>
+<script src="~/Admin/Content/Theme/ozel/notify.js"></script>
+<script src="~/Admin/Content/Theme/ozel/Global.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery-3.2.1.min.js"></script>
+<script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+<script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery.mjs.nestedSortable.js"></script>
+
+<script type="text/javascript">
+    var jQueryCalis = $.noConflict(true);
+</script>
+
+<!--Ürün Resimlerini Siralama-->
+<script type="text/javascript">
+    (function ($) {
+        $(document).ready(function () {
+            $(".Liste").sortable({
+                placeholder: "ui-state-highlight",
+                update: function myfunction() {
+                    var sira = $(this).sortable("serialize");
+                    sirala_islem(sira);
+                }
+            });
+            $(".Liste").disableSelection();
+        });
+
+    })(jQueryCalis);
+
+
+    function sirala_islem(sira) {
+        var dataValue = sira;
+        $.ajax({
+            url: '/Admin/@routeValues/PageImageSortOrder/',
+            data: { sira: dataValue },
+            type: "POST",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (data, status, xhr) {
+                if (data.Basarilimi) {
+                    ModalBox(data.Mesaj, "", "success", data.NotfyAlert, data.BootBoxAlert);
+                    //$("#list_" + id).remove();
+                }
+                else {
+                    ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+                }
+            },
+            error: function (data, status, error) {
+                ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+            }
+        });
+    }
+</script>
+<!--Ürün Resimlerini Siralama-->
+<!--Ürün Dosyalarını Siralama-->
+<script type="text/javascript">
+    (function ($) {
+        $(document).ready(function () {
+
+            $(".DosyaListe").sortable({
+                placeholder: "ui-state-highlight",
+                update: function myfunction() {
+
+                    var sira = $(this).sortable("serialize");
+                    dosya_sirala_islem(sira);
+                }
+            });
+            $(".DosyaListe").disableSelection();
+        });
+
+    })(jQueryCalis);
+
+
+    function dosya_sirala_islem(sira) {
+
+
+        var dataValue = sira;
+        $.ajax({
+            url: '/Admin/@routeValues/PageFileSortOrder/',
+            data: { sira: dataValue },
+            type: "POST",
+            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+            success: function (data, status, xhr) {
+                if (data.Basarilimi) {
+
+                    ModalBox(data.Mesaj, "", "success", data.NotfyAlert, data.BootBoxAlert);
+                    //$("#list_" + id).remove();
+                }
+                else {
+                    ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+                }
+            },
+            error: function (data, status, error) {
+                ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+            }
+        });
+    }
+</script>
+<!--Ürün Dosyalarını Siralama-->

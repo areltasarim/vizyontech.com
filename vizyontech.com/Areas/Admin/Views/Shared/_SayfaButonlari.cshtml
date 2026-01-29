@@ -1,0 +1,14 @@
+﻿@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+}
+<div class="button-items">
+    <button type="submit" value="Kaydet" name="submit" class="btn btn-success waves-effect waves-light mr-1 btnEkle">
+        <i class="fa fa-check"></i>  Kaydet
+    </button>
+    <button type="submit" value="KaydetGuncelle" name="submit" class="btn btn-primary waves-effect waves-light mr-1 btnEkleGuncelle">
+        <i class="fa fa-check"></i>  Kaydet ve Güncelle
+    </button>
+    <a class="btn btn-danger waves-effect text-white" href="/Admin/@controllerValue/Index/@Context.Request.QueryString">
+        <i class="fa fa-reply"></i> İptal
+    </a>
+</div>

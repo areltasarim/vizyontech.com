@@ -1,0 +1,25 @@
+﻿@model BannerTranslate
+@{
+}
+
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DilId)
+
+@foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+{
+    if (dil.DilKoduId == Model.DilId)
+    {
+        <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+            <div class="row mb-3">
+                <label for="example-text-input" class="col-md-1 col-form-label">Banner Adı</label>
+                <div class="col-md-9">
+                    <input class="form-control" asp-for="BannerAdi" type="text" />
+                    <span asp-validation-for="BannerAdi" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+

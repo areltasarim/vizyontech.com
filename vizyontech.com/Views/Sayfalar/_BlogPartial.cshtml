@@ -1,0 +1,51 @@
+﻿@inject HelperServis _helperServis
+@model int
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+}
+
+
+<aside class="sidebar mb-30">
+    <!-- /.widget-search -->
+    <div class="widget widget-posts">
+        <h5 class="widget__title">@Localize("BlogDetay.SonEklenenler")</h5>
+        <div class="widget__content">
+            <div class="slick-carousel" data-slick='{"slidesToShow": 1, "arrows": false, "dots": true}'>
+
+                @foreach (var item in _helperServis.GetSayfalar(SayfaTipleri.Blog, 1, 10000).Where(x => x.SayfaId != Model && x.Sayfalar.ParentSayfaId != 3).OrderBy(x => x.Id).Take(5))
+                {
+                    var sonBlogsayfaResim = _helperServis.GetSayfaResim(item.SayfaId).Result;
+                    var seoUrl = _helperServis.GetSeoUrl(item.SayfaId, SeoUrlTipleri.Blog).Result.Url;
+
+                    <div class="widget-post-item">
+                        <div class="widget__post-img">
+                            <a href="@seoUrl"><img src="@sonBlogsayfaResim" alt="" loading="lazy"></a>
+                        </div><!-- /.widget-post-img -->
+                        <div class="widget__post-content">
+                            <span class="widget__post-date">@item.Sayfalar.Tarih.Date.ToShortDateString()</span>
+                            <h6 class="widget__post-title">
+                                <a href="@seoUrl">@item?.SayfaAdi</a>
+                            </h6>
+                        </div><!-- /.widget-post-content -->
+                    </div>
+                }
+            </div><!-- /.carousel -->
+        </div><!-- /.widget-content -->
+    </div><!-- /.widget-posts -->
+    <div class="widget widget-tags">
+        <h5 class="widget__title">Kategoriler</h5>
+        <div class="widget-content">
+            <ul class="list-unstyled">
+                @foreach (var item in _helperServis.GetParentSayfalar(3))
+                {
+                    var seoUrl = _helperServis.GetSeoUrl(item.SayfaId, SeoUrlTipleri.Blog).Result.Url;
+                    <li><a href="@seoUrl">@item.SayfaAdi</a></li>
+                }
+            </ul>
+        </div><!-- /.widget-content -->
+    </div><!-- /.widget-tags -->
+</aside><!-- /.sidebar -->

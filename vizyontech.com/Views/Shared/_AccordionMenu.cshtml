@@ -1,0 +1,258 @@
+﻿@inject HelperServis _helperServis
+@model MenuYerleri
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var _context = new AppDbContext();
+
+    var anamenu = _helperServis.GetMenu(Model).Result;
+
+    var aktifDil = _helperServis.GetCurrentCulture();
+
+    string sekmeDurumu = "";
+
+    <div class="offcanvas-body">
+        <!-- Sol Sidebar - Kategori Listesi -->
+        <aside class="category-sidebar">
+            <div class="category-list">
+                @{
+                    int firstCategoryIndex = 0;
+                }
+                @foreach (var item in anamenu)
+                {
+                    var menuhosturl = _helperServis.GetMenuUrl(item.Id, item.MenuTipi, item.MenuYeri);
+
+                    switch (item.SekmeDurumu)
+                    {
+                        case MenuSekmeleri.AyniSekme:
+                            sekmeDurumu = "_self";
+                            break;
+                        case MenuSekmeleri.YeniSekme:
+                            sekmeDurumu = "_blank";
+                            break;
+                        default:
+                            break;
+                    }
+
+                    var kategoriAdi = item.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi ?? "";
+                    var kategoriId = item.Id;
+                    var isActive = firstCategoryIndex == 0 ? "active" : "";
+                    firstCategoryIndex++;
+
+                    <a href="#" class="category-item @isActive" data-category-id="@kategoriId" data-category-url="@menuhosturl" data-target="@sekmeDurumu">
+                        @if (item.SeoUrlTipi == SeoUrlTipleri.Kategori)
+                        {
+                            var kategori = _helperServis.GetKategori((int)item.EntityId).Result;
+                            var kategoriIkon = kategori?.Ikon;
+                            
+                            // Ikon alanından resim yolu çek (Font Awesome ikon sınıfı veya resim yolu olabilir)
+                            var gecerliIkon = !string.IsNullOrEmpty(kategoriIkon) && !kategoriIkon.Contains("resimyok.png");
+                            
+                            if (gecerliIkon)
+                            {
+                                // Eğer .png, .jpg, .jpeg, .gif, .webp gibi resim uzantısı varsa resim olarak göster
+                                if (kategoriIkon.Contains(".png") || kategoriIkon.Contains(".jpg") || kategoriIkon.Contains(".jpeg") || kategoriIkon.Contains(".gif") || kategoriIkon.Contains(".webp") || kategoriIkon.StartsWith("/") || kategoriIkon.StartsWith("http"))
+                                {
+                                    <img src="@kategoriIkon" alt="@kategoriAdi" loading="lazy">
+                                }
+                                else
+                                {
+                                    // Font Awesome ikon sınıfı olarak göster
+                                    <i class="@kategoriIkon"></i>
+                                }
+                            }
+                            else
+                            {
+                                // İkon yoksa kategori adının ilk harfini göster
+                                var ilkHarf = !string.IsNullOrEmpty(kategoriAdi) ? kategoriAdi.Substring(0, 1).ToUpper() : "?";
+                                <span class="category-initial">@ilkHarf</span>
+                            }
+                        }
+                        <span class="category-name">@kategoriAdi</span>
+                    </a>
+                }
+                
+                @* UstMenu menüleri - Sadece mobilde görünür (767px altı) *@
+                @{
+                    var ustMenuler = _helperServis.GetMenuTranslate(MenuYerleri.UstMenu);
+                }
+                @if (ustMenuler != null && ustMenuler.Any())
+                {
+                    <style>
+                        .mobile-only-ustmenu { display: none; }
+                        @@media (max-width: 767px) {
+                            .mobile-only-ustmenu { display: block; }
+                        }
+                    </style>
+                    
+                    <div class="mobile-only-ustmenu">
+                        <div class="menu-divider" style="border-top: 1px solid rgba(0,0,0,0.08); margin: 12px 0;"></div>
+                        
+                        @foreach (var ustMenu in ustMenuler)
+                        {
+                            var ustMenuUrl = _helperServis.GetMenuUrl(ustMenu.MenuId, ustMenu.Menuler.MenuTipi, ustMenu.Menuler.MenuYeri);
+                            var ustMenuSekme = ustMenu.Menuler.SekmeDurumu == MenuSekmeleri.YeniSekme ? "_blank" : "_self";
+                            
+                            <a href="@ustMenuUrl" class="ustmenu-item" target="@ustMenuSekme" style="display: flex; align-items: center; padding: 10px 12px; color: #555; font-size: 14px; text-decoration: none; border-radius: 6px; transition: background-color 0.2s ease;">
+                                <i class="fa fa-angle-right" style="margin-right: 8px; font-size: 12px; color: #888;"></i>
+                                <span>@ustMenu.MenuAdi</span>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </aside>
+
+        <!-- Sağ İçerik Alanı - Bölümler -->
+        <main class="category-content">
+            <div id="sections-container">
+                @{
+                    var firstCategory = anamenu.FirstOrDefault();
+                    if (firstCategory != null)
+                    {
+                        @foreach (var altMenu in firstCategory.AltMenuler.OrderBy(x => x.Sira))
+                        {
+                            var altMenuAdi = altMenu.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi ?? "";
+                            var altMenuUrl = _helperServis.GetMenuUrl(altMenu.Id, altMenu.MenuTipi, altMenu.MenuYeri);
+                            var altMenuSekme = altMenu.SekmeDurumu == MenuSekmeleri.YeniSekme ? "_blank" : "_self";
+
+                            <div class="category-section-group">
+                                <h3 class="section-group-title">
+                                    <a href="@altMenuUrl" target="@altMenuSekme">@altMenuAdi</a>
+                                </h3>
+                                @if (altMenu.AltMenuler != null && altMenu.AltMenuler.Any())
+                                {
+                                    <div class="sections-grid">
+                                        @foreach (var altAltMenu in altMenu.AltMenuler.OrderBy(x => x.Sira))
+                                        {
+                                            var altAltMenuAdi = altAltMenu.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi ?? "";
+                                            var altAltMenuUrl = _helperServis.GetMenuUrl(altAltMenu.Id, altAltMenu.MenuTipi, altAltMenu.MenuYeri);
+                                            var altAltMenuSekme = altAltMenu.SekmeDurumu == MenuSekmeleri.YeniSekme ? "_blank" : "_self";
+
+                                            <a href="@altAltMenuUrl" class="section-card" target="@altAltMenuSekme">
+                                                <div class="section-icon">
+                                                    @if (altAltMenu.SeoUrlTipi == SeoUrlTipleri.Kategori)
+                                                    {
+                                                        var kategori = _helperServis.GetKategori((int)altAltMenu.EntityId).Result;
+                                                        var kategoriIkon = kategori?.Ikon;
+                                                        
+                                                        // Ikon alanından resim yolu çek
+                                                        var gecerliIkon = !string.IsNullOrEmpty(kategoriIkon) && !kategoriIkon.Contains("resimyok.png");
+                                                        
+                                                        if (gecerliIkon)
+                                                        {
+                                                            // Eğer resim uzantısı varsa resim olarak göster
+                                                            if (kategoriIkon.Contains(".png") || kategoriIkon.Contains(".jpg") || kategoriIkon.Contains(".jpeg") || kategoriIkon.Contains(".gif") || kategoriIkon.Contains(".webp") || kategoriIkon.StartsWith("/") || kategoriIkon.StartsWith("http"))
+                                                            {
+                                                                <img src="@kategoriIkon" alt="@altAltMenuAdi" loading="lazy">
+                                                            }
+                                                            else
+                                                            {
+                                                                // Font Awesome ikon sınıfı olarak göster
+                                                                <i class="@kategoriIkon"></i>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            // İkon yoksa kategori adının ilk harfini göster
+                                                            var ilkHarf = !string.IsNullOrEmpty(altAltMenuAdi) ? altAltMenuAdi.Substring(0, 1).ToUpper() : "?";
+                                                            <span class="section-initial">@ilkHarf</span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        var ilkHarf = !string.IsNullOrEmpty(altAltMenuAdi) ? altAltMenuAdi.Substring(0, 1).ToUpper() : "?";
+                                                        <span class="section-initial">@ilkHarf</span>
+                                                    }
+                                                </div>
+                                                <h4>@altAltMenuAdi</h4>
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </main>
+    </div>
+
+
+    @* Kategori verilerini JavaScript'e aktarmak için *@
+    <script type="text/javascript">
+        window.categoryData = {
+            @foreach (var item in anamenu)
+            {
+                var kategoriAdi = item.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi ?? "";
+                var kategoriUrl = _helperServis.GetMenuUrl(item.Id, item.MenuTipi, item.MenuYeri);
+                var kategoriSekme = item.SekmeDurumu == MenuSekmeleri.YeniSekme ? "_blank" : "_self";
+                
+                // JSON için escape işlemi - tırnak ve ters slash karakterlerini escape et
+                var kategoriAdiEscaped = kategoriAdi.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
+                var kategoriUrlEscaped = kategoriUrl.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                
+                <text>
+                "@item.Id": {
+                    "title": "@Html.Raw(kategoriAdiEscaped)",
+                    "url": "@Html.Raw(kategoriUrlEscaped)",
+                    "target": "@kategoriSekme",
+                    "sections": [
+                        @foreach (var altMenu in item.AltMenuler.OrderBy(x => x.Sira))
+                        {
+                            var altMenuAdi = altMenu.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi ?? "";
+                            var altMenuUrl = _helperServis.GetMenuUrl(altMenu.Id, altMenu.MenuTipi, altMenu.MenuYeri);
+                            var altMenuSekme = altMenu.SekmeDurumu == MenuSekmeleri.YeniSekme ? "_blank" : "_self";
+                            
+                            // JSON için escape işlemi
+                            var altMenuAdiEscaped = altMenuAdi.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
+                            var altMenuUrlEscaped = altMenuUrl.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                            
+                            <text>
+                            {
+                                "title": "@Html.Raw(altMenuAdiEscaped)",
+                                "url": "@Html.Raw(altMenuUrlEscaped)",
+                                "target": "@altMenuSekme",
+                                "subsections": [
+                                    @foreach (var altAltMenu in altMenu.AltMenuler.OrderBy(x => x.Sira))
+                                    {
+                                        var altAltMenuAdi = altAltMenu.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi ?? "";
+                                        var altAltMenuUrl = _helperServis.GetMenuUrl(altAltMenu.Id, altAltMenu.MenuTipi, altAltMenu.MenuYeri);
+                                        var altAltMenuSekme = altAltMenu.SekmeDurumu == MenuSekmeleri.YeniSekme ? "_blank" : "_self";
+                                        var altAltMenuIkon = "";
+                                        if (altAltMenu.SeoUrlTipi == SeoUrlTipleri.Kategori)
+                                        {
+                                            var kategori = _helperServis.GetKategori((int)altAltMenu.EntityId).Result;
+                                            altAltMenuIkon = kategori?.Ikon ?? "";
+                                        }
+                                        
+                                        // JSON için escape işlemi
+                                        var altAltMenuAdiEscaped = altAltMenuAdi.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
+                                        var altAltMenuUrlEscaped = altAltMenuUrl.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                                        var altAltMenuIkonEscaped = altAltMenuIkon.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                                        
+                                        <text>
+                                        {
+                                            "title": "@Html.Raw(altAltMenuAdiEscaped)",
+                                            "url": "@Html.Raw(altAltMenuUrlEscaped)",
+                                            "target": "@altAltMenuSekme",
+                                            "ikon": "@Html.Raw(altAltMenuIkonEscaped)"
+                                        }@(altAltMenu != altMenu.AltMenuler.OrderBy(x => x.Sira).Last() ? "," : "")
+                                        </text>
+                                    }
+                                ]
+                            }@(altMenu != item.AltMenuler.OrderBy(x => x.Sira).Last() ? "," : "")
+                            </text>
+                        }
+                    ]
+                }@(item != anamenu.Last() ? "," : "")
+                </text>
+            }
+        };
+    </script>
+}
+
+

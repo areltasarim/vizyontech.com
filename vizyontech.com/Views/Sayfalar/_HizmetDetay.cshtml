@@ -1,0 +1,110 @@
+﻿@model Sayfalar
+@inject HelperServis _helperServis
+@{
+    var aktifDil = _helperServis.GetAktifDil().Result;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfalar = _helperServis.GetSayfalar(SayfaTipleri.Hizmetlerimiz, 1, 500);
+    var sayfa = _helperServis.GetSayfa(Model.Id).Result;
+    var parentsayfa = await _helperServis.GetParentSayfa(SayfaTipleri.Hizmetlerimiz);
+
+    var sayfaResim = _helperServis.GetSayfaResim(Model.Id).Result;
+    var sayfaResimleri = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri1, aktifDil.Id);
+
+    var sayfaOzellikleri = _helperServis.GetSayfaOzellikleri(Model.Id);
+    var sayfaToOzellik = _helperServis.GetSayfaToOzellik(Model.Id).Result;
+
+    var altsayfalar = _helperServis.GetAltSayfalar(Model.ParentSayfaId);
+
+
+    SayfaOzellikGruplariTranslate sayfaOzellikGrup = new SayfaOzellikGruplariTranslate();
+    if (sayfaToOzellik != null)
+    {
+        sayfaOzellikGrup = _helperServis.GetSayfaOzellikGrup(sayfaToOzellik.SayfaOzellikleri.SayfaOzellikGrupId).Result;
+    }
+
+
+
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = sayfa.SayfaAdi ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+@section Style
+{
+
+}
+
+
+
+<div class="breadcumb-wrapper " data-bg-src="/Content/Theme/assets/img/breadcumb/breadcumb-bg.jpg">
+    <div class="container">
+        <div class="breadcumb-content">
+            <h2 class="breadcumb-title">@sayfa.SayfaAdi</h2>
+        </div>
+    </div>
+
+</div>
+<!--==============================
+    Service Area
+==============================-->
+<section class="space-top space-extra-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-xxl-8 col-lg-8">
+                <div class="page-single service-single">
+                    <div class="page-img global-img">
+                        <img src="@sayfaResim" alt="" loading="lazy">
+                    </div>
+                    <div class="page-content">
+                        <h2 class="">@sayfa.SayfaAdi</h2>
+                        @Html.Raw(sayfa.Aciklama)
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-4 col-lg-4">
+                <aside class="sidebar-area">
+                    <div class="widget widget_categories">
+                        <h3 class="widget_title">Hizmetlerimiz</h3>
+                        <ul>
+                            @foreach (var item in _helperServis.GetSayfalar(SayfaTipleri.Hizmetlerimiz, 1, 100).Where(x => x.Sayfalar.ParentSayfaId == 13))
+                            {
+                                var seoUrl = _helperServis.GetSeoUrl(item.SayfaId, SeoUrlTipleri.Hizmetlerimiz).Result.Url;
+
+                                <li>
+                                    <a href="@seoUrl">@item.SayfaAdi</a>
+                                    <i class="fa-regular fa-arrow-right"></i>
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
+                    <div class="widget widget_offer style2  " data-bg-src="/Content/Theme/assets/img/bg/widget_bg_1.jpg">
+                        <div class="offer-banner">
+                            <div class="banner-logo">
+                                <img src="@siteAyari.FooterLogo" alt="" loading="lazy">
+                            </div>
+                            <h5 class="banner-title">@sayfa.SayfaAdiAltAciklama</h5>
+                            <div class="offer">
+                                <h6 class="offer-title"><span class="text-theme">Bizi</span> Arayın</h6>
+                                <p class="offer-text">İndirim Fırsatını <span class="text-theme">Kaçırmayın</span></p>
+                            </div>
+                            <a href="tel:@adresBilgiHelper.Telefon" class="th-btn">@adresBilgiHelper.Telefon</a>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+@using (Html.BeginScripts())
+{
+
+}

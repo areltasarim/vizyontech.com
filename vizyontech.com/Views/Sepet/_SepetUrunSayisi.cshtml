@@ -1,0 +1,15 @@
+﻿@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+    var shoppingCart = ViewData["shoppingCart"] as SepetServis;
+
+    var sepetIdCookie = Context.Request.Cookies["SepetCookie"];
+
+    var sepet = _context.Sepet.Where(p => p.CookieId == sepetIdCookie).ToList();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+
+}
+<span>@sepet.ToList().Sum(p => p.Adet)</span>

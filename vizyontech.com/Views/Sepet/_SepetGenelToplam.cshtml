@@ -1,0 +1,38 @@
+﻿@model int
+
+@inject SepetServis _sepetServis
+@inject HelperServis _helperServis
+@{ 
+    var sepetBilgi = _sepetServis.GetSepetBilgi().Result;
+}
+
+@if (Model > 0)
+{
+    <div class="ps-shopping__label">@Localize("Genel.SepetToplam")</div>
+    <div class="ps-shopping__box">
+        <div class="ps-shopping__row">
+            <div class="ps-shopping__label">@Localize("Genel.AraToplamListeFiyat")</div>
+            <div class="ps-shopping__price">@((string)_sepetServis.SepetAraToplam(FiyatTipleri.BayiFiyat, true))</div>
+        </div>
+        @if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
+        {
+            <div class="ps-shopping__row">
+                <div class="ps-shopping__label">@Localize("Genel.Kupon")</div>
+                <div class="ps-shopping__price">- @(_sepetServis.KuponHesapla().Result.kuponIndirimTL)</div>
+            </div>
+        }
+        <div class="ps-shopping__row">
+            <div class="ps-shopping__label">@Localize("Genel.Kargo")</div>
+            <div class="ps-shopping__price">@_helperServis.GetKargoFiyat((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat))</div>
+        </div>
+
+        <div class="ps-shopping__row">
+            <div class="ps-shopping__label">@Localize("Genel.GenelToplam")</div>
+            <div class="ps-shopping__price">@((string)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat, true))</div>
+        </div>
+        <div class="ps-shopping__checkout">
+            <a class="ps-btn ps-btn--warning" asp-controller="Sepet" asp-action="Kasa">@Localize("Genel.AlisverisiTamamla")</a>
+        </div>
+    </div>
+
+}

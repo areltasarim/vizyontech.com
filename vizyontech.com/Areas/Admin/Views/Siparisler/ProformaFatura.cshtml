@@ -1,0 +1,321 @@
+﻿@{
+    Layout = null;
+
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siparis = _context.Siparisler.Where(x=> x.Id == Convert.ToInt32(ViewContext.RouteData.Values["Id"])).FirstOrDefault();
+
+
+    var uyeid = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var uye = _context.Users.Where(p => p.Id == siparis.UyeId).FirstOrDefault();
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.ToList().Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var ustLogo = siteAyari?.SiteAyarlari.UstLogo ?? "";
+
+    var adresListesi = _context.AdresBilgileri.ToList().FirstOrDefault();
+    var adresBilgisi = _context.AdresBilgileriTranslate.ToList().Where(p => p.AdresBilgiId == adresListesi.Id).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var telefon = adresBilgisi?.Telefon == " " | adresBilgisi?.Telefon == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Telefon : adresBilgisi?.Telefon;
+    var gsm = adresBilgisi?.Gsm == " " | adresBilgisi?.Gsm == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Gsm : adresBilgisi?.Gsm;
+
+    var faks = adresBilgisi?.Faks == " " | adresBilgisi?.Faks == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Faks : adresBilgisi?.Faks;
+    var email = adresBilgisi?.Email == " " | adresBilgisi?.Email == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Email : adresBilgisi?.Email;
+    var adres = adresBilgisi?.Adres == " " | adresBilgisi?.Adres == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Adres : adresBilgisi?.Adres;
+    var harita = adresBilgisi?.Harita == " " | adresBilgisi?.Harita == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Harita : adresBilgisi?.Harita;
+    var haritaLink = adresBilgisi?.HaritaLink == " " | adresBilgisi?.HaritaLink == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Harita : adresBilgisi?.HaritaLink;
+
+
+
+
+
+}
+
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <title>Efor Yakıt</title>
+
+    <link rel="stylesheet" href="/Content/rotativa/bootstrap-3.3.7-dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="/Content/rotativa/font-awesome-4.7.0/css/font-awesome.min.css">
+
+    <style>
+        .table > :not(caption) > * > * {
+            padding: 0.3rem 0.5rem !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form class="form">
+        @*<input type="text" name="Id" value="@servisbakimId" />*@
+        <div class="container">
+            <div class="row" style="margin-bottom: 0 !important; margin-top: 0 !important">
+                <div class="col-md-12" style="margin-top:20px;">
+                    <div class="col-md-4 col-sm-4" style="float:left;">
+                        <img src="@ustLogo" width="150" />
+
+                    </div>
+                    <div class="col-md-4 col-sm-4" style="margin-left:300px;">
+                        <h2 style="color: #4b4b4b; font-weight: 600; margin-top: 20px; padding-left: 30px;  ">Sipariş Bilgileri</h2>
+
+                    </div>
+
+                    <div class="col-md-4 col-sm-4" style="float:right; width:270px;">
+                        <div class="col-md-12" style="text-align: left;  padding-right: 0px; font-size: 12px; ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+
+                                <i class="fa fa-map-marker"></i>
+                                @adres
+
+                            </span>
+                        </div>
+
+
+                        <div class="col-md-12  " style="text-align: left;  padding-right: 0px; font-size: 12px;   ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+                                <i class="fa fa-phone"></i>
+                                @telefon
+                            </span>
+                        </div>
+
+
+                        <div class="col-md-12  " style="text-align: left;  padding-right: 0px;  font-size: 15px;  ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+                                <i class="fa fa-mobile"></i>  @gsm
+                            </span>
+                        </div>
+
+
+
+                        <div class="col-md-12  " style="text-align: left;  padding-right: 0px;  font-size: 12px; ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+                                <i class="fa fa-envelope"></i> @email
+                            </span>
+                        </div>
+
+
+
+
+                        <div class="col-md-12  " style="text-align: left;  padding-right: 0px;  font-size: 12px;  ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+                                <i class="fa fa-globe"></i> www.eforakaryakit.com
+                            </span>
+                        </div>
+
+
+
+                        <div class="col-md-12  " style="text-align: left;  padding-right: 0px;  font-size: 12px;  ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+                                <i class="fa fa-calendar"></i>   @siparis.SiparisTarihi.ToShortDateString()
+                            </span>
+                        </div>
+
+                        <div class="col-md-12  " style="text-align: left;  padding-right: 0px;  font-size: 12px;  ">
+
+                            <span style="font-family: 'Raleway', sans-serif;">
+                                @siparis?.VergiDairesi V.D. @siparis?.VergiNumarasi
+                            </span>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+
+
+            </div>
+
+
+            <table class="table table-hover" style="margin-bottom: 0 !important; margin-top: 0 !important">
+                <thead>
+                    <tr>
+                        <th scope="col" colspan="5" style="text-align:left;">
+                            <h3 style="font-family: 'Raleway', sans-serif;   "> <i class="fa fa-user"></i> Müşteri Bilgileri</h3>
+                        </th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row" style="text-align:left;">
+                            <b> Ad Soyad:</b> <br />@uye.Ad @uye.Soyad
+                        </th>
+                        <td>
+                            <b> Telefon:</b> <br />@uye?.PhoneNumber
+                        </td>
+                        <td>
+                            <b> Email:</b> <br />@uye?.Email
+                        </td>
+                        <td>
+                            <p>   </p>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <th scope="row" style="text-align:left;"> <b> Adres:</b> @uye?.Adres  </th>
+
+                        <td>
+                            <b> İlçe:</b> @uye?.Ilceler?.IlceAdi
+
+                        </td>
+                        <td>
+                            <b> İl:</b> @uye?.Ilceler?.Iller?.IlAdi
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" style="text-align:left;">
+
+                            <b> Tc Kimlik No:</b> <br /> 
+                        </th>
+                        <td>
+                            <b>Vergi Dairesi: </b><br />@siparis?.VergiDairesi
+
+                        </td>
+
+                        <td>
+                            <b>Vergi No:</b> <br />@siparis?.VergiNumarasi
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <div>
+                <h3 style="font-family: 'Raleway', sans-serif;   ">  <i class="fa fa-pencil"></i> Siparişler</h3>
+            </div>
+            <table class="table table-hover" style="margin-bottom: 0 !important; margin-top: 0 !important">
+                <thead>
+                    <tr>
+                        <th scope="col" colspan="5" style="text-align:left;">
+                        </th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr style="font-family: 'Raleway', sans-serif;   ">
+                        <th scope="row" style="text-align:center;">
+                            <b>  Ürün Adı </b>
+                        </th>
+                        <td>
+                            <b>  Ürün Kodu </b>
+                        </td>
+                        <td>
+                            <b>  Adet </b>
+                        </td>
+                        <td>
+                            <b>  Birim Fiyat </b>
+                        </td>
+
+                        <td>
+                            <b>  Toplam Fiyat </b>
+                        </td>
+
+
+                    </tr>
+                    @{
+                        decimal araToplam = 0;
+                        decimal kdvToplam = 0;
+                    }
+                    @foreach (var item in siparis.SiparisUrunleri)
+                    {
+                        araToplam += item.Fiyat * item.Adet;
+                        kdvToplam += item.Kdv;
+                        <tr style="font-family: 'Raleway', sans-serif;   ">
+                            <td>
+                                @item.Urunler.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR").UrunAdi
+                            </td>
+                            <td>
+                                @item.UrunKodu
+                            </td>
+                            <td>
+                                <span>@item.Adet</span>
+                            </td>
+                            <td>
+                                @item.Fiyat.ToString("c2")
+                            </td>
+                            <td>
+                                @item.Toplam.ToString("c2") <i class="fa fa-try "></i>
+                            </td>
+                        </tr>
+                    }
+
+
+
+
+                </tbody>
+            </table>
+            <hr />
+            <table class="">
+                <thead>
+
+                    <tr>
+                        <th scope="col" colspan="2" style="  border-bottom:0px; padding-left:573px; border-top:0px ">
+                            <h5 style="font-family: 'Raleway', sans-serif;   ">  Ara Toplam:  <b> @araToplam.ToString("C2") <i class="fa fa-try "></i> </b></h5>
+                        </th>
+
+                    </tr>
+                    <tr>
+                        <th scope="col" colspan="2" style="  border-bottom:0px; padding-left:583px;">
+                            <h5 style="font-family: 'Raleway', sans-serif;   ">  Kdv :  <b> @kdvToplam.ToString("C2")   <i class="fa fa-try "></i> </b></h5>
+                        </th>
+
+                    </tr>
+                    <tr>
+                        <th scope="col" colspan="2" style="  border-bottom:0px; padding-left:583px;">
+                            <h5 style="font-family: 'Raleway', sans-serif;   ">  Kargo Ücreti :  <b> @siparis.KargoUcreti.ToString("C2")   <i class="fa fa-try "></i> </b></h5>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th scope="col" colspan="2" style="  border-bottom:0px; padding-left:566px;">
+                            <h5 style="font-family: 'Raleway', sans-serif;   ">  Toplam Tutar:  <b> @siparis.ToplamFiyat.ToString("C2")   <i class="fa fa-try "></i> </b></h5>
+                        </th>
+                    </tr>
+                </thead>
+
+            </table>
+            <table class="table table-hover" style="margin-bottom: 0 !important; margin-top: 0 !important">
+                <thead>
+                    <tr>
+                        <th scope="col" colspan="5" style="text-align:left;">
+                            <h3 style="font-family: 'Raleway', sans-serif;   ">  <i class="fa fa-sticky-note-o "></i>   Not</h3>
+                        </th>
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <th scope="row" style="text-align:left;">
+                            <p>   <b>  @siparis?.SiparisNotu </b></p>
+
+                        </th>
+
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+    </form>
+
+
+
+</body>
+
+</html>

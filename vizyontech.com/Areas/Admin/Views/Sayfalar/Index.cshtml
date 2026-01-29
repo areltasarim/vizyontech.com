@@ -1,0 +1,182 @@
+﻿@model IEnumerable<Sayfalar>
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+
+    var sayfatipi = (SayfaTipleri)Enum.Parse(typeof(SayfaTipleri), Context.Request.Query["SayfaTipi"].ToString());
+    var parentsayfaid = Convert.ToInt32(Context.Request.Query["ParentSayfaId"]);
+
+    bool TumSayfaDurumu = true;
+    bool datatableStateSave = true;
+
+
+    if (sayfatipi != SayfaTipleri.DinamikSayfa)
+    {
+        TumSayfaDurumu = false;
+        datatableStateSave = false;
+    }
+
+    var pageUrl = Url.Action("SayfalariListele", "Sayfalar", new { ParentSayfaId = parentsayfaid, SayfaTipi = sayfatipi, TumSayfaDurumu = TumSayfaDurumu });
+
+
+
+}
+
+
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <input type="hidden" name="SayfaTipi" value="@sayfatipi" />
+            <input type="hidden" name="TumSayfaDurumu" value="@TumSayfaDurumu" />
+            <input type="hidden" id="PageUrl" value="@pageUrl" />
+
+            <div class="card">
+                <div class="card-body">
+                    @*<partial name="_SayfaHeaderButonlari" />*@
+                    <ul class="nav nav-tabs nav-tabs-custom mb-4">
+                        <li class="nav-item me-2">
+                            <button type="submit" class="btn btn-danger waves-effect text-white remove" value="SeciliKayitlariSil" id="selectedpagecheck">
+                                <i class="fa fa-check"></i>  Seçili Kayıtları Sil
+                            </button>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a asp-area="Admin" asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-ParentSayfaId="@Context.Request.Query["ParentSayfaId"]" asp-route-SayfaTipi="@Context.Request.Query["SayfaTipi"]" asp-route-TumSayfaDurumu="@(Context.Request.Query["SayfaTipi"] == SayfaTipleri.DinamikSayfa.ToString() ? "true" : "false")" class="btn btn-success  text-white"><i class="mdi mdi-plus mr-2"></i> @ViewData["AltBaslik"]</a>
+                        </li>
+                    </ul>
+                    <table id="tablolist" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Sayfa Adı</th>
+                                <th>Sayfa Tipi</th>
+                                <th>URL Git</th>
+                                <th>Sol Menü</th>
+                                <th>Sayfa Resimleri</th>
+                                <th>Sayfa Resimleri 2</th>
+                                <th>Hit</th>
+                                <partial name="_SayfaUstKontrolButonlari" />
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+@section scripts
+{
+
+    <partial name="_DataTableServerSideScriptsPartial" model='
+     new DataTableViewModel()
+     {
+         TableId="#tablolist",
+         Url = pageUrl,
+         Type = "post",
+         DataType = "json",
+         Columns=new List<DataTableViewColumn>() {
+              new DataTableViewColumn(){Id="Id",Name=""},
+              new DataTableViewColumn(){Id="Id",Name="Id"},
+              new DataTableViewColumn(){Id="SayfaAdi",Name="SayfaAdi"},
+              new DataTableViewColumn(){Id="SayfaTipi",Name="SayfaTipi"},
+              new DataTableViewColumn(){Id="UrlGit",Name="UrlGit"},
+              new DataTableViewColumn(){Id="AdminSolMenu",Name="AdminSolMenu"},
+              new DataTableViewColumn(){Id="SayfaResimleri",Name="SayfaResimleri"},
+              new DataTableViewColumn(){Id="SayfaResimleri2",Name="SayfaResimleri2"},
+              new DataTableViewColumn(){Id="Hit",Name="Hit"},
+              new DataTableViewColumn(){Id="Sira",Name="Sira"},
+              new DataTableViewColumn(){Id="Durum",Name="Durum"},
+              new DataTableViewColumn(){Id="Vitrin",Name="Vitrin"},
+              new DataTableViewColumn(){Id="Buttons",Name=""},
+          },
+         Order=new DataTableViewOrder()
+         {
+             Id=0,
+             Asc="asc"
+         },
+         Filter=true,
+         Searchable=true,
+         Processing=true,
+         Orderable=true,
+         OrderMulti=false,
+         ServerSide=true,
+         StateSave=datatableStateSave,
+     }' />
+    <partial name="_CustomScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $('.fancybox').fancybox();
+
+            $.fn.fancybox.close = function () {
+                //$('#sub_cont').hide(250, function() {
+                //    $('#IDsearchform input').val('');
+                //});
+            };
+            $(".fancybox-effects-a").fancybox({
+                helpers: {
+                    title: {
+                        type: 'outside'
+                    },
+                    overlay: {
+                        speedOut: 0
+                    }
+                }
+            });
+        });
+
+
+        $(document).ready(function () {
+            $('.fancybox').fancybox();
+
+            $.fn.fancybox.close = function () {
+                //$('#sub_cont').hide(250, function() {
+                //    $('#IDsearchform input').val('');
+                //});
+                alert("?");
+            };
+            $(".fancybox-effects-a").fancybox({
+                helpers: {
+                    title: {
+                        type: 'outside'
+                    },
+                    overlay: {
+                        speedOut: 0
+                    }
+                }
+            });
+        });
+
+
+        function GaleriResimleri(id, sayfaresimkategoriid,dil) {
+            $.fancybox.open({
+                href: '/Admin/Sayfalar/PageImages/' + id + '?SayfaResimKategoriId=' + sayfaresimkategoriid + '&DilId=' + dil + '',
+                type: 'iframe',
+                width: 1000,
+                minHeight: 600,
+                padding: 5,
+                //closeClick: false,
+                onClosed: function () {
+                    //  Raporla();
+                    jQuery.fancybox.close();
+                },
+                afterClose: function () {
+                    //  Raporla();
+                    jQuery.fancybox.close();
+                },
+                mouseWheel: false
+
+            });
+        }
+
+    </script>
+}

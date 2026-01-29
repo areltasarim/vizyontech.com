@@ -1,0 +1,63 @@
+﻿@inject HelperServis _helperServis
+@model SiparisGecmisViewModel
+@{
+    var _context = new AppDbContext();
+
+    var kargoyaVerildiValue = (int)SiparisDurumTipleri.KargoyaVerildi;
+
+    var siparis = _context.Siparisler.Find(Convert.ToInt32(ViewContext.RouteData.Values["Id"]));
+}
+<form>
+    <input type="hidden" asp-for="SiparisId" value="@ViewContext.RouteData.Values["Id"]" />
+    <div class="row mb-3">
+        <label class="col-md-3 col-form-label">Sipariş Durumları</label>
+        <div class="col-md-9">
+            <select class="form-control" asp-for="SiparisDurumId" asp-items="@ViewData["SiparisDurumlari"] as IEnumerable<SelectListItem>">
+                <option>Seçiniz</option>
+            </select>
+
+            <div class="mt-2" style="display:none;" id="KargoKodGoster">
+                <input style="border-color:blue" class="form-control" asp-for="KargoKodu" type="text" value="@siparis.KargoKodu" placeholder="Kargo Takip Numarasını Giriniz">
+                <span asp-validation-for="KargoKodu" class="text-danger"></span>
+                @*<div class="d-flex ve justify-content-end mt-2">
+                    <button type="button" id="btnKaydet" class="btn btn-success waves-effect waves-light mr-1 btn-progress">
+                        <i class="fa fa-check"></i>  Kaydet
+                    </button>
+                </div>
+                <div id="response" style="margin-top: 20px;"></div>*@
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    $('#SiparisDurumId').on('change', function () {
+        var kargoyaVerildiEnum = '@kargoyaVerildiValue';
+        var selectedValue = $(this).val();
+        if (selectedValue === kargoyaVerildiEnum) {
+            $('#KargoKodGoster').show();
+        } else {
+            $('#KargoKodGoster').hide();
+        }
+    });
+
+    $('#btnKaydet').on('click', function (event) {
+        event.preventDefault();
+        var formData = {
+            KargoKodu: $('#KargoKodu').val(),
+            KargoSiparisId: $('#SiparisId').val(),
+        };
+        $.ajax({
+            url: '/Admin/Siparisler/KargoKoduEkle',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function (response) {
+                $('#response').html('<p>' + response.Mesaj + '</p>');
+            },
+            error: function (xhr, status, error) {
+                $('#response').html('<p>Hata: ' + error + '</p>');
+            }
+        });
+    });
+</script>

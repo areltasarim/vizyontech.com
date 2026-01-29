@@ -1,0 +1,19 @@
+﻿@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var ekipler = _helperServis.GetEkipler();
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+@using (Html.BeginScripts())
+{
+
+}

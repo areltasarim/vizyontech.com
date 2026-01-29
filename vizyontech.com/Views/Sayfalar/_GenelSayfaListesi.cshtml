@@ -1,0 +1,159 @@
+﻿@model IEnumerable<SayfalarTranslate>
+@inject HelperServis _helperServis
+@{
+    var _context = new AppDbContext();
+
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+}
+<div class="ps-portfolio">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.AnaSayfa")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@parentSayfa.SayfaAdi</li>
+        </ul>
+        <div class="ps-portfolio__content">
+            <h1 class="ps-portfolio__title">@parentSayfa.SayfaAdi</h1>
+            <div class="ps-portfolio__tabs">
+                <ul class="nav nav-tabs" id="productContentTabs" role="tablist">
+                    <li class="nav-item" role="presentation"><a class="nav-link active" id="portfolio-all-tab" data-toggle="tab" href="#portfolio-all-content" role="tab" aria-controls="portfolio-all-content" aria-selected="true">Tümü</a></li>
+                    @foreach (var item in Model)
+                    {
+                        <li class="nav-item" role="presentation"><a class="nav-link" id="portfolio-@item.SayfaId-tab" data-toggle="tab" href="#portfolio-@item.SayfaId-content" role="tab" aria-controls="portfolio-@item.SayfaId-content" aria-selected="false">@item.SayfaAdi</a></li>
+                    }
+                </ul>
+                <div class="tab-content" id="productContent">
+
+                    <div class="tab-pane fade show active" id="portfolio-all-content" role="tabpanel" aria-labelledby="portfolio-all-tab">
+                        <div class="row">
+
+                            @foreach (var sayfa in Model)
+                            {
+                                var altsayfalar = _helperServis.GetAltSayfalar(sayfa.SayfaId);
+
+                                @foreach (var altsayfa in altsayfalar)
+                                {
+                                    var sayfaResim = _helperServis.GetSayfaResim(altsayfa.SayfaId).Result;
+                                    var seoUrl = "#";
+                                    if (altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.DinamikSayfa)
+                                    {
+                                        seoUrl = _helperServis.GetSeoUrl(altsayfa.SayfaId, SeoUrlTipleri.DinamikSayfaDetay).Result.Url;
+                                    }
+                                    else if (altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz)
+                                    {
+                                        seoUrl = altsayfa.Dosya;
+                                    }
+
+
+                                    <div class="col-12 col-md-6 col-lg-4">
+
+                                        @if (altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Video)
+                                        {
+                                            <div class="ps-blog--latset mb-0">
+
+                                                <div class="embed-responsive embed-responsive-16by9">
+                                                    <iframe class="youtubePlayer embed-responsive-item"
+                                                            data-youtubeurl="@altsayfa.YoutubeVideoLink"
+                                                            allowfullscreen>
+                                                    </iframe>
+                                                </div>
+                                                <div class="ps-blog__content">
+                                                    @altsayfa.SayfaAdi
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="ps-blog--latset">
+                                                <div class="ps-blog__thumbnail">
+                                                    <a href="@(altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz ? $"{sayfaResim}" : seoUrl)" target="@(altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz ? "_blank" : "")"><img src="@($"{sayfaResim}?width=500&height=500&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" /></a>
+                                                </div>
+                                                <div class="ps-blog__content">
+                                                    <a class="ps-blog__title" href="@seoUrl" target="@(altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz ? "_blank" : "")">
+                                                        @altsayfa.SayfaAdi
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+                            }
+
+                        </div>
+                    </div>
+                    @foreach (var item in Model)
+                    {
+                        var altsayfalar = _helperServis.GetAltSayfalar(item.SayfaId);
+
+                        <div class="tab-pane fade" id="portfolio-@item.SayfaId-content" role="tabpanel" aria-labelledby="portfolio-@item.SayfaId-tab">
+                            <div class="row">
+
+                                @foreach (var altsayfa in altsayfalar)
+                                {
+                                    var sayfaResim = _helperServis.GetSayfaResim(altsayfa.SayfaId).Result;
+                                    var seoUrl = "#";
+                                    if (altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.DinamikSayfa)
+                                    {
+                                        seoUrl = _helperServis.GetSeoUrl(altsayfa.SayfaId, SeoUrlTipleri.DinamikSayfaDetay).Result.Url;
+                                    }
+                                    else if (altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz)
+                                    {
+                                        seoUrl = altsayfa.Dosya;
+                                    }
+
+
+                                    <div class="col-6 col-md-6 col-lg-4">
+
+                                        @if (altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Video)
+                                        {
+                                            <div class="ps-blog--latset">
+
+                                                <div class="embed-responsive embed-responsive-16by9">
+                                                    <iframe class="youtubePlayer embed-responsive-item"
+                                                            data-youtubeurl="@altsayfa.YoutubeVideoLink"
+                                                            allowfullscreen>
+                                                    </iframe>
+                                                </div>
+                                                <div class="ps-blog__content">
+                                                    @altsayfa.SayfaAdi
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="ps-blog--latset">
+                                                <div class="ps-blog__thumbnail">
+                                                    <a href="@(altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz ? $"{sayfaResim}" : seoUrl)" target="@(altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz ? "_blank" : "")"><img src="@($"{sayfaResim}?width=500&height=500&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" /></a>
+                                                </div>
+                                                <div class="ps-blog__content">
+                                                    <a class="ps-blog__title" href="@seoUrl" target="@(altsayfa.Sayfalar.SayfaTipi == SayfaTipleri.Belgelerimiz ? "_blank" : "")">
+                                                        @altsayfa.SayfaAdi
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="ps-portfolio__button"> <a class="ps-btn ps-btn--primary" href="#">@Localize("Genel.DahaFazlaGoster")</a></div>
+        </div>
+    </div>
+</div>

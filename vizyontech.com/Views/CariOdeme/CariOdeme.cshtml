@@ -1,0 +1,126 @@
+﻿@inject HelperServis _helperServis
+@{
+
+    ViewBag.MetaTitle = "Cari Ödeme";
+
+}
+<div class="container">
+    <ul class="ps-breadcrumb">
+        <li class="ps-breadcrumb__item"><a href="#">@Localize("Genel.CariOdeme")</a></li>
+        <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.CariOdeme")</li>
+    </ul>
+    <div>
+        <div class="container py-5">
+            <div class="row justify-content-center">
+
+                <div class="col-md-6">
+                    <partial name="_BilgiMesaji" />
+
+                    <div class="card shadow rounded-4">
+                        <div class="card-body p-4">
+                            <h4 class="mb-4 text-center fw-bold">💳 Kredi Kartı ile Ödeme</h4>
+
+                            <form id="payment-form" asp-controller="CariOdeme" asp-action="CariOdeme" asp-route-id="@ViewBag.EncryptedId" method="post">
+                                <!-- Ad Soyad -->
+                                <div class="mb-3">
+                                    <label class="form-label">Ödeme Tutarı</label>
+                                    <input type="text" name="OdenenTutar" id="OdenenTutar" class="form-control border border-2 border-primary" placeholder="Ödeme Tutarı" required>
+                                </div>
+
+                                <!-- Ad Soyad -->
+                                <div class="mb-3">
+                                    <label class="form-label">Ad Soyad</label>
+                                    <input type="text" name="cardOwner" class="form-control" placeholder="Kart Üzerindeki İsim" required>
+                                </div>
+
+                                <!-- Kart Numarası -->
+                                <div class="mb-3">
+                                    <label class="form-label">Kart Numarası</label>
+                                    <input type="text" name="pan" id="pan" class="form-control" placeholder="•••• •••• •••• ••••" required maxlength="19">
+                                </div>
+
+                                <!-- Son Kullanma Tarihi -->
+                                <div class="mb-3">
+                                    <label class="form-label">Son Kullanma Tarihi (MM/YY)</label>
+                                    <div class="row gx-2">
+                                        <div class="col">
+                                            <input type="text" name="expiryMonth" id="expiryMonth" class="form-control" placeholder="AA" maxlength="2" required>
+                                        </div>
+                                        <div class="col">
+                                            <input type="text" name="expiryYear" id="expiryYear" class="form-control" placeholder="YY" maxlength="2" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- CVV -->
+                                <div class="mb-3">
+                                    <label class="form-label">CVV</label>
+                                    <input type="text" name="cvv" id="cvv" class="form-control" placeholder="•••" maxlength="3" required>
+                                </div>
+
+                                <button type="submit" class="odeme-yap ps-btn ps-btn--warning btn-block btn-pill font-size-20 mb-3 py-3">
+                                    Ödemeyi Tamamla
+                                </button>
+
+                                <!-- Ziraat güvenlik JS -->
+                                <script type="text/javascript"
+                                        src="https://h.online-metrix.net/fp/tags.js?org_id=6bmm5c3v&session_id=@TempData["ZiraatPaySessionToken"]&pageid=1">
+                                </script>
+
+                                <noscript>
+                                    <iframe style="width:100px; height:100px; border:0; position:absolute; top:-5000px;"
+                                            src="https://h.online-metrix.net/fp/tags.js?org_id=6bmm5c3v&session_id=@TempData["ZiraatPaySessionToken"]&pageid=1">
+                                    </iframe>
+                                </noscript>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        $('#OdenenTutar').on('input', function () {
+            let value = $(this).val();
+
+            // Nokta varsa otomatik olarak virgüle çevir
+            value = value.replace(/\./g, ',');
+
+            // Sadece rakam ve virgül dışındaki karakterleri sil
+            value = value.replace(/[^0-9,]/g, '');
+
+            // Eğer birden fazla virgül varsa sadece ilkini bırak
+            let parts = value.split(',');
+            if (parts.length > 2) {
+                value = parts[0] + ',' + parts[1];
+            }
+
+            $(this).val(value);
+        });
+
+
+
+
+        // Kart numarası girerken her 4 hanede bir boşluk ekle
+        document.getElementById('pan').addEventListener('input', function (e) {
+            let value = this.value.replace(/\D/g, '').substring(0, 16); // sadece rakam, 16 hane
+            value = value.replace(/(.{4})/g, '$1 ').trim(); // her 4 hanede boşluk
+            this.value = value;
+        });
+
+        // CVV, Ay, Yıl alanlarında sadece rakam ve sınırlama
+        ['expiryMonth', 'expiryYear', 'cvv'].forEach(function (id) {
+            document.getElementById(id).addEventListener('input', function (e) {
+                this.value = this.value.replace(/\D/g, '').slice(0, this.maxLength);
+            });
+        });
+        document.getElementById('payment-form').addEventListener('submit', function () {
+            const panInput = document.getElementById('pan');
+            panInput.value = panInput.value.replace(/\s+/g, ''); // boşlukları kaldır
+        });
+    </script>
+}

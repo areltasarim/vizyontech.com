@@ -1,0 +1,45 @@
+﻿@{
+    var _context = new AppDbContext();
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+    var siteAyari = _context.SiteAyarlariTranslate.ToList().Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+}
+
+<style>
+    .modal-header {
+        padding: 0 !important;
+    }
+
+    .modal-footer .btn {
+        min-width: auto !important;
+        height: 35px !important;
+        line-height: 35px !important;
+    }
+
+    #myModalpopup {
+        z-index: 9999;
+    }
+
+    .modal-header .btn-close {
+        padding: 0.80rem !important;
+        margin: -0.5rem 0.55rem -0.5rem auto !important;
+    }
+</style>
+<div class="modal" id="myModalpopup" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.Raw(siteAyari.Popup)
+            </div>
+            <div class="modal-footer">
+                <button id="btnHideModal" type="button" class="btn btn__primary btn-sm" data-dismiss="modal">Bir Daha Gösterme</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

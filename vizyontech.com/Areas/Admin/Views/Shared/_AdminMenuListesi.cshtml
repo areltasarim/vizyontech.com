@@ -1,0 +1,358 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var sayfalar = _context.Sayfalar.Where(p => p.AdminSolMenu == AdminSolMenuDurumlari.Goster).ToList();
+
+
+
+}
+<ul class="metismenu list-unstyled" id="side-menu">
+    @*<li class="menu-title">Menu</li>*@
+
+    <li>
+        <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="waves-effect">
+            <i class="ri-home-4-line"></i>
+            <span>Ana Sayfa</span>
+        </a>
+    </li>
+
+    @*<li>
+            <a asp-area="Admin" asp-controller="Sayfalar" asp-action="Index" asp-route-SayfaTipi="@SayfaTipleri.SabitSayfa" class=" waves-effect">
+                <i class="ri-pages-line"></i>
+                <span>Sabit Sayfalar</span>
+            </a>
+        </li>*@
+    @if (sayfalar.Count > 0)
+    {
+        <li>
+            <a href="javascript: void(0);" class="has-arrow waves-effect">
+                <i class="ri-stack-fill"></i>
+                <span>Sayfalar</span>
+            </a>
+            <ul class="sub-menu" aria-expanded="false">
+                <li>
+                    <a asp-area="Admin" asp-controller="Sayfalar" asp-action="Index" asp-route-ParentSayfaId="0" asp-route-SayfaTipi="@SayfaTipleri.DinamikSayfa" asp-route-TumSayfaDurumu="true" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Tüm Sayfalar</span>
+                    </a>
+                </li>
+                @foreach (var item in sayfalar)
+                {
+                    <li>
+                        <a asp-area="Admin" asp-controller="Sayfalar" asp-action="Index" asp-route-ParentSayfaId="@item.Id" asp-route-SayfaTipi="@item.SayfaTipi" asp-route-TumSayfaDurumu="false" class=" waves-effect">
+                            <i class="ri-stack-fill"></i>
+
+                            @if (!string.IsNullOrEmpty(item.KisayolMenuAdi))
+                            {
+                                <span>
+                                    @item.KisayolMenuAdi
+                                </span>
+                            }
+                            else
+                            {
+                                <span>
+                                    @(_context.SayfalarTranslate.Where(p=> p.SayfaId == item.Id).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR")?.SayfaAdi)
+                                </span>
+                            }
+                        </a>
+                    </li>
+                }
+
+                <li>
+                    <a asp-area="Admin" asp-controller="SayfaOzellikGruplari" asp-action="Index" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Özellik Grupları</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="SayfaOzellikleri" asp-action="Index" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Özellikler</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li>
+            <a href="javascript: void(0);" class="has-arrow waves-effect">
+                <i class="ri-stack-fill"></i>
+                <span>Sayfalar</span>
+            </a>
+            <ul class="sub-menu" aria-expanded="false">
+                <li>
+                    <a asp-area="Admin" asp-controller="Sayfalar" asp-action="Index" asp-route-SayfaTipi="@SayfaTipleri.DinamikSayfa" class=" waves-effect">
+                        <i class="ri-pages-line"></i>
+                        <span>Sayfalar</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="SayfaOzellikGruplari" asp-action="Index" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Özellik Grupları</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="SayfaOzellikleri" asp-action="Index" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Özellikler</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    }
+
+    @*<li>
+            <a asp-area="Admin" asp-controller="Sayfalar" asp-action="Yorumlar" asp-route-SayfaId="9" class=" waves-effect">
+                <i class="ri-image-fill"></i>
+                <span>Yorumlar</span>
+            </a>
+        </li>*@
+
+    <li>
+        <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class="ri-stack-fill"></i>
+            <span>Ürünler</span>
+        </a>
+        <ul class="sub-menu" aria-expanded="false">
+            <li>
+                <a asp-area="Admin" asp-controller="Markalar" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>Markalar</span>
+                </a>
+            </li>
+            <li>
+                <a asp-area="Admin" asp-controller="Kategoriler" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>Kategoriler</span>
+                </a>
+            </li>
+            @*<li>
+                    <a asp-area="Admin" asp-controller="UrunOzellikGruplari" asp-action="Index" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Özellik Grupları</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="UrunOzellikleri" asp-action="Index" class=" waves-effect">
+                        <i class="ri-stack-fill"></i>
+                        <span>Özellikler</span>
+                    </a>
+                </li>
+            *@
+            <li>
+                <a asp-area="Admin" asp-controller="UrunSecenekleri" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>Ürün Seçenekleri</span>
+                </a>
+            </li>
+            <li>
+                <a asp-area="Admin" asp-controller="Urunler" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>Ürünler</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="Kuponlar" asp-action="Index" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-2-line"></i>
+            <span>Kuponlar</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="Moduller" asp-action="Index" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-2-line"></i>
+            <span>Modüller</span>
+        </a>
+    </li>
+    @*
+        <li>
+            <a asp-area="Admin" asp-controller="ExcelYukle" asp-action="Index" class=" waves-effect">
+                <i class="ri-file-excel-2-line"></i>
+                <span>Excel Yükle</span>
+            </a>
+        </li>
+        <li>
+            <a asp-area="Admin" asp-controller="IletisimFormu" asp-action="Index" class=" waves-effect">
+                <i class="ri-user-shared-2-line"></i>
+                <span>Aboneler</span>
+            </a>
+        </li>
+    *@
+    <li>
+        <a asp-area="Admin" asp-controller="SiparisDurumlari" asp-action="Index" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-2-line"></i>
+            <span>Sipariş Durumları</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="OdemeMetodlari" asp-action="Index" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-2-line"></i>
+            <span>Ödeme Metodları</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="KargoMetodlari" asp-action="Index" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-2-line"></i>
+            <span>Kargo Metodları</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="Siparisler" asp-action="Index" class=" waves-effect">
+            <i class="ri-shopping-cart-fill"></i>
+            <span>Siparişler</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="CariOdemeler" asp-action="Index" class=" waves-effect">
+            <i class="ri-shopping-cart-fill"></i>
+            <span>Cari Ödemeler</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="SayfaFormu" asp-action="Index" asp-route-SayfaFormTipi="@SayfaFormTipleri.Iletisim" class=" waves-effect">
+            <i class="ri-menu-add-line"></i>
+            <span>Bize Ulaşın</span>
+        </a>
+    </li>
+
+    <li>
+        <a asp-area="Admin" asp-controller="Slaytlar" asp-action="Index" class=" waves-effect">
+            <i class="ri-image-fill"></i>
+            <span>Slaytlar</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="Banner" asp-action="Index" class=" waves-effect">
+            <i class="ri-gallery-line"></i>
+            <span>Banner</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="FotografGalerileri" asp-action="Index" class=" waves-effect">
+            <i class="ri-gallery-line"></i>
+            <span>Fotoğraf Galerileri</span>
+        </a>
+    </li>
+
+    @*<li>
+            <a asp-area="Admin" asp-controller="FotografGalerileri" asp-action="Index" asp-route-TopluResim="true" class=" waves-effect">
+                <i class="ri-gallery-line"></i>
+                <span>Toplu Resimler</span>
+            </a>
+        <li>
+            <a asp-area="Admin" asp-controller="VideoKategorileri" asp-action="Index" class=" waves-effect">
+                <i class="ri-video-line"></i>
+                <span>Videolar</span>
+            </a>
+        </li>*@
+    <li>
+        <a asp-area="Admin" asp-controller="DosyaKategorileri" asp-action="Index" class=" waves-effect">
+            <i class="ri-video-line"></i>
+            <span>Dosya Kategorileri</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="Menuler" asp-action="AddOrUpdate" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-add-line"></i>
+            <span>Menüler</span>
+        </a>
+    </li>
+    <li>
+        <a asp-area="Admin" asp-controller="SabitMenuler" asp-action="Index" asp-route-id="" class=" waves-effect">
+            <i class="ri-menu-2-line"></i>
+            <span>Sabit Menüler</span>
+        </a>
+    </li>
+
+    <li>
+        <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class="ri-stack-fill"></i>
+            <span>Yerel</span>
+        </a>
+        <ul class="sub-menu" aria-expanded="false">
+            <li>
+                <a asp-area="Admin" asp-controller="Ulkeler" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>Ülkeler</span>
+                </a>
+            </li>
+            <li>
+                <a asp-area="Admin" asp-controller="Iller" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>İller</span>
+                </a>
+            </li>
+            <li>
+                <a asp-area="Admin" asp-controller="Ilceler" asp-action="Index" class=" waves-effect">
+                    <i class="ri-stack-fill"></i>
+                    <span>İlçeler</span>
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li>
+        <a href="javascript: void(0);" class="has-arrow waves-effect">
+            <i class="ri-team-fill"></i>
+            <span>Üyeler</span>
+        </a>
+        <ul class="sub-menu" aria-expanded="false">
+            @if (User.IsInRole("Administrator"))
+            {
+                <li>
+                    <a asp-area="Admin" asp-controller="Account" asp-action="Roller" class=" waves-effect">
+                        <i class="ri-contacts-fill"></i>
+                        <span>Roller</span>
+                    </a>
+                </li>
+            }
+            <li>
+                <a asp-area="Admin" asp-controller="Account" asp-action="Uyeler" class=" waves-effect">
+                    <i class="ri-team-fill"></i>
+                    <span>Üyeler</span>
+                </a>
+            </li>
+
+        </ul>
+    </li>
+
+
+    @if (User.IsInRole("Administrator"))
+    {
+        <li>
+            <a href="javascript: void(0);" class="has-arrow waves-effect">
+                <i class="ri-global-line"></i>
+                <span>Diller</span>
+            </a>
+            <ul class="sub-menu" aria-expanded="false">
+                <li>
+                    <a asp-area="Admin" asp-controller="DilKodlari" asp-action="Index" class=" waves-effect">
+                        <i class="ri-global-line"></i>
+                        <span>Dil Kodlari</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="Diller" asp-action="Index" class=" waves-effect">
+                        <i class="ri-global-line"></i>
+                        <span>Diller</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Admin" asp-controller="DilCeviri" asp-action="Index" class=" waves-effect">
+                        <i class="ri-global-line"></i>
+                        <span>Dil Çeviri</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+    }
+    <li>
+        <a asp-area="Admin" asp-controller="SiteAyarlari" asp-action="Index" class=" waves-effect">
+            <i class="ri-settings-2-line"></i>
+            <span>Site Ayarları</span>
+        </a>
+    </li>
+
+</ul>

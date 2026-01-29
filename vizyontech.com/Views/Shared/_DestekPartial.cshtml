@@ -1,0 +1,95 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var slogan = _context.SayfalarTranslate.Where(p => p.Sayfalar.SayfaTipi == SayfaTipleri.Slogan1 && p.Sayfalar.ParentSayfaId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var slogan_tr_dil = _context.SayfalarTranslate.Where(p => p.Sayfalar.SayfaTipi == SayfaTipleri.Slogan1 && p.Sayfalar.ParentSayfaId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR");
+    var sloganresim = slogan?.Resim == "/Content/Upload/Images/resimyok.png" ? slogan_tr_dil?.Resim : resimDizini + slogan?.Resim;
+
+}
+<div class="contact-us-area service-contact-bg section-space--ptb_100">
+    <div class="container">
+        <div class="row align-items-center">
+
+            <div class="col-lg-5">
+                <div class="contact-info sytle-one service-contact text-left">
+
+                    <div class="contact-info-title-wrap">
+                        <p class="sub-text">
+                            @Html.Raw(slogan?.KisaAciklama)
+                        </p>
+                    </div>
+
+                    <div class="contact-list-item">
+                        <a href="tel:+@slogan?.ButonAdi" class="single-contact-list">
+                            <div class="content-wrap">
+                                <div class="content">
+                                    <div class="icon">
+                                        <span class="fas fa-phone"></span>
+                                    </div>
+                                    <div class="main-content">
+                                        <div class="text">@slogan?.ButonAdi</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        <a href="mailto:@(slogan?.ButonUrl)" class="single-contact-list">
+                            <div class="content-wrap">
+                                <div class="content">
+                                    <div class="icon">
+                                        <span class="far fa-envelope"></span>
+                                    </div>
+                                    <div class="main-content">
+                                        <div class="text">@slogan?.ButonUrl</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-7 ms-auto">
+                <div class="contact-form-service-wrap">
+                    <div class="contact-title text-center section-space--mb_40">
+                        <h3 class="mb-10">@slogan?.SayfaAdi</h3>
+                        <p class="text">@slogan?.SayfaAdiAltAciklama</p>
+                    </div>
+                    <form enctype="multipart/form-data" asp-action="BizeUlasin" asp-controller="Sayfalar" asp-antiforgery="true" class="contact-form"
+                          data-ajax="true" data-ajax-loading="#spinnerfrmDestekForm"
+                          data-ajax-method="post"
+                          data-ajax-complete="OnComplete"
+                          data-ajax-success="OnSuccess"
+                          data-ajax-failure="OnFailure">
+                        <div class="contact-form__two">
+                            <div class="contact-input">
+                                <div class="contact-inner">
+                                    <input name="AdSoyad" type="text" placeholder="Ad Soyad *">
+                                </div>
+                                <div class="contact-inner">
+                                    <input name="Email" type="email" placeholder="Email *">
+                                </div>
+                            </div>
+                            <div class="contact-inner">
+                                <input name="Konu" type="text" placeholder="Konu *">
+                            </div>
+                            <div class="contact-inner contact-message">
+                                <textarea name="Mesaj" placeholder="Mesajınız"></textarea>
+                            </div>
+                            <div class="comment-submit-btn">
+                                <button class="ht-btn ht-btn-md" type="submit">Gönder</button>
+                                <p class="form-messege-2"></p>
+                            </div>
+                        </div>
+                        <partial name="_BizeUlasinMesaj" model="@("frmDestekForm")" />
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+

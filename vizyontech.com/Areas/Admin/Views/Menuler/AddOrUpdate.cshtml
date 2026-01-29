@@ -1,0 +1,498 @@
+﻿@model Menuler
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    IEnumerable<Menuler> Menulistesi = ViewData["MenuListesi"] as IEnumerable<Menuler>;
+
+    var Aktifkonum = ViewBag.AktifListe;
+}
+
+@section styles
+{
+    <link href="assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Admin/Content/Theme/ozelcss/custom.css" rel="stylesheet" type="text/css" />
+
+    <link href="~/Admin/Content/Theme/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        .sayfatipi {
+            display: none;
+        }
+
+        .select2 {
+            width: 100% !important;
+        }
+    </style>
+}
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="EntityMenuId" value="@(ViewContext.RouteData.Values["Id"] == null ? 0 : Model.EntityId)" />
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                        <a asp-area="Admin" asp-controller="Menuler" asp-action="AddOrUpdate" asp-route-Id="" class="btn btn-success waves-effect waves-light mr-1 float-right">
+                            <i class="fa fa-check"></i>  Yeni Menü Ekle
+                        </a>
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <input type="hidden" asp-for="ParentMenuId" value="1" />
+
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-2 col-form-label">Menü Adı</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="MenuAdiCeviri" id="MenuAdiCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.MenulerTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.MenuAdi)">
+                                            </div>
+                                        </div>
+                                        <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.Url)">
+                                            <div class="row mb-3">
+                                                <label class="col-md-2 col-form-label">Url</label>
+                                                <div class="col-md-9">
+                                                    <input class="form-control" name="UrlCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.MenulerTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Url)">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row mb-3">
+                                    <label class="col-md-2 col-form-label">Menü Tipi</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="seourl" asp-for="MenuTipi" asp-items="Html.GetEnumSelectList<MenuTipleri>()">
+                                            <option value="0">Seçiniz</option>
+                                        </select>
+                                        <span asp-validation-for="MenuTipi" class="text-danger"></span>
+
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.DinamikSayfalar)">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Dinamik Sayfalar</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control select2" id="select_dinamiksayfa" asp-for="EntityId" asp-items="@ViewData["DinamikSayfalar"] as IEnumerable<SelectListItem>">
+                                                <option value="0">Seçiniz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.Kategoriler)">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Kategoriler</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control  select2" id="select_kategori" asp-for="EntityId" asp-items="@ViewData["Kategoriler"] as IEnumerable<SelectListItem>">
+                                                <option value="0">Seçiniz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.Urunler)">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Ürünler</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control select2" id="select_urun" asp-for="EntityId" asp-items="@ViewData["Urunler"] as IEnumerable<SelectListItem>">
+                                                <option value="0">Seçiniz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.Galeri)">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Galeri</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control select2" id="select_galeri" asp-for="EntityId" asp-items="@ViewData["FotografGalerileri"] as IEnumerable<SelectListItem>">
+                                                <option value="0">Seçiniz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.EKatalog)">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Ekatalog</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control select2" id="select_katalog" asp-for="EntityId" asp-items="@ViewData["EKatalog"] as IEnumerable<SelectListItem>">
+                                                <option value="0">Seçiniz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.SabitMenu)">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Sabit Menüler</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control select2" id="select_sabitmenu" asp-for="EntityId" asp-items="@ViewData["SabitMenuler"] as IEnumerable<SelectListItem>">
+                                                <option value="0">Seçiniz</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="sayfatipi" id="@Convert.ToInt32(MenuTipleri.Dosyalar)">
+                                    @{
+                                        int dosyaid = 0;
+
+                                        if (ViewContext.RouteData.Values["Id"] != null)
+                                        {
+                                            dosyaid = Convert.ToInt32(_context.FotografGaleriResimleri.Where(x => x.Id == Model.EntityId).FirstOrDefault()?.FotografGaleriId);
+                                        }
+                                    }
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Dosya Kategori</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control dosyakategoriid  select2" onchange="DosyaKategori()">
+                                                <option value="0">Seçiniz</option>
+                                                @foreach (var item in _context.FotografGalerileri.Where(x => x.Durum == SayfaDurumlari.Aktif).ToList())
+                                                {
+                                                    if (item.Id == dosyaid)
+                                                    {
+                                                        <option selected value="@item.Id">@item.FotografGalerileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR").GaleriAdi</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@item.Id">@item.FotografGalerileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR").GaleriAdi</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="DosyaSecim" style="display:none">
+                                    <div class="row mb-3">
+                                        <label class="col-md-2 col-form-label">Dosyalar</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control select2" id="DosyaListele" asp-for="EntityId" asp-items="@ViewData["Dosyalar"] as IEnumerable<SelectListItem>">
+                                                @*<option value="0">Seçiniz</option>*@
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label class="col-md-2 col-form-label">Menü Kolon</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="MenuKolon" type="number" value="@(ViewContext.RouteData.Values["Id"] == null ? 0 : Model.MenuKolon)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label class="col-md-2 col-form-label">Sekme Durumu</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="SekmeDurumu" asp-items="Html.GetEnumSelectList<MenuSekmeleri>()">
+                                        </select>
+                                        <span asp-validation-for="SekmeDurumu" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label class="col-md-2 col-form-label">Durum</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <button type="submit" value="Kaydet" id="Kaydet" name="submit" class="btn btn-success waves-effect waves-light mr-1">
+                                        <i class="fa fa-check"></i>  Kaydet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="ri-align-justify"></i> Menüleri Sirala
+                    </h4>
+                    <hr class="my-4">
+
+                    <div class="card">
+                        <div class="card-body  pt-0">
+                            <input type="hidden" id="menuKonumu" name="menuKonumu" value="@Aktifkonum" />
+                            <ul class="nav nav-tabs nav-tabs-custom mb-4">
+                                @{
+                                    var konumlar = ViewBag.MenuKonumlari;
+
+                                    foreach (var item in konumlar)
+                                    {
+                                        if (item.Id == Aktifkonum)
+                                        {
+                                            <li class="nav-item">
+                                                <a class="nav-link font-weight-bold p-3 active" asp-area="Admin" asp-controller="Menuler" asp-action="AddOrUpdate" asp-route-Id="" asp-route-MenuYeri="@item.Id">  <i class="ti-layout-list-post"></i> @item.Name</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li class="nav-item">
+                                                <a class="nav-link font-weight-bold p-3" asp-area="Admin" asp-controller="Menuler" asp-action="AddOrUpdate" asp-route-Id="" asp-route-MenuYeri="@item.Id">  <i class="ti-layout-list-post"></i> @item.Name</a>
+                                            </li>
+                                        }
+
+                                    }
+                                }
+                            </ul>
+                            <div>
+                                <section class="panel">
+                                    <div class="panel-body">
+                                        <div class="sortable">
+                                            <ol class="sortable ui-sortable">
+                                                <partial name="_MenuListesi" model="Menulistesi" />
+
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+
+@section scripts
+{
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/Admin/Content/Theme/ozel/bootbox.min.js"></script>
+    <script src="~/Admin/Content/Theme/ozel/notify.js"></script>
+    <script src="~/Admin/Content/Theme/ozel/Global.js"></script>
+
+
+    <!-- Sürükle Bırak Menü-->
+    <script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery.mjs.nestedSortable.js"></script>
+    <!-- Sürükle Bırak Menü-->
+
+
+    <script src="~/Admin/Content/Theme/assets/libs/select2/js/select2.min.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-advanced.init.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script>
+
+        $(document).ready(function () {
+          
+           
+
+
+            $('#seourl').change(function () {
+                $('input[name="EntityMenuId"]').val();
+            });
+            $('.sayfatipi select, .sayfatipi .select2').on('change', function () {
+                var selectedValue = $(this).val();
+                $('input[name="EntityMenuId"]').val(selectedValue);
+
+                var selectedText = $(this).find("option:selected").text();
+                if (selectedText.includes('>')) {
+                    var parts = selectedText.split('>');
+                    selectedText = parts[parts.length - 1].trim();
+                }
+                $('input[name="MenuAdiCeviri"]').val(selectedText);
+            });
+
+
+            var myID = $("#seourl").val();
+            $('.sayfatipi').each(function () {
+                myID === $(this).attr('id') ? $(this).show() : $(this).hide();
+            });
+            if (myID == 31) {
+                $("#DosyaSecim").css("display", "block");
+            }
+            DosyaKategori();
+        });
+
+        $('#seourl').change(function () {
+            $("#DosyaSecim").css("display", "none");
+            var myID = $(this).val();
+            $('.sayfatipi').each(function () {
+                myID === $(this).attr('id') ? $(this).show() : $(this).hide();
+            });
+        });
+
+
+       
+        //Dosya Seçimi
+        $('.dosyakategoriid').change(function () {
+            var dosyaListele = $("#DosyaListele");
+            var secinizOption = dosyaListele.find('option:first').val();
+            $("#DosyaListele").val(secinizOption);
+
+            $("#DosyaSecim").css("display", "block");
+        });
+        function DosyaKategori() {
+
+            //$("#DosyaListele").val("0").trigger("change");
+
+            $.ajax({
+                type: 'POST',
+                url: '/Admin/Menuler/DosyalariGetir',
+                dataType: 'json',
+                contentType: "application/json; charset=utf-8",
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                data: { id: $(".dosyakategoriid").val() },
+                success: function (data) {
+                    $("#DosyaListele").prop("disabled", false);
+                    var seciliDeger = $("#DosyaListele").val(); // Seçili değeri sakla
+                    $("#DosyaListele").empty(); // Mevcut seçenekleri temizle
+                    $("#DosyaListele").append('<option value="">Seçiniz</option>');
+
+                    $.each(data, function (i, dosya) {
+                        $("#DosyaListele").append('<option value="'
+                            + dosya.Id + '">'
+                            + dosya.Resim + '</option>');
+                    });
+                    $("#DosyaListele").val(seciliDeger);
+
+                },
+                error: function (ex) {
+                    alert('Hata Oluştu' + ex.responseText);
+                }
+            });
+        };
+        //Dosya Seçimi
+    </script>
+
+    <script>
+        $(() => {
+            $("#pictureFile").on('change', (e) => {
+
+                var reader = new FileReader();
+                reader.onloadend = (evt) => {
+                    $('#picturePreview').attr('src', reader.result);
+
+                };
+                reader.readAsDataURL(document.getElementById('pictureFile').files[0]);
+            });
+        });
+
+    </script>
+
+    <script>
+        //Menü Siralama
+        $(document).ready(function () {
+            $('ol.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                handle: 'div',
+                helper: 'clone',
+                items: 'li',
+                opacity: .6,
+                placeholder: 'placeholder',
+                revert: 250,
+                tabSize: 25,
+                tolerance: 'pointer',
+                toleranceElement: '> div',
+                maxLevels: 10,
+                isTree: true,
+                expandOnHover: 700,
+                startCollapsed: true,
+                stop: function () {
+                    var serialized = $('ol.sortable').nestedSortable('serialize');
+                    var dataValue = serialized;
+                    $.ajax({
+                        type: "POST",
+                        url: '/Admin/Menuler/MenuOrder',
+                        dataType: "json",
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        data: { liste: dataValue },
+                        success: function (data, status, xhr) {
+                            if (data.Basarilimi) {
+                                ModalBox(data.Mesaj, "", "success", data.NotfyAlert, data.BootBoxAlert);
+                            }
+                            else {
+                                ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+                            }
+                        },
+                        error: function (data, status, error) {
+                            ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+                        }
+                    });
+                }
+            });
+        });
+        //Menü Siralama
+
+        //Menü Silme
+        function MenuListeKaldir(id) {
+            var dataValue = id;
+            $.ajax({
+                url: '/Admin/Menuler/MenuDelete',
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                data: { id: dataValue },
+
+                success: function (data, status, xhr) {
+                    if (data.Basarilimi) {
+                        ModalBox(data.Mesaj, "", "success", data.NotfyAlert, data.BootBoxAlert);
+                        $("#list_" + id).remove();
+                    }
+                    else {
+                        ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+                    }
+                },
+                error: function (data, status, error) {
+                    ModalBox(data.Mesaj, "", "error", data.NotfyAlert, data.BootBoxAlert);
+                }
+            });
+        }
+        //Menü Silme
+
+
+    </script>
+
+} 

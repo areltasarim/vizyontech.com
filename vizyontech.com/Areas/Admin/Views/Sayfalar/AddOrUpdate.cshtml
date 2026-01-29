@@ -1,0 +1,485 @@
+﻿@model SayfaViewModel
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+
+    var Id = Convert.ToInt32(ViewContext.RouteData.Values["Id"]);
+    var sayfatipi = (SayfaTipleri)Enum.Parse(typeof(SayfaTipleri), Context.Request.Query["SayfaTipi"].ToString());
+
+    var _context = new AppDbContext();
+
+}
+
+@section styles
+{
+
+    <link href="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+
+    <link href="~/Admin/Content/Theme/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css" rel="stylesheet" />
+
+    <link href="~/lib/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet" />
+
+    <link href="~/Admin/Content/Theme/ozelcss/custom.css" rel="stylesheet" type="text/css" />
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+
+    <div class="row">
+
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#sayfa-autocomplete" role="tab">
+                                <span class="">Anasayfada Göster</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @if (User.IsInRole("Administrator"))
+                                {
+                                    <div class="row mb-3">
+                                        <label for="example-text-input" class="col-md-1 col-form-label">Sayfa Tipi</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control" onchange="updateUrlParameter(this)" asp-for="Sayfa.SayfaTipi" asp-items="Html.GetEnumSelectList<SayfaTipleri>()">
+                                            </select>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input type="hidden" asp-for="Sayfa.SayfaTipi" value="@(ViewContext.RouteData.Values["Id"] == null ? ViewContext.HttpContext.Request.Query["SayfaTipi"] : Model.Sayfa.SayfaTipi)" />
+                                }
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Menü Yerleri</label>
+                                    <div class="col-md-9">
+                                        <div class="form-check-container">
+                                            @foreach (var menu in Enum.GetValues(typeof(MenuYerleri)))
+                                            {
+
+                                                var secili = _context.Menuler
+                                                    .Where(x => x.EntityId == Model.Sayfa.Id && x.MenuYeri == (MenuYerleri)menu && x.SeoUrlTipi == (SeoUrlTipleri)sayfatipi)
+                                                    .Select(x => x.EntityId)
+                                                    .Any();
+
+                                                <div class="form-check readonly-checkbox">
+                                                    <input value="@menu"
+                                                           name="MenuYerleri"
+                                                           class="form-check-input"
+                                                           type="checkbox" onchange="this.checked = @(secili.ToString().ToLower());"
+                                                           @(secili ? "checked" : "")>
+                                                    <label class="form-check-label" for="formCheck@(menu)">
+                                                        @(EnumExtensions.GetDisplayName((MenuYerleri)menu))
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Kategori</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control select2" asp-for="Sayfa.ParentSayfaId" asp-items="@ViewData["Sayfalar"] as IEnumerable<SelectListItem>">
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" asp-for="EntityName" value="@(ViewContext.RouteData.Values["Id"] == null ? ViewContext.HttpContext.Request.Query["SayfaTipi"] : Model.Sayfa.EntityName)" />
+
+                                @Html.EditorFor(x => Model.Sayfa.SayfalarTranslate)
+
+                                <!--Breadcrumb Resim-->
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                    <div class="col-md-9">
+                                        <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.Sayfa.BreadcrumbResim)" width="200" />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Breadcrumb Resmi</label>
+                                    <div class="col-md-9">
+                                        <div class="custom-file">
+                                            <input type="file" class="form-control" id="pictureFile" name="BreadcrumbImage" lang="tr">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--Breadcrumb Resim-->
+
+
+                                @if (User.IsInRole("Administrator"))
+                                {
+                                    <div class="row mb-3">
+                                        <label for="example-text-input" class="col-md-1 col-form-label">Sınırsız Sayfa Durumu</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control" asp-for="Sayfa.SinirsizAltSayfaDurumu" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="example-text-input" class="col-md-1 col-form-label">Silme Yetkisi</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control" asp-for="Sayfa.SilmeYetkisi" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <label for="example-text-input" class="col-md-1 col-form-label">Sol Menüde Göster</label>
+                                        <div class="col-md-9">
+                                            <select class="form-control" asp-for="Sayfa.AdminSolMenu" asp-items="Html.GetEnumSelectList<AdminSolMenuDurumlari>()">
+                                            </select>
+                                            <span class="text-danger">
+                                                Bu Alan göster olarak işaretlenirse Sayfalar Menüsünün altında kısayol oluşacaktır.
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div id="KisayolMenu" style="display:none">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Kısayol Menü Adı</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" asp-for="Sayfa.KisayolMenuAdi" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Sayfa.KisayolMenuAdi)">
+                                                <span class="text-danger">
+                                                    Bu Alan Boş bırakılırsa. Kısayol Menü Adını sayfa adından çekecektir.
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <input type="hidden" asp-for="Sayfa.SilmeYetkisi" value="@(ViewContext.RouteData.Values["Id"] == null ? SayfaDurumlari.Aktif : Model.Sayfa.SilmeYetkisi)" />
+                                    <input type="hidden" asp-for="Sayfa.AdminSolMenu" value="@(ViewContext.RouteData.Values["Id"] == null ? SayfaDurumlari.Pasif : Model.Sayfa.AdminSolMenu)" />
+                                    <input type="hidden" asp-for="Sayfa.KisayolMenuAdi" value="@(ViewContext.RouteData.Values["Id"] == null ? SayfaDurumlari.Pasif : Model.Sayfa.KisayolMenuAdi)" />
+                                }
+
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">İkon 1</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Sayfa.Ikon" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Sayfa.Ikon)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">İkon 2</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Sayfa.Ikon2" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Sayfa.Ikon2)">
+                                    </div>
+                                </div>
+
+
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Sayfa.Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Vitrin</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Sayfa.Vitrin" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue: SayfaDurumlari.Pasif)">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Sıra</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Sayfa.Sira" type="number" value="@(ViewContext.RouteData.Values["Id"] == null ? 0 : Model.Sayfa.Sira)">
+                                        <span asp-validation-for="Sayfa.Sira" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="tab-pane" id="sayfa-autocomplete" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Öne Çıkanlar</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="SayfaAutocomplete" type="text" placeholder="Sayfalar">
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <div id="SeciliSayfalarAutocomplete" class="well well-sm" style="height: 200px; overflow: auto;">
+                                        <section class="panel">
+                                            <div class="panel-body">
+                                                <div class="sortable">
+                                                    <ol class="sortable ui-sortable">
+                                                        @foreach (var sayfa in _context.SayfaToSayfalar.Where(x => x.SayfaId == Convert.ToInt32(ViewContext.RouteData.Values["Id"])).ToList())
+                                                        {
+                                                            <li id="SeciliSayfalarAutocomplete@(sayfa.Id)">
+                                                                <div>
+                                                                    <i class="fa fa-plus"></i>  @string.Join(" > ", sayfa.Sayfalar.ToPageTree())
+                                                                    <p style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;">
+                                                                        <a style="cursor:pointer" class="sayfatosayfaid" data-sayfatosayfaid="@(sayfa.Id)"><i class="fa fa-trash"></i> Kaldır</a>
+                                                                    </p>
+                                                                    <input type="hidden" name="SeciliSayfalarAutocomplete" value="@sayfa.SayfalarId">
+                                                                </div>
+                                                            </li>
+                                                        }
+                                                    </ol>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+@section scripts
+{
+    <script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/libs/select2/js/select2.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-advanced.init.js"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+
+
+    <script>
+        $(function () {
+            $('.ckeditor').ckeditor({
+                toolbar: 'Full',
+                enterMode: CKEDITOR.ENTER_BR,
+                shiftEnterMode: CKEDITOR.ENTER_P
+            });
+        });
+        $(() => {
+            $("input:file").change(function () {
+                var dosyaad = $(this).val();
+                var hedefdata = $(this).data("hedef");
+                var hedef = $(hedefdata);
+                var dil = hedef.data("dil");
+                var ifade = dil + '|' + dosyaad;
+                hedef.val(ifade);
+
+                //Resim Önizleme
+                var oFReader = new FileReader();
+                oFReader.readAsDataURL(document.getElementById("uploadImage_" + dil).files[0]);
+                oFReader.onload = function (oFREvent) {
+                    document.getElementById("uploadPreview_" + dil).src = oFREvent.target.result;
+                };
+                //Resim Önizleme
+
+            });
+        });
+
+        $(() => {
+            $("input:file").change(function () {
+                var dosyaad2 = $(this).val();
+                var hedefdata2 = $(this).data("hedef2");
+                var hedef2 = $(hedefdata);
+                var dil2 = hedef.data("dil2");
+                var ifade2 = dil2 + '|' + dosyaad2;
+                hedef2.val(ifade2);
+
+                //Resim Önizleme
+                var oFReader = new FileReader();
+                oFReader.readAsDataURL(document.getElementById("uploadImage2_" + dil2).files[0]);
+                oFReader.onload = function (oFREvent) {
+                    document.getElementById("uploadPreview2_" + dil2).src = oFREvent.target.result;
+                };
+                //Resim Önizleme
+
+            });
+        });
+
+        //Sayfa Dosyaları
+        $(document).on('change', '.sayfadosyasi', function () {
+            var dosyaad = $(this).val();
+            console.log(dosyaad);
+            var hedefdata = $(this).data("dosyahedef");
+            var hedef = $(hedefdata);
+            var dil = hedef.data("dil");
+            var ifade = "";
+            ifade = dil + '|' + dosyaad;
+            hedef.val(ifade);
+        });
+        //Sayfa Dosyaları
+    </script>
+
+    <script type="text/javascript">
+
+    </script>
+    <script>
+        $(function () {
+            var selectVal = $("#AnaKategoriOzelResimBoyut option:selected").val();
+            if (selectVal == "0") {
+                $("#AnaKategoriResimBoyutlandirmaDurumu").css("display", "block");
+            }
+
+            var selectVal = $("#AltKategoriOzelResimBoyut option:selected").val();
+            if (selectVal == "0") {
+                $("#AltKategoriResimBoyutlandirmaDurumu").css("display", "block");
+            }
+
+
+        });
+
+        $('#AnaKategoriOzelResimBoyut').on('change', function () {
+            var selectVal = $("#AnaKategoriOzelResimBoyut option:selected").val();
+            if (selectVal == "0") {
+                $("#AnaKategoriResimBoyutlandirmaDurumu").css("display", "block");
+            }
+            else {
+                $("#AnaKategoriResimBoyutlandirmaDurumu").css("display", "none");
+            }
+        });
+        $('#AltKategoriOzelResimBoyut').on('change', function () {
+            var selectVal = $("#AltKategoriOzelResimBoyut option:selected").val();
+            if (selectVal == "0") {
+                $("#AltKategoriResimBoyutlandirmaDurumu").css("display", "block");
+            }
+            else {
+                $("#AltKategoriResimBoyutlandirmaDurumu").css("display", "none");
+            }
+        });
+    </script>
+
+    <script>
+        $(function () {
+            function AdminSolMenu() {
+                var selectVal = $("#Sayfa_AdminSolMenu option:selected").val();
+                if (selectVal == "1") {
+                    $("#KisayolMenu").css("display", "block");
+                }
+                else {
+                    $("#KisayolMenu").css("display", "none");
+                }
+            }
+
+            AdminSolMenu();
+
+            $('#Sayfa_AdminSolMenu').on('change', function () {
+                AdminSolMenu();
+            });
+        });
+    </script>
+
+    <!--Sayfa Search Filter -->
+    <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('input[name=\'SayfaAutocomplete\']').autocomplete({
+                source: "/Admin/Sayfalar/SayfaAutoComplete",
+                minLength: 1,
+                select: function (event, ui) {
+                    $('#SeciliSayfalarAutocomplete' + ui.item['id']).remove();
+                    $('.ui-sortable').append('<li id="SeciliSayfalarAutocomplete' + ui.item['id'] + '"><div><i class="fa fa-plus"></i>  ' + ui.item['label'] + '<p style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;"><a style="cursor:pointer" class="sayfatosayfaid"  data-sayfatosayfaid="' + ui.item['id'] + '"><i class="fa fa-trash"></i> Kaldır</a></p><input type="hidden" name="SeciliSayfalarAutocomplete" value="' + ui.item['id'] + '"></div></li>');
+                    ui.item.value = "";
+                    AutoComleteSil();
+                }
+
+            });
+        });
+
+        function AutoComleteSil() {
+            $(".sayfatosayfaid").click(function () {
+                var sayfatosayfaid = $(this).attr("data-sayfatosayfaid");
+                $("#SeciliSayfalarAutocomplete" + sayfatosayfaid).remove();
+            });
+        }
+        AutoComleteSil();
+
+    </script>
+    <!--Sayfa Search Filter -->
+    <!-- Sürükle Bırak Menü-->
+    <script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery.mjs.nestedSortable.js"></script>
+    <!-- Sürükle Bırak Menü-->
+    <script>
+        //Sayfa Sıralama
+        $(document).ready(function () {
+            $('ol.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                handle: 'div',
+                helper: 'clone',
+                items: 'li',
+                opacity: .6,
+                placeholder: 'placeholder',
+                revert: 250,
+                tabSize: 25,
+                tolerance: 'pointer',
+                toleranceElement: '> div',
+                maxLevels: 10,
+                isTree: true,
+                expandOnHover: 700,
+                startCollapsed: true,
+                stop: function () {
+                }
+            });
+        });
+        //Sayfa Sıralama
+
+    </script>
+
+
+} 

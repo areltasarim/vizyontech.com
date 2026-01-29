@@ -1,0 +1,17 @@
+﻿@model OneCikanUrunlerTranslate
+@{
+    var _context = new AppDbContext();
+    var dil = _context.Diller.Where(x => x.Id == Model.DilId).FirstOrDefault();
+}
+
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DilId)
+
+<div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Modül Adı</label>
+        <div class="col-md-9">
+            <input class="form-control" asp-for="ModulAdi" type="text">
+        </div>
+    </div>
+</div>

@@ -1,0 +1,30 @@
+﻿@model X.PagedList.IPagedList
+@{
+    var url = ViewContext.RouteData.Values["url"].ToString();
+}
+@Html.PagedListPager(Model, sayfa => Url.Action(null, url, new { sayfa }), new PagedListRenderOptions
+{
+    DisplayLinkToFirstPage = PagedListDisplayMode.IfNeeded,
+    DisplayLinkToLastPage = PagedListDisplayMode.IfNeeded,
+    DisplayLinkToPreviousPage = PagedListDisplayMode.IfNeeded,
+    DisplayLinkToNextPage = PagedListDisplayMode.IfNeeded,
+    DisplayLinkToIndividualPages = true,
+    DisplayPageCountAndCurrentLocation = false,
+    MaximumPageNumbersToDisplay = 10,
+    DisplayEllipsesWhenNotShowingAllPageNumbers = true,
+    EllipsesFormat = "&#8230;",
+    LinkToFirstPageFormat = "««",
+    LinkToPreviousPageFormat = "<i class=\"fa fa-caret-left\"></i>",
+    LinkToIndividualPageFormat = "{0}",
+    LinkToNextPageFormat = "<i class=\"fa fa-caret-right\"></i>",
+    LinkToLastPageFormat = "»»",
+    PageCountAndCurrentLocationFormat = "Sayfa {0} of {1}.",
+    ItemSliceAndTotalFormat = "{0} kayıttan {1} - {2} arasındaki kayıtlar gösteriliyor ",
+    FunctionToDisplayEachPageNumber = null,
+    ClassToApplyToFirstListItemInPager = null,
+    ClassToApplyToLastListItemInPager = null,
+    ContainerDivClasses = new[] { "pagination-container" },
+    UlElementClasses = new[] { "pagination" },
+    LiElementClasses = Enumerable.Empty<string>(),
+    ActiveLiElementClass = "current-page"
+})

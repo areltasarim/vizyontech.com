@@ -1,0 +1,36 @@
+﻿@using System.Xml;
+@inject HelperServis _helperServis
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+
+    var sepet = _sepetServis.GetCart().Result;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    ViewBag.MetaTitle = "Sipariş Başarılı";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+<div class="container">
+    <ul class="ps-breadcrumb">
+        <li class="ps-breadcrumb__item"><a href="#">@Localize("Genel.AnaSayfa")</a></li>
+        <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.Siparis")</li>
+    </ul>
+    <div class="row">
+        <div class="col-xl-4 col-lg-6 col-md-12 m-auto">
+            <div class="login_wrap widget-taber-content background-white">
+                <div class="padding_eight_all bg-white">
+                    <div class="heading_s1">
+                        <center><img class="border-radius-15" src="~/Content/Theme/images/check.png" alt="" style="width:100px; " loading="lazy" /></center>
+                        <h2 class="mb-15 mt-15" style="text-align: center;">@Localize("Genel.SiparisinizBasariylaAlinmistir")</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

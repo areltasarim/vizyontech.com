@@ -1,0 +1,26 @@
+﻿@inject HelperServis _helperServis
+@{
+    var uye = _helperServis.GetUye().Result;
+
+
+
+    string ad = _helperServis.GetUye().Result.Ad;
+    string firmaAdi = _helperServis.GetUye().Result.FirmaAdi;
+
+    string unvan = !string.IsNullOrEmpty(ad) ? ad : (!string.IsNullOrEmpty(firmaAdi) ? firmaAdi : "Bilinmiyor");
+
+}
+
+
+
+<ul class="menu--mobile">
+    @if (User.Identity.IsAuthenticated && User.IsInRole("Bayi"))
+    {
+        <li class="pb-10px mb-10px border-bottom border-color-transparent-dark"> <strong style="color:red">@unvan.ToUpper()</strong><i class="feather icon-feather-arrow-right ms-auto"></i></li>
+    }
+    <li class="pb-10px mb-10px border-bottom border-color-transparent-dark text-dark-gray"><a asp-controller="Account" asp-action="Adresler" class="text-dark-gray text-dark-gray-hover">@Localize("Genel.Adreslerim")</a><i class="feather icon-feather-arrow-right ms-auto"></i></li>
+    <li class="pb-10px mb-10px border-bottom border-color-transparent-dark"><a asp-controller="Account" asp-action="Siparisler">@Localize("Genel.Siparislerim")</a><i class="feather icon-feather-arrow-right ms-auto"></i></li>
+    <li class="pb-10px mb-10px border-bottom border-color-transparent-dark"><a asp-controller="Account" asp-action="HesabimiGuncelle">@Localize("Genel.HesabimiDuzenle")</a><i class="feather icon-feather-arrow-right ms-auto"></i></li>
+    <li class="pb-10px mb-10px border-bottom border-color-transparent-dark"><a asp-controller="Account" asp-action="CikisYap">@Localize("Genel.CikisYap")</a><i class="feather icon-feather-arrow-right ms-auto"></i></li>
+</ul>
+

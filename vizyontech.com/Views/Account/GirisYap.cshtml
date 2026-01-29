@@ -1,0 +1,60 @@
+﻿@inject HelperServis _helperServis
+@model GirisYapViewModel
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    ViewBag.MetaTitle = "Giriş Yap";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+@section Style
+{
+}
+
+
+<div class="ps-account">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <form class="js-validate" method="post">
+                    <partial name="_BilgiMesaji" />
+                    <div class="ps-form--review">
+                        <h2 class="ps-form__title">@Localize("Genel.GirisBilgileri")</h2>
+                        <div class="ps-form__group">
+                            <label class="ps-form__label">@Localize("Genel.Email") *</label>
+                            <input class="form-control ps-form__input" type="text" asp-for="Email">
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="ps-form__group">
+                            <label class="ps-form__label">@Localize("Genel.Sifre") *</label>
+                            <div class="input-group">
+                                <input class="form-control ps-form__input" type="password" asp-for="Password">
+                                <div class="input-group-append"><a class="fa fa-eye-slash toogle-password" href="javascript: vois(0);"></a></div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="ps-form__submit">
+                            <button class="ps-btn ps-btn--warning" type="submit">@Localize("Genel.GirisYap")</button>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="RememberMe">
+                                <label class="form-check-label" asp-for="RememberMe">@Localize("Genel.BeniHatirla")</label>
+                            </div>
+                        </div>
+                        <a class="ps-account__link mr-5" asp-controller="Account" asp-action="SifremiUnuttum">@Localize("Genel.SifremiUnuttum")</a>
+                        <a class="ps-account__link" asp-controller="Account" asp-action="UyeOl">@Localize("Genel.BayiOl")</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}
+

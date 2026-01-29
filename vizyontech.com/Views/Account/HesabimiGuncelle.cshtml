@@ -1,0 +1,175 @@
+﻿@model UyeOlViewModel
+@inject HelperServis _helperServis
+@{
+    //var uye = await _helperServis.GetUye();
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    ViewBag.MetaTitle = "Hesabımı Güncelle";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+@section Style
+{
+    <style>
+        .custom-file-input:lang(en) ~ .custom-file-label::after {
+            content: "Seç";
+        }
+    </style>
+}
+
+<div class="ps-wishlist">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">Ana Sayfa</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">Hesabımı Güncelle</li>
+        </ul>
+        <h3 class="ps-wishlist__title">Hesabım</h3>
+        <div class="ps-wishlist__content">
+            <div class="row row-reverse">
+                <div class="col-12 col-md-9">
+                    <form method="post">
+                        <partial name="_BilgiMesaji" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Ad")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="Ad" placeholder="@Localize("Genel.Ad")">
+                                    <span asp-validation-for="Ad" class="text-danger"></span>
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Soyad")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="Soyad" placeholder="@Localize("Genel.Soyad")">
+                                    <span asp-validation-for="Soyad" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Email")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="Email" disabled placeholder="@Localize("Genel.Email")">
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Sifre")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" name="Password" placeholder="@Localize("Genel.Sifre")">
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="w-100"></div>
+
+                            <div class="col-md-4">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Ulke")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control dropdown-select adres_ulke" asp-for="UlkeId" data-il="AdresEkle_TeslimatIlId" asp-items="@ViewData["Ulkeler"] as IEnumerable<SelectListItem>" data-live-search="true">
+                                        <option value="0">Seçiniz</option>
+                                    </select>
+                                    <span asp-validation-for="UlkeId" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.İl")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control adres_il" asp-for="IlId" data-ilce="AdresEkle_TeslimatIlceId" asp-items="@ViewData["Iller"] as IEnumerable<SelectListItem>" data-live-search="true">
+                                        <option value="0">Seçiniz</option>
+                                    </select>
+                                    <span asp-validation-for="IlId" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-4">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.ilce")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control" asp-for="IlceId" id="AdresEkle_TeslimatIlceId" asp-items="@ViewData["Ilceler"] as IEnumerable<SelectListItem>" data-live-search="true">
+                                        <option value="0">Seçiniz</option>
+                                    </select>
+                                    <span asp-validation-for="IlceId" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="js-form-message col-md-12 mb-5">
+                                <label class="form-label">
+                                    @Localize("Genel.Adres")
+                                </label>
+
+                                <div class="input-group">
+                                    <textarea class="form-control p-5" rows="2" asp-for="Adres" placeholder="@Localize("Genel.Adres")"></textarea>
+                                    <span asp-validation-for="Adres" class="text-danger"></span>
+
+                                </div>
+                            </div>
+                            <div class="ps-shopping__checkout mb-5 pull-right">
+                                <button type="submit" class="ps-btn ps-btn--warning">@Localize("Genel.Guncelle")</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="ps-widget ps-widget--product">
+                        <div class="ps-widget__block">
+                            <div class="ps-widget__category">
+                                <partial name="_SagMenu" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    
+}

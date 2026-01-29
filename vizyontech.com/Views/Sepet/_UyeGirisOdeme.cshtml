@@ -1,0 +1,239 @@
+﻿@inject HelperServis _helperServis
+@model SiparisViewModel
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+
+    var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var uye = _context.Users.Where(p => p.Id == Convert.ToInt32(userId)).FirstOrDefault();
+
+    var sepet = _sepetServis.GetCart().Result;
+
+    var sepetBilgi = _sepetServis.GetSepetBilgi().Result;
+
+
+    var aktifKargo = _helperServis.GetAktifKargo((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat));
+
+    //var adresListesi = _context.Adresler.Where(p => p.UyeId == Convert.ToInt32(uye.Id)).ToList();
+
+    var odemeMetodlari = _context.OdemeMetodlari.ToList();
+
+    var action = HttpContextAccessor.HttpContext.Request.RouteValues["action"].ToString();
+
+    var listeToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var araToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var kdvToplamTl = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var kargoToplam = (string)await _sepetServis.YeniSepetKargoAsync(FiyatTipleri.ListeFiyat, true, true);
+
+    string genelToplamTL = (string)await _sepetServis.YeniSepetGenelToplamAsync(
+FiyatTipleri.BayiFiyat,
+dovizDurum: true,     // TL olarak
+formatted: true,      // Formatlı string
+paraBirimiGosterimi: true
+);
+
+
+}
+
+
+
+
+
+
+<div class="row">
+    <div class="col-lg-5 order-lg-2 mb-7 mb-lg-0">
+
+        <div class="pl-lg-3 ">
+            <div class="bg-gray-1 rounded-lg">
+                <!-- Order Summary -->
+                <div class="p-4 mb-4 checkout-table">
+                    <div class=" mb-3">
+                        <div class="card-header">
+                            @Localize("Genel.OdemeBilgileri")
+                        </div>
+                        <div class="card-body">
+                            <!-- Basics Accordion -->
+                            <div id="basicsAccordion1">
+                                @foreach (var item in _helperServis.GetOdemeMetodlari())
+                                {
+                                    var sayfacollapse = item == _helperServis.GetOdemeMetodlari().FirstOrDefault() ? "collapse" : "";
+                                    var sayfashow = item == _helperServis.GetOdemeMetodlari().FirstOrDefault() ? "show" : "";
+                                    bool sayfachecked = item == _helperServis.GetOdemeMetodlari().FirstOrDefault();
+
+                                    <!-- Card -->
+                                    <div class="border-bottom border-color-1 border-dotted-bottom">
+                                        <div class="p-3" id="basicsHeading@(item.Id)">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" class="custom-control-input" id="radio@(item.OdemeMetodId)" name="odemeYontemi" data-odemeid="@item.OdemeMetodId" @(sayfachecked ? "checked" : "") />
+                                                <label class="custom-control-label form-label" for="radio@(item.OdemeMetodId)"
+                                                       data-toggle="collapse"
+                                                       data-target="#basicsCollapse@(item.Id)"
+                                                       aria-expanded="@sayfachecked.ToString().ToLower()"
+                                                       aria-controls="basicsCollapse@(item.Id)">
+                                                    @item.OdemeAdi
+                                                </label>
+                                            </div>
+                                        </div>
+                                        @*<div id="basicsCollapse@(item.Id)" class="collapse @sayfashow border-top border-color-1 border-dotted-top bg-dark-lighter"
+                                                 aria-labelledby="basicsHeading@(item.Id)"
+                                                 data-parent="#basicsAccordion1">
+                                                <div class="p-4">
+                                                    @item.Aciklama
+                                                </div>
+                                            </div>*@
+                                    </div>
+                                    <!-- End Card -->
+                                }
+                            </div>
+                            <!-- End Basics Accordion -->
+
+                        </div>
+                    </div>
+
+
+                    <div class=" mb-3">
+                        <div class="card-header">
+                            @Localize("Genel.KargoBilgileri")
+                        </div>
+                        <div class="card">
+                            <div class="ps-shopping">
+                                <div class="ps-shopping__content">
+                                    <div class="col-12 mt-2" id="sepetGenelToplam">
+                                        <div class="ps-shopping__row">
+                                            <div class="ps-shopping__label">@Localize("Genel.AraToplamListeFiyat")</div>
+                                            <div class="ps-shopping__price"><span class="ps-product__is-price">@listeToplamTL</span></div>
+                                        </div>
+                                        <div class="ps-shopping__row">
+                                            <div class="ps-shopping__label">@Localize("Genel.AraToplamBayiFiyat")</div>
+                                            <div class="ps-shopping__price">@araToplamTL</div>
+                                        </div>
+                                        <div class="ps-shopping__row">
+                                            <div class="ps-shopping__label">@Localize("Genel.AraToplamKdv")</div>
+                                            <div class="ps-shopping__price">@kdvToplamTl</div>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
+                                        {
+                                            <div class="ps-shopping__row">
+                                                <div class="ps-shopping__label">@Localize("Genel.Kupon")</div>
+                                                <div class="ps-shopping__price">- @(_sepetServis.KuponHesapla().Result.kuponIndirimTL)</div>
+                                            </div>
+                                        }
+                                        <div class="ps-shopping__row">
+                                            <div class="ps-shopping__label">@Localize("Genel.Kargo")</div>
+                                            <div class="ps-shopping__price">@kargoToplam</div>
+                                        </div>
+                                        <div class="ps-shopping__row">
+                                            <div class="ps-shopping__label">@Localize("Genel.GenelToplam")</div>
+                                            <div class="ps-shopping__price">@genelToplamTL</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    <!--<div class=" mb-3">
+                        <div class="card-header">
+                            @Localize("Genel.KargoBilgileri")
+                        </div>
+                        <div class="card-body">-->
+                            <!-- Basics Accordion -->
+                            <!--<div id="kargoAccordion">
+                                <div class="border-bottom border-color-1 border-dotted-bottom">
+                                    <div class="p-3" id="kargoHeadingOne">
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" class="custom-control-input" checked data-kargoid="@aktifKargo.KargoMetodId" data-target="#kargo-item-@aktifKargo.Id" />
+                                            <label class="custom-control-label form-label" for="stylishRadio1"
+                                                   data-toggle="collapse"
+                                                   data-target="#kargoCollapse1"
+                                                   aria-expanded="true"
+                                                   aria-controls="kargoCollapse1">
+                                                @aktifKargo.KargoAdi
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div id="kargoCollapse1" class="collapse show border-top border-color-1 border-dotted-top bg-dark-lighter"
+                                         aria-labelledby="kargoHeadingOne"
+                                         data-parent="#kargoAccordion">
+                                        <div class="p-4">
+                                            @aktifKargo.KargoMetodlari.Fiyat.ToString("C2")
+                                            <br />
+                                            @aktifKargo.Aciklama
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>-->
+                            <!-- End Basics Accordion -->
+
+                        <!--</div>
+                    </div>-->
+                    <div class="form-group d-flex align-items-center justify-content-between px-3 mb-5">
+                        <div class="">
+                            <input class="form-check-input" type="checkbox" asp-for="KasaSiparis.GizlilikIlkeleri">
+                            <label style="padding-inline-start: 10px; padding-top: 3px; cursor:pointer " class="form-check-label" asp-for="KasaSiparis.GizlilikIlkeleri">
+                                <a class="text-blue" data-toggle="modal" data-target="#gizlilikilkeleri">@Localize("Genel.Gizlilikilkeleri")</a>  @Localize("Genel.KabulEdiyorumveOnayliyorum")
+                                <span class="text-danger">*</span>
+                            </label>
+                            <span asp-validation-for="KasaSiparis.GizlilikIlkeleri" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <button type="submit" class="odeme-yap ps-btn ps-btn--warning btn-block btn-pill font-size-20 mb-3 py-3 d-none d-md-block">
+                        @Localize("Genel.OdemeYap")
+                    </button>
+                </div>
+                <!-- End Order Summary -->
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7 order-lg-1">
+
+        <div class="accessories-add-all-to-cart">
+            <div class="clearfix">
+                <button type="button" class="ps-btn ps-btn--primary py-3 float-right  modal-ac" style="width: auto !important; padding: 10px 10px !important; border-radius:10px !important; font-size: 13px !important; line-height: 5px !important" data-toggle="modal" data-target="@Url.Action("_AdresEkle", "Account")" data-urlpost="/Account/AdresEkle" data-formid="frmAdres" data-modalbaslik="@Localize("Genel.YeniAdresEkle")" data-sayfayenile="false">
+                    @Localize("Genel.YeniAdresEkle")
+                </button>
+            </div>
+        </div>
+
+
+        <div class="pb-7">
+            <!-- Title -->
+            <div class="border-bottom border-color-1 mb-5">
+                <h3 class="section-title mb-0 pb-2 font-size-25">@Localize("Genel.TeslimatFaturaBilgileri")</h3>
+            </div>
+            <!-- End Title -->
+
+            <div class="AdresSelectListe">
+
+            </div>
+
+        </div>
+
+        <div id="kupon">
+
+            <div class="ps-shopping">
+                <div class="ps-shopping__content">
+                    <div class="ps-shopping__content">
+                        <div class="ps-shopping__footer">
+                            <div class="ps-shopping__coupon">
+                                <input class="form-control ps-input" type="text" name="KuponKodu" placeholder="@Localize("Genel.KuponKodu")">
+                                <button class="ps-btn ps-btn--primary" type="button" id="btnKupon">@Localize("Genel.KuponKullan")</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="odeme-yap ps-btn ps-btn--warning btn-block btn-pill font-size-20 mb-3 py-3 d-block d-md-none">
+            @Localize("Genel.OdemeYap")
+        </button>
+    </div>
+</div>
+
+

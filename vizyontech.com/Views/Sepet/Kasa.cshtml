@@ -1,0 +1,188 @@
+﻿@inject HelperServis _helperServis
+@model SiparisViewModel
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var uye = _context.Users.Where(p => p.Id == Convert.ToInt32(userId)).FirstOrDefault();
+
+    var sepet = _sepetServis.GetCart().Result;
+
+    var aktifKargo = _helperServis.GetAktifKargo((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat));
+
+    //var adresListesi = _context.Adresler.Where(p => p.UyeId == Convert.ToInt32(uye.Id)).ToList();
+
+    var odemeMetodlari = _context.OdemeMetodlari.ToList();
+
+    var gizlilikilkesi = _helperServis.GetParentSayfa(SayfaTipleri.GizlilikIlkeleri).Result;
+
+
+    ViewBag.MetaTitle = "Kasa";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+@section Style
+{
+    
+}
+
+
+
+
+<div class="container">
+    <ul class="ps-breadcrumb">
+        <li class="ps-breadcrumb__item"><a href="#">@Localize("Genel.Sepet")</a></li>
+        <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.Kasa")</li>
+    </ul>
+    <form method="post" class="checkout" asp-controller="Sepet" asp-action="Kasa">
+
+        <partial name="_BilgiMesaji" />
+
+
+        <input type="hidden" asp-for="KasaSiparis.UyeOlmakIstiyorum" value="false" />
+        <input type="hidden" asp-for="KasaSiparis.FaturaveTeslimatAdresiAynimi" value="false" />
+        <input type="hidden" asp-for="KasaSiparis.UyeOlmakIstiyorum" />
+        <input type="hidden" asp-for="SiparisKargoMetodId" value="1" />
+        <input type="hidden" asp-for="SiparisOdemeMetodId" value="1" />
+
+        @if (User.Identity.IsAuthenticated && User.IsInRole("Bayi"))
+        {
+            <partial name="~/Views/Sepet/_UyeGirisOdeme.cshtml" />
+        }
+        else
+        {
+            <partial name="~/Views/Sepet/_TekSayfaOdeme.cshtml" />
+        }
+
+    </form>
+</div>
+
+
+<div class="modal fade" id="gizlilikilkeleri" tabindex="-1" aria-labelledby="gizlilikilkeleriLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">@gizlilikilkesi?.SayfaAdi</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.Raw(gizlilikilkesi?.Aciklama)
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">@Localize("Genel.Kapat")</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts
+{
+
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+
+        //$(document).ready(function () {
+
+        //    $('#btnKupon').on('click', function (e) {
+        //        e.preventDefault(); // Sayfanın yenilenmesini engeller
+        //        var kuponKodu = $('input[name="KuponKodu"]').val();
+        //        $.ajax({
+        //            url: '/Sepet/KuponKullan',
+        //            type: 'POST',
+        //            dataType: "json",
+        //            data: {
+        //                KuponKodu: kuponKodu,
+        //            },
+        //            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        //            success: function (result) {
+        //                toastmesaj(result.MesajDurumu, result.Mesaj, result.Display);
+        //            },
+        //            error: function (error) {
+        //                // Hata durumunda JSON verilerini kontrol et
+        //                if (error.responseJSON) {
+        //                    toastmesaj(error.responseJSON.MesajDurumu, error.responseJSON.Mesaj, error.responseJSON.Display);
+        //                } else {
+        //                    toastmesaj('Hata', 'Bir hata oluştu.', 'error');
+        //                }
+        //            }
+        //        });
+        //    });
+        //});
+
+
+        $('#uye_olmak_istiyorum_input').on('change', function () {
+            if ($(this).is(':checked')) {
+                $('#KasaSiparis_UyeOlmakIstiyorum').val("true");
+            } else {
+                $('#KasaSiparis_UyeOlmakIstiyorum').val("false");
+
+            }
+        });
+
+
+        $('#fatara_teslimat_adresi_ayni_input').on('change', function () {
+            if ($(this).is(':checked')) {
+                $('#KasaSiparis_FaturaveTeslimatAdresiAynimi').val("true");
+            } else {
+                $('#KasaSiparis_FaturaveTeslimatAdresiAynimi').val("false");
+
+            }
+        });
+
+        var odemeId = $('[data-odemeid]').data('odemeid');
+        $('#SiparisOdemeMetodId').val(odemeId);
+
+        $('[data-odemeid]').on('click', function () {
+            var odemeId = $(this).data('odemeid');
+            $('#SiparisOdemeMetodId').val(odemeId);
+        });
+
+        var kargoid = $('h5[data-kargoid]').data('kargoid');
+        if (kargoid == null) {
+            kargoid = 1;
+        }
+        $('#SiparisKargoMetodId').val(kargoid);
+        $('h5[data-kargoid]').on('click', function () {
+            var kargoid = $(this).data('odemeid');
+            $('#SiparisKargoMetodId').val(kargoid);
+        });
+
+
+    </script>
+
+
+    <script>
+        $("#TeslimatAdresId").change(function () {
+            var selectedValue = $(this).val();
+            $("#FaturaAdresId").val(selectedValue);
+        });
+
+        var acc = document.getElementsByClassName("accordion");
+        var i;
+
+        for (i = 0; i < acc.length; i++) {
+            acc[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var panel = this.nextElementSibling;
+                if (panel.style.display === "block") {
+                    panel.style.display = "none";
+                } else {
+                    panel.style.display = "block";
+                }
+            });
+        }
+    </script>
+
+}

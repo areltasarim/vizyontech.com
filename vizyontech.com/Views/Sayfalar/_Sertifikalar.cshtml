@@ -1,0 +1,69 @@
+﻿@model IEnumerable<SayfalarTranslate>
+@inject HelperServis _helperServis
+@{
+    var _context = new AppDbContext();
+
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+}
+
+
+
+<div class="breadcumb-wrapper " data-bg-src="/Content/Theme/assets/img/breadcumb/breadcumb-bg.jpg">
+    <div class="container">
+        <div class="breadcumb-content">
+            <h2 class="breadcumb-title">@parentSayfa.SayfaAdi</h2>
+        </div>
+    </div>
+</div>
+<!--==============================
+Galeri Area
+==============================-->
+<div class="overflow-hidden space">
+    <div class="container">
+        <div class="row gallery-row filter-active">
+            @{
+                int counter = 0; // Sayaç başlatılıyor
+            }
+
+            @*@foreach (var item in _helperServis.GetSayfalar(SayfaTipleri.Sertifikalar, 1, 100))
+            {
+                var sayfaResim = _helperServis.GetSayfaResim(item.SayfaId).Result;
+                counter++;
+                var extraClass = counter % 2 == 0 ? "galeri386" : ""; // Her iki kayıtta bir galeri386 sınıfı ekleniyor
+
+                var baseUrl = "/Home/ProcessImage";
+                var imagePath = sayfaResim.TrimStart('/');
+
+                <div class="col-md-6 col-xxl-auto filter-item">
+                    <div class="gallery-card">
+                        <div class="gallery-img">
+                            <img src="@($"{baseUrl}?imagePath={imagePath}&width=387&height=387&mode=pad")" class="@(extraClass)" loading="lazy">
+                        </div>
+                        <div class="gallery-content">
+                            <div class="media-left">
+                                <h4 class="box-title text-white">@item.SayfaAdi</h4>
+                                <a href="@($"{baseUrl}?imagePath={imagePath}&width=1000&height=700&mode=pad")" class="icon-btn popup-image">
+                                    <i class="far fa-plus"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            }*@
+
+        </div>
+    </div>
+</div> 

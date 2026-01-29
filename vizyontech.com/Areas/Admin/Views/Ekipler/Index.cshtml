@@ -1,0 +1,57 @@
+﻿@model IEnumerable<Ekipler>
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <div class="card">
+                <div class="card-body">
+                    <partial name="_SayfaHeaderButonlari" />
+                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Ad Soyad</th>
+                                <partial name="_SayfaUstKontrolButonlari" />
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            @foreach (var item in Model)
+                            {
+                                ViewData["pageName"] = item.AdSoyad;
+
+                                <tr>
+                                    <partial name="_SayfaAltCheckbox" for="@item" />
+                                    <td>
+                                        @item.AdSoyad
+                                    </td>
+                                    <partial name="_SayfaAltKontrolButonlari" for="@item" />
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+    <partial name="_CustomScriptsPartial" />
+
+}

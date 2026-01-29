@@ -1,0 +1,78 @@
+﻿@model IEnumerable<Yorumlar>
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+
+    var pageUrl = Url.Action("YorumlariListele", "Sayfalar", new { SayfaId = Convert.ToInt32(Context.Request.Query["SayfaId"]) });
+}
+
+
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <input type="hidden" id="PageUrl" value="@pageUrl" />
+            <div class="card">
+                <div class="card-body">
+                    @*<partial name="_SayfaHeaderButonlari" />*@
+                    <table id="tablolist" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Ad Soyad</th>
+                                <th>Yorum Tarihi</th>
+                                <th>Yorum Durumu</th>
+                                <th>Şehir</th>
+                                <th>Kontrol</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+@section scripts
+{
+
+    <partial name="_DataTableServerSideScriptsPartial" model='
+     new DataTableViewModel()
+     {
+         TableId="#tablolist",
+         Url = pageUrl,
+         Type = "post",
+         DataType = "json",
+         Columns=new List<DataTableViewColumn>() {
+              new DataTableViewColumn(){Id="Id",Name=""},
+              new DataTableViewColumn(){Id="Id",Name="Id"},
+              new DataTableViewColumn(){Id="AdSoyad",Name="AdSoyad"},
+              new DataTableViewColumn(){Id="YorumTarihi",Name="YorumTarihi"},
+              new DataTableViewColumn(){Id="YorumDurumu",Name="YorumDurumu"},
+              new DataTableViewColumn(){Id="Sehir",Name="Sehir"},
+              new DataTableViewColumn(){Id="Buttons",Name=""},
+          },
+         Order=new DataTableViewOrder()
+         {
+             Id=0,
+             Asc="asc"
+         },
+         Filter=true,
+         Searchable=true,
+         Processing=true,
+         Orderable=true,
+         OrderMulti=false,
+         ServerSide=true,
+         StateSave=true,
+     }' />
+    <partial name="_CustomScriptsPartial" />
+}

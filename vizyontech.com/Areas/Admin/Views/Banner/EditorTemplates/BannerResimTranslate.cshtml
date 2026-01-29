@@ -1,0 +1,213 @@
+﻿@model BannerResimTranslateModel
+@{
+    var _context = new AppDbContext();
+
+
+}
+
+<tr id="banner-row-@Model.DilId-@Model.BannerRow">
+    <td>
+        <input type="hidden" id="deletedRecords-@Model.DilId" name="DeletedRecords[@Model.DilId]" value="" />
+        <input type="hidden" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].BannerResimId" value="@Model.BannerResimId" />
+
+        <input type="hidden" id="EntityId-@Model.DilId-@Model.BannerRow" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].EntityId" />
+
+        <input type="text" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].BannerAdi"
+               value="@Model.BannerAdi"
+               class="form-control"
+               placeholder="Banner Adı" />
+    </td>
+    <td>
+
+        <select class="form-control" id="seourl-@Model.DilId-@Model.BannerRow" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].UrlTipi">
+            <option value="0">Seçiniz</option>
+            @foreach (var item in Html.GetEnumSelectList<MenuTipleri>())
+            {
+                if (item.Value == Convert.ToInt32(Model.UrlTipi).ToString())
+                {
+                    <option value="@item.Value" selected>@item.Text</option>
+                }
+                else
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            }
+        </select>
+    </td>
+    <td style="width:250px">
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.Url)">
+            <input type="text" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].Url"
+                   value="@Model.Url"
+                   class="form-control"
+                   placeholder="Url" />
+        </div>
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.DinamikSayfalar)">
+            <select class="form-control select2">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["DinamikSayfalar"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value"> @item.Text </option>
+                    }
+                }
+            </select>
+        </div>
+
+
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.Kategoriler)">
+            <select class="form-control select2">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["Kategoriler"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value"> @item.Text </option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.Urunler)">
+            <select class="form-control select2">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["Urunler"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value"> @item.Text </option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.Galeri)">
+            <select class="form-control select2">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["FotografGalerileri"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value"> @item.Text </option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.EKatalog)">
+            <select class="form-control select2">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["EKatalog"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value"> @item.Text </option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.SabitMenu)">
+            <select class="form-control select2">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["SabitMenuler"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value"> @item.Text </option>
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="sayfatipi" id="sayfatipi-@Model.DilId-@Convert.ToInt32(MenuTipleri.Dosyalar)">
+            @{
+                int dosyaid = 0;
+
+                if (ViewContext.RouteData.Values["Id"] != null)
+                {
+                    dosyaid = Convert.ToInt32(_context.FotografGaleriResimleri.Where(x => x.Id == Model.EntityId).FirstOrDefault()?.FotografGaleriId);
+                }
+            }
+            <div class="row mb-3">
+                <select class="form-control dosyakategoriid-@Model.DilId-@Model.BannerRow" onchange="DosyaKategori()">
+                    <option value="0">Seçiniz</option>
+                    @foreach (var item in _context.FotografGalerileri.Where(x => x.Durum == SayfaDurumlari.Aktif).ToList())
+                    {
+                        if (item.Id == dosyaid)
+                        {
+                            <option selected value="@item.Id">@item.FotografGalerileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR").GaleriAdi</option>
+                        }
+                        else
+                        {
+                            <option value="@item.Id">@item.FotografGalerileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR").GaleriAdi</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div id="DosyaSecim-@Model.DilId-@Model.BannerRow" style="display:none">
+            <select class="form-control select2" id="DosyaListele-@Model.DilId-@Model.BannerRow">
+                <option value="0">Seçiniz</option>
+                @foreach (var item in (ViewData["Dosyalar"] as IEnumerable<SelectListItem>))
+                {
+                    @if (item.Value == Model.EntityId.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                }
+            </select>
+        </div>
+    <td>
+        <input type="file" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].Resim"
+               class="form-control" />
+        <div class="row mt-4">
+            <label for="example-text-input" class="col-md-1 col-form-label"></label>
+            <div class="col-md-9">
+                <img src="@Model.ResimUrl" width="200" />
+            </div>
+        </div>
+    </td>
+    <td style="width:100px">
+        <input type="text" name="BannerResimListesi[@Model.DilId][@Model.BannerRow].Sira"
+               value="@Model.Sira"
+               class="form-control"
+               placeholder="Sıra" />
+    </td>
+    <td>
+        <button type="button" class="btn btn-danger" onclick="bannerSil(@Model.BannerRow, @Model.DilId)">Sil</button>
+    </td>
+</tr>
+
+
+<script src="~/Admin/Content/Theme/assets/libs/select2/js/select2.min.js"></script>
+
+<script src="~/Admin/Content/Theme/assets/js/pages/form-advanced.init.js"></script>
+
+<script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+<script src="~/js/banner.js"></script>

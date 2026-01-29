@@ -1,0 +1,47 @@
+﻿@model Sayfalar
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var sayfa = Model.SayfalarTranslate.ToList().SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var sayfaresim = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim == "/Content/Upload/Images/resimyok.png" ? Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR")?.Resim : Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim;
+
+    var altSayfalar = _context.Sayfalar.Where(p => p.ParentSayfaId == Model.ParentSayfaId).ToList();
+    var sayfaResimleri = _context.SayfaResimleri.Where(p => p.SayfaId == Model.Id).ToList();
+
+    var sonEklenenler = _context.Sayfalar.Where(p => p.Durum == SayfaDurumlari.Aktif && p.ParentSayfaId == 8).ToList().OrderBy(p => p.Sira);
+
+
+    var parentsayfa = _context.SayfalarTranslate.ToList().Where(p => p.SayfaId == Model.ParentSayfaId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+
+
+    ViewBag.MetaTitle = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.MetaBaslik ?? Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.SayfaAdi;
+    ViewBag.MetaAnahtar = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.MetaAnahtar ?? siteAyari?.MetaBaslik;
+    ViewBag.MetaAciklama = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.MetaAciklama ?? siteAyari?.MetaAciklama;
+
+}
+@section Style
+{
+    <partial name="_HighslidePartial" />
+
+}
+
+@section Scripts
+{
+    <script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
+    <script>
+        function OnSuccess(response) {
+            if (response.IsSuccess = true) {
+                $("form")[0].reset();
+            }
+            $("#FormMessage").css("display", response.Display);
+            $("#Message").html(response.Mesaj);
+            $(".Status").addClass(response.MesajDurumu);
+        };
+    </script>
+}

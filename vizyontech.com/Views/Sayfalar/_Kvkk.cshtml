@@ -1,0 +1,20 @@
+﻿@model IEnumerable<Sayfalar>
+
+@{
+    var _context = new AppDbContext();
+
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+}
+

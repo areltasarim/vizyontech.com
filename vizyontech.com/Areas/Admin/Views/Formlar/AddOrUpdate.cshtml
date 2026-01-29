@@ -1,0 +1,314 @@
+﻿@model FormViewModel
+@{
+    var _context = new AppDbContext();
+
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+    var Id = ViewContext.RouteData.Values["Id"];
+
+    var formBaslikId = Convert.ToInt32(Context.Request.Query["FormBaslikId"]);
+    var sayfaId = Convert.ToInt32(Context.Request.Query["SayfaId"]);
+
+}
+
+@section styles
+{
+<link href="assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="SayfaId" value="@sayfaId" />
+    <input type="hidden" name="FormBaslikId" value="@formBaslikId" />
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Form Adı</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="FormAdiCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.FormAdi)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Place Holder</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="PlaceHolderCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.PlaceHolder)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Hata Mesajı</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="HataMesajiCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.HataMesaji)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Form Türü</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" required asp-for="Form.FormTuru" asp-items="Html.GetEnumSelectList<FormTurleri>()">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="TexboxTipi" style="display:none">
+                                    <div class="row mb-3">
+                                        <label for="example-text-input" class="col-md-1 col-form-label">Sadece Sayı Girilsin</label>
+                                        <div class="col-md-9">
+                                            <div class="form-check">
+                                                @Html.CheckBoxFor(p => p.TexboxTipi, new { @class = "form-check-input" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Zorunlumu</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Form.Zorunlumu" asp-items="Html.GetEnumSelectList<FormDurumlari>()">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Genişlik</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Form.Genislik" asp-items="Html.GetEnumSelectList<FormGenislikleri>()">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Form.Durum" asp-items="Html.GetEnumSelectList<SayfaDurumlari>()">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Sira</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Form.Sira" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Form.Sira)">
+
+                                    </div>
+                                </div>
+                                <!--  Tab panes-->
+                                <!-- Form Değerleri-->
+                                <div class="form-group" id="Cevaplar" style="display:block">
+                                    <div class="col-md-10">
+                                        <table id="formdegerListesi" class="table table-striped table-bordered table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <td class="text-left required">Cevap</td>
+                                                    <td class="text-right">Siralama</td>
+                                                    <td></td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @{
+                                                    int tr_row = 0;
+                                                }
+                                                @if (Id != null)
+                                                {
+                                                    foreach (var form in _context.FormDegerleri.Where(p => p.FormId == Model.Form.Id).ToList())
+                                                    {
+                                                        int Index = 0;
+                                                        <input type="hidden" name="FormDegerGuncelleListesi" value="@form.Id">
+
+                                                        <tr id="table-tr-row@(tr_row) ">
+                                                            <td class="text-left">
+                                                                <input type="hidden" name="FormDegerListesi" value="@form.Id">
+                                                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                                                {
+                                                                    <div class="row">
+                                                                        <div class="col-md-6">
+                                                                            <div class="input-group-prepend">
+                                                                                <span class="input-group-text" id="basic-addon1">@dil.DilAdi</span>
+                                                                                <input type="text" name="DegerAdiCeviri" class="form-control" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : form.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.DegerAdi)" aria-label="Username" aria-describedby="basic-addon1">
+                                                                                <input type="hidden" name="DilIds" value="@dil.Id" />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+
+                                                            </td>
+                                                            <td class="text-right">
+                                                                <input class="form-control" asp-for="FormDeger.Sira" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.FormDeger.Sira)">
+                                                            </td>
+                                                            <td class="text-right">
+                                                                <button type="button" data-toggle="tooltip" title="Kaldır" class="btn btn-danger deleteRow"><i class="fa fa-minus-circle"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="2"></td>
+                                                    <td class="text-right">
+                                                        <button type="button" onclick="addtrRow();" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title="Cevap Ekle">
+                                                            <i class="fa fa-plus-circle"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!--Form Değerleri-->
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</form>
+
+@section scripts
+{
+<script type="text/javascript">
+                $(document).ready(function () {
+                    var seciliDeger = $("#Form_FormTuru").val();
+                    if (seciliDeger == 3) {
+                        $("#TexboxTipi").css("display", "block");
+                        $("#Cevaplar").css("display", "none");
+                    }
+                    else {
+                        $("#TexboxTipi").css("display", "none");
+                    }
+
+
+                    if (seciliDeger == 3 | seciliDeger == 4 | seciliDeger == 5 | seciliDeger == 6) {
+                        $("#Cevaplar").css("display", "none");
+                    }
+                    else {
+                        $("#Cevaplar").css("display", "block");
+                    }
+                });
+                $("#Form_FormTuru").change(function () {
+                    var seciliDeger = $(this).find(":selected").val();
+                    //
+                    if (seciliDeger == 3) {
+                        $("#TexboxTipi").css("display", "block");
+                    }
+                    else {
+                        $("#TexboxTipi").css("display", "none");
+                    }
+                    //
+                    //
+                    if (seciliDeger == 3 | seciliDeger == 4 | seciliDeger == 5 | seciliDeger == 6) {
+                        $("#Cevaplar").css("display", "none");
+                    }
+                    else {
+                        $("#Cevaplar").css("display", "block");
+                    }
+                    //
+
+                });
+
+        var tr_row = 1;
+                function addtrRow() {
+
+                        html  = '<tr id="table-tr-row' + tr_row + '">';
+                        html += '  <td class="text-left"><input type="hidden" name="FormDegerListesi" value="'+tr_row+'"/>';
+                        @{
+                            int idnx=0;
+                        }
+                        @{
+    }
+                        @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                        {
+                           <text>
+                                html += '    <div class="row">';
+                                html += '       <div class="col-md-6">';
+                                html += '           <div class="input-group-prepend">';
+                                html += '               <span class="input-group-text" id="basic-addon1">@dil.DilAdi</span>';
+                                html += '               <input type="text" name="DegerAdiCeviri"  class="form-control" placeholder="Değer Adı" aria-label="Username" aria-describedby="basic-addon1">';
+                                html += '               <input type="hidden" name="DilIds" value="@dil.Id" />';
+                                html += '            </div>';
+                                html += '           </div>';
+                                html += '    </div>';
+
+
+                            </text>
+                            idnx++;
+                        }
+                        html += '  </td>';
+                        html += '  <td class="text-right"><input type="text" name="FormDeger.Sira" value="" placeholder="Siralama" class="form-control" /></td>';
+                        html += '  <td class="text-right"><button type="button" onclick="$(\'#table-tr-row' + tr_row + '\').remove();" data-toggle="tooltip" title="{{ button_remove }}" class="btn btn-danger"><i class="fa fa-minus-circle"></i></button></td>';
+                        html += '</tr>';
+
+                        $('#formdegerListesi tbody').append(html);
+
+                        tr_row++;
+                }
+
+
+                //Row Delete
+                $(document).ready(function () {
+                    $('.deleteRow').click(DeleteRow);
+                });
+
+                function DeleteRow() {
+                    $(this).parents('tr').first().remove();
+                }
+                //Row Delete
+
+</script>
+
+<partial name="_ValidationScriptsPartial" />
+
+} 

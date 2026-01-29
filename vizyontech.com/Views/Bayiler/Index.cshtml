@@ -1,0 +1,60 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+    var urlseo = "";
+    if (controllerValue.ToString() == "Bayiler")
+    {
+        urlseo = "bayiler";
+    }
+    else
+    {
+        urlseo = ViewContext.RouteData.Values["url"].ToString();
+    }
+
+    var adresListesi = _context.AdresBilgileri.ToList().FirstOrDefault();
+    var adresBilgisi = _context.AdresBilgileriTranslate.ToList().Where(p => p.AdresBilgiId == adresListesi.Id).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var ekTelefonListesi = _context.AdresBilgileriTelefonlar.ToList();
+
+    var telefon = adresBilgisi?.Telefon == " " | adresBilgisi?.Telefon == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Telefon : adresBilgisi?.Telefon;
+    var gsm = adresBilgisi?.Gsm == " " | adresBilgisi?.Gsm == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Gsm : adresBilgisi?.Gsm;
+    var faks = adresBilgisi?.Faks == " " | adresBilgisi?.Faks == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Faks : adresBilgisi?.Faks;
+    var email = adresBilgisi?.Email == " " | adresBilgisi?.Email == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Email : adresBilgisi?.Email;
+    var adres = adresBilgisi?.Adres == " " | adresBilgisi?.Adres == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Adres : adresBilgisi?.Adres;
+    var harita = adresBilgisi?.Harita == " " | adresBilgisi?.Harita == null ? adresBilgisi?.AdresBilgileri.AdresBilgileriTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == " tr-TR")?.Harita : adresBilgisi?.Harita;
+
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == urlseo).FirstOrDefault();
+
+    var sabitMenu = _context.SabitMenulerTranslate.Where(p => p.SabitMenuId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    ViewBag.MetaTitle = sabitMenu?.MetaBaslik ?? sabitMenu.MenuAdi;
+    ViewBag.MetaAnahtar = sabitMenu?.MetaAnahtar ?? siteAyari?.MetaBaslik;
+    ViewBag.MetaAciklama = sabitMenu?.MetaAciklama ?? siteAyari?.MetaAciklama;
+}
+
+@section Style
+{
+    <link rel="stylesheet" href="~/Content/harita/css/jquery.powertip-light.min.css" />
+    <link rel="stylesheet" href="~/Content/harita/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="~/Content/harita/css/haritasc.css" />
+}
+<div class="haritasc-responsive" style="margin:50px auto 0 auto;">
+    <div class="haritasc" id="map-56181"></div>
+</div>
+
+@section scripts
+{
+
+    <script type="text/javascript" src="~/Content/harita/js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="~/Content/harita/js/jquery.powertip.min.js"></script>
+    <script type="text/javascript" src="~/Content/harita/js/paths.js"></script>
+    <script type="text/javascript" src="~/Content/harita/js/raphael-min.js"></script>
+    <script type="text/javascript" src="~/Content/harita/js/turkiye-56181.js"></script>
+
+    
+}

@@ -1,0 +1,110 @@
+﻿@model IEnumerable<Siparisler>
+@inject HelperServis _helperServis
+@{
+    var _context = new AppDbContext();
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var uye = _context.Users.Where(p => p.Id == Convert.ToInt32(userId)).FirstOrDefault();
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    ViewBag.MetaTitle = "Siparişler";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+@section Style
+{
+
+}
+
+
+
+<div class="ps-wishlist">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.AnaSayfa")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.Siparisler")</li>
+        </ul>
+        <h3 class="ps-wishlist__title">@Localize("Genel.Siparisler")</h3>
+        <div class="ps-wishlist__content">
+            <div class="row row-reverse">
+                <div class="col-12 col-md-9">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col">@Localize("Genel.SiparisNo")</th>
+                                    <th scope="col">@Localize("Genel.Musteri")</th>
+                                    <th scope="col">@Localize("Genel.SiparisDurumu")</th>
+                                    <th scope="col">@Localize("Genel.TakipKodu")</th>
+                                    <th scope="col">@Localize("Genel.OdemeMetodu")</th>
+                                    <th scope="col">@Localize("Genel.Tutar")</th>
+                                    <th scope="col">@Localize("Genel.Tarih")</th>
+                                    <th scope="col">@Localize("Genel.SiparisDetay")</th>
+
+                                    <th scope="col">@Localize("Genel.iptal")</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    var siparisGecmisi = _context.SiparisGecmisleri.Where(x => x.SiparisId == item.Id).OrderBy(x => x.Id).LastOrDefault();
+
+                                    <tr>
+                                        <th scope="row">@item.Id</th>
+                                        <td>@item.TeslimatAd @item.TeslimatSoyad</td>
+                                        <td>@siparisGecmisi.SiparisDurumlari.SiparisDurumlariTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == dil)?.SiparisDurumu</td>
+                                        <td><a style="color:dodgerblue" href="http://service.mngkargo.com.tr/iactive/popup/kargotakip.asp?k=@item.KargoUrl" target="_blank">@item.KargoKodu</a></td>
+                                        <td>@item.OdemeMetodu</td>
+                                        <td>@(_helperServis.FormatCurrency(_helperServis.GetKurTLCeviri(item.ToplamFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result, FiyatTipleri.BayiFiyat, ParaBirimi.TRY.ToString()))</td>
+                                        <td>@item.SiparisTarihi</td>
+                                        <td>
+                                            <a asp-controller="Account" asp-action="SiparisDetay" asp-route-id="@item.Id">
+                                                <i class="fa fa-eye" style="font-size: 20px !important; color: #15446c !important; text-align: right !important" aria-hidden="true"></i>
+                                            </a>
+                                        </td>
+                                        @if (item.SiparisDurumu == (int)SiparisDurumTipleri.IptalEdildi)
+                                        {
+                                            <td>
+                                                <span class="btn btn-danger">@Localize("Genel.SiparisiptalEdildi")</span>
+                                            </td>
+                                        }
+                                        else
+                                        {
+
+                                            <td>
+                                                @if (item.SiparisDurumu != (int)SiparisDurumTipleri.KargoyaVerildi)
+                                                {
+                                                    <a href="#" class="btn btn-warning modal-ac" data-toggle="modal" data-target="@Url.Action("_SiparisIptalEt", "Account")" data-urlpost="/Account/SiparisIptalEt/@item.Id" data-formid="frmSiparisDurumu" data-modalbaslik="@Localize("Genel.SiparisiiptalEt")" data-sayfayenile="false">@Localize("Genel.SiparisiiptalEt")<i class="mdi mdi-cart ms-2"></i></a>
+                                                }
+                                            </td>
+
+                                        }
+                                    </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                    
+
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="ps-widget ps-widget--product">
+                        <div class="ps-widget__block">
+                            <div class="ps-widget__category">
+                                <partial name="_SagMenu" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

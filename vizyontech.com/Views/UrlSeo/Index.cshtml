@@ -1,0 +1,15 @@
+﻿@model RedirectModel
+@{
+    Layout =null;
+}
+@{
+    if (Model.Area == "")
+    {
+        @(Html.Action(Model.Action, Model.Controller,Model.Parameters))
+    }
+    else
+    {
+        @(Html.Action(Model.Action, Model.Controller,Model.Area,Model.Parameters))
+    }
+}
+

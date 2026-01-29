@@ -1,0 +1,109 @@
+﻿@model List<AppUser>
+@addTagHelper EticaretWebCoreHelper.CustomTagHelpers.*, oktas.com.tr
+
+@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+    var pageUrl = Url.Action("UyeleriListele", "Account");
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<input type="hidden" id="PageUrl" value="@pageUrl" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <ul class="nav nav-tabs nav-tabs-custom mb-4">
+                    <li class="nav-item mb-2  me-2">
+                        <a asp-area="Admin" asp-controller="@controllerValue" asp-action="UyeEkleGuncelle" class="btn btn-success  text-white"><i class="mdi mdi-plus mr-2"></i> @ViewData["AltBaslik"]</a>
+                    </li>
+                    <li>
+                        <button type="button" class="btn btn-primary" onclick="runJob('JobIslemUyeler')" data-toggle="tooltip" data-placement="top" title="Ürünleri Çek">Üyeleri Opaktan Çek</button>
+                    </li>
+
+                </ul>
+                <div class="table-responsive">
+                    <table id="tablolist" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Tarih</th>
+                                <th>Kayıt Tipi</th>
+                                <th>Ad Soyad</th>
+                                <th>Cari Kodu</th>
+                                <th>Ödeme Linki</th>
+                                <th>Email</th>
+                                <th>Gsm</th>
+                                <th>İl</th>
+                                <th>Roller</th>
+                                <th>Durum</th>
+                                <th style="width: 120px;">Kontrol</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+@section scripts
+{
+    <partial name="_CustomScriptsPartial" />
+
+    <partial name="_DataTableServerSideScriptsPartial" model='new DataTableViewModel(){
+             TableId="#tablolist" ,
+             Url=pageUrl,
+             Type="post" ,
+             DataType="json" ,
+             Columns=new List<DataTableViewColumn>
+    () {
+    new DataTableViewColumn(){Id="Id",Name=""},
+    new DataTableViewColumn(){Id="Id",Name="Id"},
+    new DataTableViewColumn(){Id="Tarih",Name="Tarih"},
+    new DataTableViewColumn(){Id="KayitTipi",Name="KayitTipi"},
+    new DataTableViewColumn(){Id="AdSoyad",Name="AdSoyad"},
+    new DataTableViewColumn(){Id="CariKodu",Name="CariKodu"},
+    new DataTableViewColumn(){Id="CariOdeme",Name="CariOdeme"},
+    new DataTableViewColumn(){Id="Email",Name="Email"},
+    new DataTableViewColumn(){Id="Gsm",Name="Gsm"},
+    new DataTableViewColumn(){Id="IlAdi",Name="IlAdi"},
+    new DataTableViewColumn(){Id="Roller",Name="Roller"},
+    new DataTableViewColumn(){Id="UyeDurumu",Name="UyeDurumu"},
+    new DataTableViewColumn(){Id="Buttons",Name=""},
+    },
+    Order=new DataTableViewOrder()
+    {
+    Id=1,
+    Asc="desc"
+    },
+    Filter=true,
+    Searchable=true,
+    Processing=true,
+    Orderable=true,
+    OrderMulti=false,
+    ServerSide=true,
+    StateSave=true,
+    }' />
+
+
+<script>
+    function runJob(jobName) {
+
+        fetch('/Admin/Task/TaskCalistir', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ JobName: jobName }) // JSON formatında gönderiyoruz
+        }).then(response => response.text())
+            .then(data => alert(data))
+            .catch(error => console.error('Error:', error));
+    }
+
+</script>
+}

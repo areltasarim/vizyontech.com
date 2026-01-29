@@ -1,0 +1,8 @@
+﻿@model string
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>
+    ().RequestCulture.Culture.Name;
+
+    }

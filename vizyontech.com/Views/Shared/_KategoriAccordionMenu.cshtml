@@ -1,0 +1,72 @@
+﻿@inject HelperServis _helperServis
+@{
+    var anamenu = _helperServis.GetMenu(MenuYerleri.AccordionMenu).Result.Where(x=> x.MenuTipi == MenuTipleri.Kategoriler);
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var aktifDil = _helperServis.GetCurrentCulture();
+
+}
+@functions {
+    bool IsCategoryOpen(int kategoriId, string currentUrl)
+    {
+        var currentCategoryUrl = _helperServis.GetSeoUrl(kategoriId, SeoUrlTipleri.Kategori).Result.Url;
+
+        if (currentCategoryUrl == currentUrl)
+            return true;
+
+        var kategori = _helperServis.GetKategori(kategoriId).Result;
+
+        foreach (var altKategori in kategori.AltKategoriler)
+        {
+            if (IsCategoryOpen(altKategori.KategoriId, currentUrl))
+                return true;
+        }
+
+        return false;
+    }
+
+
+    void RenderSubMenu(IEnumerable<HelperServis.MenulerDTO> altKategoriler, string currentUrl)
+    {
+        foreach (var altKategori in altKategoriler.OrderBy(x => x.Sira))
+        {
+            var seoUrl = _helperServis.GetSeoUrl((int)altKategori.EntityId, SeoUrlTipleri.Kategori).Result.Url;
+            var isOpen = IsCategoryOpen((int)altKategori.EntityId, currentUrl);
+            var kategori = _helperServis.GetKategori((int)altKategori.EntityId).Result;
+            var hasSubCategories = altKategori.AltMenuler.Any();
+
+            <li class="@(isOpen ? "accordion-open" : "")">
+                <a href="@seoUrl">@kategori.KategoriAdi</a>
+                @if (hasSubCategories)
+                {
+                    <span class="accordion-sub-toggle">+</span>
+                    <ul class="accordion-sub-menu">
+                        @{
+                            RenderSubMenu(altKategori.AltMenuler, currentUrl);
+                        }
+                    </ul>
+                }
+            </li>
+        }
+    }
+}
+
+<ul class="accordion-menu">
+    @foreach (var item in anamenu.OrderBy(x => x.Sira))
+    {
+        var seoUrl = (await _helperServis.GetSeoUrl((int)item.EntityId, SeoUrlTipleri.Kategori)).Url;
+        var isOpen = IsCategoryOpen((int)item.EntityId, url);
+        var hasSubCategories = item.AltMenuler.Any();
+        var menu = item.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil);
+
+        <li class="@(isOpen ? "accordion-open" : "")">
+            <a href="@seoUrl">@menu.MenuAdi</a>
+            @if (hasSubCategories)
+            {
+                <span class="accordion-sub-toggle">+</span>
+                <ul class="accordion-sub-menu">
+                    @{ RenderSubMenu(item.AltMenuler, url); }
+                </ul>
+            }
+        </li>
+    }
+</ul>

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Localization" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="X.PagedList" Version="9.1.2" />
+    <PackageReference Include="X.PagedList.Mvc.Core" Version="9.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EticaretWebCoreCaching\EticaretWebCoreCaching.csproj" />
+    <ProjectReference Include="..\EticaretWebCoreEntity\EticaretWebCoreEntity.csproj" />
+    <ProjectReference Include="..\EticaretWebCoreHelper\EticaretWebCoreHelper.csproj" />
+    <ProjectReference Include="..\EticaretWebCoreViewModel\EticaretWebCoreViewModel.csproj" />
+  </ItemGroup>
+
+</Project>

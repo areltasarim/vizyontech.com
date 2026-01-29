@@ -1,0 +1,91 @@
+﻿@inject SepetServis _sepetServis
+@inject HelperServis _helperServis
+@{
+    var sepet = await _sepetServis.GetCart();
+
+    var _context = new AppDbContext();
+
+    var odemeMetodu = _context.OdemeMetodlariTranslate.SingleOrDefault(x => x.OdemeMetodId == (int)OdemeMetodTiplieri.CariHesabimaYaz && x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+
+}
+<style>
+    .well {
+        min-height: 20px;
+        padding: 19px;
+        margin-bottom: 20px;
+        background-color: #f5f5f5;
+        border: 1px solid #e3e3e3;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, .05);
+    }
+</style>
+<div>
+    <form method="post" asp-controller="Sepet" asp-action="OdemeSonuc">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th class="ps-product__name">Ürün</th>
+                    <th class="ps-product__meta">Fiyat</th>
+                    <th class="ps-product__quantity">Adet</th>
+                    <th class="ps-product__subtotal">Toplam</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in sepet)
+                {
+                    var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+                    var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
+                    var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
+
+
+                    var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)urun.UrunId);
+                    var kurCeviri = _helperServis.GetKurTLCeviri(urun.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+                    <tr>
+                        <td class="ps-product__name"> <a href="@seoUrl">@urun.UrunAdi</a></td>
+                        <td class="ps-product__meta">
+                            <span class="ps-product__price">
+                                @_helperServis.FormatCurrency(urunFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())
+                            </span>
+                        </td>
+                        <td class="ps-product__quantity">
+                            <span>@item.Adet</span>
+                        </td>
+                        <td class="ps-product__subtotal">
+                            @_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="mt-5">
+            <h2 style="color: #646464 !important">Cari Hesapdan Ödeme</h2>
+            <p><b>Aldığınız ürünlerin ödeme tutarı Cari bakiyenizden düşecektir</b></p>
+            <div class="well well-sm">
+                @{
+                    string odemeaciklama = odemeMetodu.Aciklama;
+                    var odemeList = !string.IsNullOrWhiteSpace(odemeaciklama)
+                        ? odemeaciklama.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        : Array.Empty<string>(); // Daha temiz bir yol ile boş liste oluşturuldu
+                }
+                <p>
+                    <ul style="list-style:none; padding-left:0 !important">
+                        @foreach (var item in odemeList)
+                        {
+                            <li>@item</li>
+                        }
+                    </ul>
+                </p>
+             
+            </div>
+            <div class="clearfix">
+                <button type="submit" class="ps-btn ps-btn--warning font-size-20 mb-3 py-3 float-right" style="width:auto !important">
+                    @Localize("Genel.SiparisiTamamliyorum")
+                </button>
+            </div>
+        </div>
+
+    </form>
+</div>
+

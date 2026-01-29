@@ -1,0 +1,795 @@
+﻿@inject HelperServis _helperServis
+@model BizeUlasinViewModel
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+
+    var kategoriler = await _helperServis.GetKategoriler();
+    var slaytlar = _helperServis.GetSlayt();
+
+    var sabitMenu = await _helperServis.GetSabitMenu(SabitSayfaTipleri.BizeUlasin);
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+
+}
+@section Style
+{
+    <style>
+        .carousel {
+            position: relative;
+        }
+
+        .carousel-inner {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .carousel-item {
+            display: none;
+            position: relative;
+            float: left;
+            width: 100%;
+            margin-right: -100%;
+            backface-visibility: hidden;
+            transition: transform 0.6s ease-in-out;
+        }
+
+            .carousel-item.active {
+                display: block;
+            }
+
+        /* Carousel Resim Responsive */
+        .carousel-item img.carousel-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            min-height: 300px;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        @@media (min-width: 768px) {
+            .carousel-item img.carousel-img {
+                min-height: 400px;
+            }
+        }
+
+
+        .carousel-control-prev,
+        .carousel-control-next {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 15%;
+            color: #fff;
+            text-align: center;
+            opacity: 0.5;
+            transition: opacity 0.15s ease;
+        }
+
+            .carousel-control-prev:hover,
+            .carousel-control-next:hover {
+                opacity: 0.9;
+            }
+
+        .carousel-control-prev {
+            left: 0;
+        }
+
+        .carousel-control-next {
+            right: 0;
+        }
+
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: no-repeat 50%/100% 100%;
+        }
+
+        .carousel-control-prev span,
+        .carousel-control-next span {
+            color: white;
+            text-shadow: 0 0 5px black;
+        }
+
+        /* Owl Carousel Ok Butonlarını Başlığın Sağına Taşı */
+        .ps-section__title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .ps-section__title {
+            margin: 0;
+        }
+
+        .ps-section__title-wrapper .owl-nav {
+            display: flex;
+            gap: 8px;
+            margin: 0;
+            margin-left: auto;
+        }
+
+            .ps-section__title-wrapper .owl-nav button,
+            .ps-section__title .owl-nav button,
+            .ps-section__carousel .owl-nav button {
+                width: 40px;
+                height: 40px;
+                background: #f5f5f5;
+                color: #103178;
+                border: 1px solid #e0e0e0;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+            }
+
+                .ps-section__title-wrapper .owl-nav button:hover,
+                .ps-section__title .owl-nav button:hover,
+                .ps-section__carousel .owl-nav button:hover {
+                    background: #103178;
+                    color: #fff;
+                    border-color: #103178;
+                    transform: scale(1.1);
+                    box-shadow: 0 2px 8px rgba(16, 49, 120, 0.3);
+                }
+
+                .ps-section__title-wrapper .owl-nav button:active,
+                .ps-section__title .owl-nav button:active,
+                .ps-section__carousel .owl-nav button:active {
+                    transform: scale(0.95);
+                }
+
+        .ps-section__title .owl-nav .owl-prev,
+        .ps-section__title .owl-nav .owl-next,
+        .ps-section__carousel .owl-nav .owl-prev,
+        .ps-section__carousel .owl-nav .owl-next {
+            position: static;
+            margin: 0;
+        }
+    </style>
+}
+
+
+<div class="ps-home ps-home--13">
+
+    <div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="2000">
+        <div class="carousel-inner">
+            @{
+                var index = 0;
+            }
+            @foreach (var item in slaytlar)
+            {
+                var slaytResim = _helperServis.GetSlaytResim(item.SlaytId).Result;
+                var mobilResim = item.Slaytlar.Resim1;
+
+                var activeClass = index == 0 ? "active" : "";
+                <div class="carousel-item @activeClass" data-desktop-img="@slaytResim" data-mobile-img="@mobilResim">
+                    <a href="@item.Url">
+                        <img class="carousel-img" src="" alt="">
+                    </a>
+                </div>
+                index++;
+            }
+        </div>
+        <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+            <span class="fa fa-chevron-left fa-2x" aria-hidden="true"></span>
+        </a>
+        <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+            <span class="fa fa-chevron-right fa-2x" aria-hidden="true"></span>
+        </a>
+
+    </div>
+
+    @{
+        int counter = 0;
+    }
+    @foreach (var item in await _helperServis.GetModuller(ModulTipleri.OneCikanUrunler))
+    {
+        var modul = _helperServis.GetModul(item.ModulId).Result;
+        string order1 = counter % 2 == 0 ? "order-1" : "order-2";
+        string order2 = counter % 2 == 0 ? "order-2" : "order-1";
+
+        var oneCikanUrunModul = _helperServis.GetOneCikanUrunModul(item.EntityId).Result;
+        var desktopcolumn = _helperServis.GetColumnSayisi(Device.DesktopMedium, oneCikanUrunModul.ColumnDesktop).Result;
+        var mobilcolumn = _helperServis.GetColumnSayisi(Device.Mobil, oneCikanUrunModul.ColumnMobil).Result;
+
+        <div class="ps-not-padding  mt-50">
+            <div class="container">
+                <div class="row">
+                    @foreach (var kategori in await _helperServis.GetOneCikanUrunToKategori(item.EntityId))
+                    {
+                        var seoUrl = _helperServis.GetSeoUrl(kategori.KategoriId, SeoUrlTipleri.Kategori).Result.Url;
+
+                        <div class="col-@(mobilcolumn) col-md-@(desktopcolumn) mb-20">
+                            <div class="ps-promo__item">
+                                <a href="@seoUrl"><img class="ps-promo__banner" src="@kategori.ResimYolu" loading="lazy" /></a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="container">
+            <div class="ps-section__title-wrapper">
+                <h3 class="ps-section__title">@modul.ModulAdi</h3>
+            </div>
+            <div class="ps-section__carousel">
+                <div class="owl-carousel" data-owl-auto="false" data-owl-loop="true" data-owl-speed="13000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="5" data-owl-item-xs="2" data-owl-item-sm="2" data-owl-item-md="3" data-owl-item-lg="5" data-owl-item-xl="5" data-owl-duration="1000" data-owl-mousedrag="on">
+                    @foreach (var urun in await _helperServis.GetOneCikanUrunler((int)item.EntityId))
+                    {
+                        var urunResimFirst = _helperServis.GetUrunResimFirst(urun.UrunId, UrunResimKategorileri.UrunResim).Resim;
+                        var seoUrl = _helperServis.GetSeoUrl(urun.UrunId, SeoUrlTipleri.Urun).Result.Url;
+
+                        var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)urun.UrunId);
+                        var kurCeviri = _helperServis.GetKurTLCeviri(urun.Fiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD).Result;
+
+                        <div class="ps-section__product">
+                            <div class="ps-product ps-product--standard">
+                                <div class="ps-product__thumbnail">
+                                    <a class="ps-product__image" href="@seoUrl">
+                                        <figure>
+                                            <img src="@($"{urunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" />
+                                        </figure>
+                                    </a>
+                                    <div class="ps-product__actions">
+                                        @*<div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>*@
+                                        @*<div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>*@
+                                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                    </div>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                    {
+                                        @if (urun.Stok >= 0)
+                                        {
+                                            <div class="ps-product__badge">
+                                                <span class="ps-badge ps-badge--@(urun.Stok > 0 ? "instock" : "outstock")">
+                                                    @if (urun.Stok >= 10)
+                                                    {
+                                                        <text>10+</text>
+                                                    }
+                                                    else if (urun.Stok >= 0)
+                                                    {
+                                                        <text>@urun.Stok</text>
+                                                    }
+                                                </span>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <div class="ps-product__content">
+                                    <h5 class="ps-product__title"><a href="@seoUrl">@urun.MarkaAdi @urun.UrunKodu @urun.UrunAdi</a></h5>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && urun.Fiyat > 0)
+                                    {
+
+                                        var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(urun.Fiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                        string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                        var urunListeFiyatTl = await _helperServis.GetPriceAsync(urun.Fiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                        string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+
+                                        <div class="ps-product__meta">
+                                            <span class="ps-product__price sale">@urunListeFiyatDecimaltxt</span>
+                                            <span class="ps-product__del">@urunListeFiyatTlDecimaltxt</span>
+                                        </div>
+
+                                        <div class="ps-product__actions ps-product__group-mobile">
+                                            <div class="ps-product__quantity">
+                                                <div class="def-number-input number-input safari_only">
+                                                    <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                    <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                    <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                        </div>
+                                    }
+                                </div>
+
+
+                            </div>
+
+                        </div>
+                    }
+                </div>
+            </div>
+            @if (oneCikanUrunModul.BannerDurumu == SayfaDurumlari.Aktif)
+            {
+                <div>
+                    <a href="@oneCikanUrunModul.BannerUrl"><img class="ps-banner__overlay img-responsive" src="@oneCikanUrunModul.Banner" loading="lazy" /></a>
+                </div>
+            }
+        </div>
+
+
+    }
+
+
+    @*<section class="ps-section--banner  mb-20">
+            <div class="ps-section__overlay">
+                <div class="ps-section__loading"></div>
+            </div>
+            <div class="owl-carousel" data-owl-auto="false" data-owl-loop="true" data-owl-speed="15000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="1" data-owl-item-xs="1" data-owl-item-sm="1" data-owl-item-md="1" data-owl-item-lg="1" data-owl-duration="1000" data-owl-mousedrag="on">
+                @foreach (var item in slaytlar)
+                {
+                    var slaytResim = _helperServis.GetSlaytResim(item.SlaytId).Result;
+                    <div class="ps-banner" style="background:@item.Slaytlar.BackgroundColor;">
+                        <img class="not-fuild ps-banner__imagebg" src="@slaytResim" alt="" loading="lazy" />
+                        <div class="container container-initial">
+                            <div class="ps-banner__block">
+                                <div class="ps-banner__content">
+                                    <h2 class="ps-banner__title" style="color:@item.Slaytlar.FontColor;">@item.SlaytBaslik<br /> @item.SlaytBaslik2</h2>
+                                    <div class="ps-banner__desc" style="color:@item.Slaytlar.FontColor;">@item.Aciklama</div>
+                                    <div class="ps-banner__btn-group">
+                                        @if (!string.IsNullOrEmpty(item.SlaytBaslik3))
+                                        {
+                                            <div class="ps-banner__btn"><img src="@item.Slaytlar.Resim1" alt="alt" style="filter: invert(40%) sepia(50%) saturate(366%) hue-rotate(182deg) brightness(80%) contrast(89%);" loading="lazy" />@item.SlaytBaslik3</div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.SlaytBaslik4))
+                                        {
+                                            <div class="ps-banner__btn"><img src="@item.Slaytlar.Resim2" alt="alt" style="filter: invert(40%) sepia(50%) saturate(366%) hue-rotate(182deg) brightness(80%) contrast(89%);" loading="lazy" />@item.SlaytBaslik4</div>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.ButonAdi))
+                                    {
+                                        <a class="bg-warning ps-banner__shop" href="@item.Url">@item.ButonAdi</a>
+
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.ButonAdi2))
+                                    {
+                                        <div class="ps-banner__persen bg-yellow">@item.ButonAdi2 <br /> @item.Url2</div>
+                                    }
+                                </div>
+                                <div class="ps-banner__thumnail">
+                                    <img class="ps-banner__round" src="@(item.Slaytlar.ArkaplanResim == "/Content/Upload/Images/resimyok.png" ? "~/Content/Theme/img/round5.png" : item.Slaytlar.ArkaplanResim)" alt="alt" loading="lazy" /><img class="ps-banner__image" src="@slaytResim" alt="" loading="lazy" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>*@
+    <div class="ps-home__content">
+        @{
+            var _context = new AppDbContext();
+            var banner = _context.Banner.Find(5);
+        }
+        @if (banner.Durum == SayfaDurumlari.Aktif)
+        {
+            <div class="ps-not-padding">
+                <div class="container">
+                    <div class="row">
+                        @foreach (var item in _helperServis.GetBannerResim(5))
+                        {
+                            var desktopcolumn = _helperServis.GetColumnSayisi(Device.DesktopMedium, item.BannerResim.Banner.ColumnDesktop).Result;
+                            var mobilcolumn = _helperServis.GetColumnSayisi(Device.Mobil, item.BannerResim.Banner.ColumnMobil).Result;
+
+                            <div class="col-@(mobilcolumn) col-md-@(desktopcolumn) mb-20">
+                                <div class="ps-promo__item">
+                                    <a href="@item.Url"><img class="ps-promo__banner" src="@item.Resim" loading="lazy" /></a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+
+
+        @{
+            var slogan = _helperServis.GetParentSayfa(SayfaTipleri.Slogan1).Result;
+            var sloganResim = _helperServis.GetParentSayfaResim(SayfaTipleri.Slogan1).Result;
+        }
+        @if (slogan.Sayfalar.Durum == SayfaDurumlari.Aktif)
+        {
+            <section class="ps-home__banner mb-100">
+                <div class="container">
+                    <div class="ps-banner" style="background:#FFCC00;">
+                        <img class="ps-banner__overlay" src="@sloganResim" alt="" loading="lazy" />
+                        <div class="ps-banner__block">
+                            <div class="ps-banner__content">
+                                <h2 class="ps-banner__title">@slogan.SayfaAdi <br />@slogan.SayfaAdiAltAciklama</h2>
+                                <div class="ps-banner__btn-group">
+                                    @if (!string.IsNullOrEmpty(slogan.BreadcrumbAdi))
+                                    {
+                                        <div class="ps-banner__btn"><img src="@slogan.Dosya" alt="" loading="lazy" />@slogan.BreadcrumbAdi</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(slogan.BreadcrumbAciklama))
+                                    {
+                                        <div class="ps-banner__btn"><img src="@slogan.Sayfalar.BreadcrumbResim" alt="" loading="lazy" />@slogan.BreadcrumbAciklama</div>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(slogan.ButonAdi))
+                                {
+                                    <a class="bg-warning ps-banner__shop" href="@slogan.ButonUrl">@slogan.ButonAdi</a>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(slogan.YoutubeVideoLink))
+                            {
+                                <div class="ps-banner__thumnail">
+                                    <div class="ps-banner__persen bg-yellow ps-right">@slogan.YoutubeVideoLink</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
+
+        @*<div class="container">
+
+                @{
+                    int counter = 0;
+                }
+                @foreach (var item in await _helperServis.GetModuller(ModulTipleri.OneCikanUrunler))
+                {
+                    var modul = _helperServis.GetModul(item.ModulId).Result;
+                    string order1 = counter % 2 == 0 ? "order-1" : "order-2";
+                    string order2 = counter % 2 == 0 ? "order-2" : "order-1";
+
+                    var oneCikanUrunModul = _helperServis.GetOneCikanUrunModul(item.EntityId).Result;
+                    var desktopcolumn = _helperServis.GetColumnSayisi(Device.DesktopMedium, oneCikanUrunModul.ColumnDesktop).Result;
+                    var mobilcolumn = _helperServis.GetColumnSayisi(Device.Mobil, oneCikanUrunModul.ColumnMobil).Result;
+
+                    <section class="ps-section--categories mt-50">
+                        <h3 class="ps-section__title">@modul.ModulAdi</h3>
+                        <div class="ps-section__content">
+                            <div class="ps-categories__list">
+                                @foreach (var kategori in await _helperServis.GetOneCikanUrunToKategori(item.EntityId))
+                                {
+                                    var seoUrl = _helperServis.GetSeoUrl(kategori.KategoriId, SeoUrlTipleri.Kategori).Result.Url;
+
+                                    <div class="ps-categories__item"><a class="ps-categories__link" href="@seoUrl"><img src="@kategori.ResimYolu" loading="lazy"></a><a class="ps-categories__name" href="@seoUrl">@kategori.KategoriAdi</a></div>
+                                }
+                            </div>
+                        </div>
+                    </section>
+                    <div class="ps-home--block ps-home--13 mb-50">
+                        <div class="row">
+                            @foreach (var modulResim in _helperServis.GetOneCikanUrunResimleri(item.EntityId).Result.Take(1))
+                            {
+                                <div class="col-12 col-md-3  d-none d-md-block @order1">
+                                    <div class="ps-block__image">
+                                        <section class="ps-home__banner">
+                                            <div class="ps-banner" style="background:#FD8D27;">
+                                                <img class="ps-banner__overlay" src="@($"{modulResim.ResimYolu}")" alt="" loading="lazy" />
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            }
+                            <div class="col-12 @(_helperServis.GetOneCikanUrunResimleri(item.EntityId).Result.ToList().Count > 0 ? "col-md-9" : "col-md-12")  @order2">
+                                <div class="ps-block__product">
+                                    <div class="row m-0">
+                                        @foreach (var urun in await _helperServis.GetOneCikanUrunler((int)item.EntityId))
+                                        {
+                                            var urunResimFirst = _helperServis.GetUrunResimFirst(urun.UrunId, UrunResimKategorileri.UrunResim).Resim;
+                                            var seoUrl = _helperServis.GetSeoUrl(urun.UrunId, SeoUrlTipleri.Urun).Result.Url;
+
+                                            var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)urun.UrunId);
+                                            var kurCeviri = _helperServis.GetKurTLCeviri(urun.Fiyat, ParaBirimi.USD).Result;
+
+                                            <div class="col-@(mobilcolumn) col-lg-@(desktopcolumn) p-0">
+                                                <div class="ps-product ps-product--standard">
+                                                    <div class="ps-product__thumbnail">
+                                                        <a class="ps-product__image" href="@seoUrl">
+                                                            <figure>
+                                                                <img src="@($"{urunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" />
+                                                            </figure>
+                                                        </a>
+                                                        <div class="ps-product__actions">
+                                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                                        </div>
+                                                        @if (urun.Stok >= 0)
+                                                        {
+                                                            <div class="ps-product__badge">
+                                                                <span class="ps-badge ps-badge--@(urun.Stok > 0 ? "instock" : "outstock")">
+                                                                    @if (urun.Stok >= 10)
+                                                                    {
+                                                                        <text>10+</text>
+                                                                    }
+                                                                    else if (urun.Stok >= 0)
+                                                                    {
+                                                                        <text>@urun.Stok</text>
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    <div class="ps-product__content">
+                                                        <h5 class="ps-product__title"><a href="@seoUrl">@urun.MarkaAdi @urun.UrunKodu @urun.UrunAdi</a></h5>
+                                                        @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                                        {
+                                                            <div class="ps-product__meta">
+                                                                <span class="ps-product__price sale">@_helperServis.FormatCurrency(urunFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</span>
+                                                                <span class="ps-product__del">@_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</span>
+                                                            </div>
+                                                        }
+                                                        <div class="ps-product__desc">
+                                                            @{
+                                                                string ozellik = urun.Ozellik;
+                                                                var urunozellikleri = !string.IsNullOrWhiteSpace(ozellik)
+                                                                ? ozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                : new string[0];
+                                                            }
+                                                            <ul class="ps-product__list">
+                                                                @foreach (var teknikozellik in urunozellikleri)
+                                                                {
+                                                                    <li>@teknikozellik</li>
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                        @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                                        {
+                                                            <div class="ps-product__actions ps-product__group-mobile">
+                                                                <div class="ps-product__quantity">
+                                                                    <div class="def-number-input number-input safari_only">
+                                                                        <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                                        <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                                        <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>
+                                                                <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                                                <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    counter++;
+                }
+
+            </div>*@
+        @{
+            var hakkimizda = _helperServis.GetParentSayfa(SayfaTipleri.Hakkimizda).Result;
+            var hakkimizdaResim = _helperServis.GetParentSayfaResim(SayfaTipleri.Hakkimizda).Result;
+        }
+        <section class="ps-banner--round ps-about--video">
+            <div class="container">
+                <div class="ps-banner">
+                    <div class="container">
+                        <div class="ps-banner__block">
+                            <div class="ps-banner__content">
+                                <h2 class="ps-banner__title">@hakkimizda.SayfaAdi</h2>
+                                <div class="ps-banner__desc">
+                                    @Html.Raw(hakkimizda.KisaAciklama)
+                                </div>
+                                <a class="ps-banner__shop bg-yellow" href="@hakkimizda.ButonUrl">@hakkimizda.ButonAdi</a>
+                            </div>
+
+                            <div class="ps-banner__thumnail" id="hakkimizda-content">
+                                <div style="display:none;" id="video1">
+                                    <video class="lg-video-object lg-html5" controls="" preload="none">
+                                        <source src="@hakkimizda.YoutubeVideoLink" type="video/mp4">Tarayıcınız HTML5 videoyu desteklemiyor.
+                                    </video>
+                                </div>
+                                <img class="ps-banner__image" src="@hakkimizdaResim" loading="lazy">
+                                <div id="ps-video-gallery">
+                                    <div class="video" data-html="#video1" data-poster="@hakkimizdaResim">
+                                        <a href="#">
+                                            <div class="ps-banner__video"><i class="fa fa-play"></i></div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="container mb-5">
+            <div class="container text-center">
+                <h3 class="mt-5">SOSYAL MEDYA</h3>
+                <div class="social-icons">
+                    <partial name="_SosyalMedyaFooter" />
+                </div>
+            </div>
+        </div>
+
+        @{
+            var altMenuListesi = _context.MenulerTranslate.Where(x => x.Diller.DilKodlari.DilKodu == dil && x.Id != 1 && x.Menuler.MenuYeri == MenuYerleri.FooterMenuAlt).OrderBy(x => x.Menuler.Sira).ToList();
+        }
+
+        @if (altMenuListesi.Count > 0)
+        {
+            <div class="ps-home__content mt-50">
+                <div class="container">
+                    <section class="ps-section--category">
+
+                        <div class="row">
+                            @foreach (var menu in _helperServis.GetMenuTranslate(MenuYerleri.FooterMenuAlt).ToList())
+                            {
+                                <div class="col-6 col-md-4 col-lg-2">
+                                    <div class="ps-category__nav">
+                                        <div class="ps-category__title">@menu.MenuAdi</div>
+                                        <ul class="ps-category__list">
+                                            @foreach (var altmenu in altMenuListesi.Where(x => x.Menuler.ParentMenuId == menu.MenuId))
+                                            {
+                                                <li><a href="@altmenu.Url">@altmenu.MenuAdi</a></li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                    </section>
+                </div>
+            </div>
+        }
+
+
+    </div>
+</div>
+
+
+@if (siteAyari.PopupDurum == SayfaDurumlari.Aktif)
+{
+    <partial name="_Popup" />
+}
+
+
+@section Scripts
+{
+    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["googleReCaptcha:SiteKey"]"></script>
+    <script>
+        // Carousel Resim Responsive Yükleyici
+        function loadCarouselImages() {
+            var isMobile = window.innerWidth < 768;
+            $('.carousel-item').each(function() {
+                var $item = $(this);
+                var $img = $item.find('.carousel-img');
+                var desktopImg = $item.data('desktop-img');
+                var mobileImg = $item.data('mobile-img');
+                
+                // Mobil resim yoksa veya "resimyok.png" ise desktop resmi göster
+                var isNoImage = !mobileImg ||
+                               mobileImg === '' ||
+                               mobileImg.indexOf('/Content/Upload/Images/resimyok.png') !== -1 ||
+                               mobileImg.indexOf('resimyok.png') !== -1;
+                
+                if (isMobile && !isNoImage) {
+                    $img.attr('src', mobileImg);
+                } else {
+                    $img.attr('src', desktopImg);
+                }
+            });
+        }
+
+        // Sayfa yüklendiğinde
+        $(document).ready(function() {
+            loadCarouselImages();
+        });
+
+        // Pencere boyutu değiştiğinde
+        $(window).on('resize', function() {
+            loadCarouselImages();
+        });
+        // Carousel Resim Responsive Yükleyici
+
+        //Recaptcha Fonksiyonu
+
+             grecaptcha.ready(function() {
+             window.grecaptcha.execute('@Configuration["googleReCaptcha:SiteKey"]', { action: 'home' }).then(function (token) {
+                 $("#Captcha").val(token);
+             });
+             });
+        //Recaptcha Fonksiyonu
+
+        //Popup Fonksiyonu
+        $(window).on('load', function () {
+            if (!localStorage.getItem('modalShown')) {
+                $('#myModalpopup').modal('show');
+            }
+        });
+
+        // "Bir Daha Gösterme" butonuna tıklandığında localStorage'a kayıt yap ve modal'ı kapat
+        $('#btnHideModal').on('click', function () {
+            localStorage.setItem('modalShown', 'true');  // "Bir Daha Gösterme" ayarını kaydet
+            $('#myModalpopup').modal('hide');  // Modal'ı kapat
+        });
+
+        // Modal kapatıldığında tetiklenecek
+        $('#myModalpopup').on('hidden.bs.modal', function () {
+        });
+        //Popup Fonksiyonu
+
+        // Owl Carousel Ok Butonlarını Başlığın Sağına Taşı
+        function moveOwlNavButtons() {
+            $('.ps-section__carousel').each(function() {
+                var $carousel = $(this);
+                var $wrapper = $carousel.prev('.ps-section__title-wrapper');
+
+                if ($wrapper.length === 0) {
+                    $wrapper = $carousel.prev('.ps-section__title').parent();
+                }
+
+                if ($wrapper.length > 0) {
+                    var $nav = $carousel.find('.owl-nav');
+                    if ($nav.length > 0 && $wrapper.find('.owl-nav').length === 0) {
+                        $nav.detach().appendTo($wrapper);
+                    }
+                }
+            });
+        }
+
+        // Birden fazla kez deneme
+        $(document).ready(function() {
+            moveOwlNavButtons();
+
+            // Owl carousel event'leri
+            $('.ps-section__carousel').on('initialized.owl.carousel', function() {
+                moveOwlNavButtons();
+            });
+
+            $('.ps-section__carousel').on('refreshed.owl.carousel', function() {
+                moveOwlNavButtons();
+            });
+
+            // Window load sonrası
+            $(window).on('load', function() {
+                setTimeout(moveOwlNavButtons, 500);
+            });
+
+            // Periyodik kontrol (fallback)
+            var checkInterval = setInterval(function() {
+                var allMoved = true;
+                $('.ps-section__carousel').each(function() {
+                    var $carousel = $(this);
+                    var $title = $carousel.prev('.ps-section__title');
+                    if ($title.length > 0) {
+                        var $nav = $carousel.find('.owl-nav');
+                        if ($nav.length > 0 && $title.find('.owl-nav').length === 0) {
+                            allMoved = false;
+                        }
+                    }
+                });
+                if (allMoved) {
+                    clearInterval(checkInterval);
+                } else {
+                    moveOwlNavButtons();
+                }
+            }, 500);
+
+            // 5 saniye sonra interval'i durdur
+            setTimeout(function() {
+                clearInterval(checkInterval);
+            }, 5000);
+        });
+    </script>
+}

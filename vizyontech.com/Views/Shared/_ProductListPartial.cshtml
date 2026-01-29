@@ -1,0 +1,10 @@
+﻿@model List<Urunler>
+<!-- Ürün Listesi -->
+<div class="row">
+    @foreach (var product in Model)
+    {
+        <div class="col-md-3 product-item">
+            <span>@product.Id</span>
+        </div>
+    }
+</div>

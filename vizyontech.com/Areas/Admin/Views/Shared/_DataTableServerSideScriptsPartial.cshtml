@@ -1,0 +1,105 @@
+﻿@model DataTableViewModel
+<!-- Required datatable js -->
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net/js/jquery.dataTables.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
+<!-- Buttons examples -->
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/jszip/jszip.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/pdfmake/build/pdfmake.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/pdfmake/build/vfs_fonts.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-buttons/js/buttons.html5.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-buttons/js/buttons.print.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-buttons/js/buttons.colVis.min.js"></script>
+
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-keytable/js/dataTables.keyTable.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-select/js/dataTables.select.min.js"></script>
+
+<!-- Responsive examples -->
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js"></script>
+
+<!-- Datatable init js -->
+<script src="~/Admin/Content/Theme/assets/js/pages/datatables.init.js"></script>
+
+<script src="~/js/numeric-comma.js"></script>
+<script>
+
+    $(document).ready(function () {
+ 
+        $('tbody').addClass('thead-dark');
+
+        var table = $("@Model.TableId").DataTable({
+            "ajax": {
+                "url": $("#PageUrl").val(),
+                "type": "@Model.Type",
+                "datatype": "@Model.DataType"
+            },
+            "rowCallback": function (row, data, index) {
+                console.log("Data:", data); // ID'nin hangi indeks olduğunu kontrol etmek için
+                $(row).find("td").eq(1).attr("data-order", data.Id); // ID sütununun içine data-order ekle
+            },
+            language: {
+                "url": "//cdn.datatables.net/plug-ins/1.11.4/i18n/tr.json"
+            },
+            'columnDefs': [{
+                'searchable':false,
+            'orderable':false,
+            'className': 'dt-body-center',
+            'type': 'numeric-comma',
+                "targets": 0,
+                "data": "checkbox",
+                "render": function (data, type, row, meta) {
+                    var stutuntxt = '<a href="javascript: void(0);" class="text-dark font-weight-bold"><input value="' + $('<div/>').text(data).html() + '" type="checkbox" name="Deletes"  class="form-check-input chkDeletes"/></a>'
+                    return stutuntxt;
+                },
+            },
+                {
+                    'targets': 1,
+                    'orderDataType': 'dom-text-numeric',
+                }
+            ],
+            "processing": @Model.Processing.ToString().ToLower(), // for show progress bar
+            "serverSide": @Model.ServerSide.ToString().ToLower(), // for process server side
+            "filter": @Model.Filter.ToString().ToLower(), // this is for disable filter (search box)
+            'paging' : true,
+            stateSave: @Model.StateSave.ToString().ToLower(),
+            'order': [[@Model.Order.Id, '@Model.Order.Asc']],
+            pageLength: 100,
+            lengthMenu: [10, 25, 50, 100, 250],
+            columns: [
+                @foreach (var Column in Model.Columns)
+                {
+                    @:{ data: "@Column.Id", name: "@Column.Name" },
+                }
+            ]
+        });
+     
+        // Handle click on "Select all" control
+        $('#pagecheck').on('click', function () {
+            // Get all rows with search applied
+            var rows = table.rows({ 'search': 'applied' }).nodes();
+            // Check/uncheck checkboxes for all rows in the table
+            $('input[type="checkbox"]', rows).prop('checked', this.checked);
+        });
+
+        // Handle click on checkbox to set state of "Select all" control
+        table.on('change', 'input[type="checkbox"]', function () {
+            // If checkbox is not checked
+            if (!this.checked) {
+                var el = $('#pagecheck').get(0);
+                // If "Select all" control is checked and has 'indeterminate' property
+                if (el && el.checked && ('indeterminate' in el)) {
+                    // Set visual state of "Select all" control
+                    // as 'indeterminate'
+                    el.indeterminate = true;
+                }
+            }
+        });
+        $.fn.dataTable.ext.order['dom-text-numeric'] = function (settings, col) {
+            return this.api().column(col, { order: 'index' }).nodes().map(function (td, i) {
+                return $('input', td).val() * 1;
+            });
+        }
+    });
+</script>

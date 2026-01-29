@@ -1,0 +1,236 @@
+﻿@using System.Xml;
+@inject HelperServis _helperServis
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+
+    var sepet = _sepetServis.GetCart().Result;
+
+    var sepetBilgi = _sepetServis.GetSepetBilgi().Result;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var action = HttpContextAccessor.HttpContext.Request.RouteValues["action"].ToString();
+
+    var listeToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var araToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var kdvToplamTl = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var kargoToplam = (string)await _sepetServis.YeniSepetKargoAsync(FiyatTipleri.ListeFiyat, true, true);
+
+    string genelToplamTL = (string)await _sepetServis.YeniSepetGenelToplamAsync(
+FiyatTipleri.BayiFiyat,
+dovizDurum: true,     // TL olarak
+formatted: true,      // Formatlı string
+paraBirimiGosterimi: true
+);
+
+    ViewBag.MetaTitle = "Sepet";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+@section Scripts
+{
+}
+
+<div class="ps-shopping">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="#">@Localize("Genel.Sepet")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.Sepet")</li>
+        </ul>
+        @if (sepet.Count > 0)
+        {
+            <partial name="_BilgiMesaji" />
+
+            <div class="ps-shopping__content">
+                <div class="row">
+                    <div class="col-12 col-md-7 col-lg-9">
+                        <ul class="ps-shopping__list" id="sepetListesiMobil">
+
+                            @foreach (var item in sepet)
+                            {
+                                var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+                                var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
+                                var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
+                                var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
+                                var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
+
+                                var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                var urunListeFiyatTl = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+
+
+                                <li>
+                                    <div class="ps-product ps-product--wishlist">
+                                        <div class="ps-product__remove"><a href="javascript: void(0)" onclick="SepetUrunSil(@item.UrunId)"><i class="icon-cross"></i></a></div>
+                                        <div class="ps-product__content">
+                                            <div class="ps-product__info">
+                                                <div class="ps-product__image-wrapper">
+                                                    <a href="/@seoUrl">
+                                                        <img src="@urunResimFirst" alt="@urun.UrunAdi" class="ps-product__image" loading="lazy" />
+                                                    </a>
+                                                </div>
+                                                <h5 class="ps-product__title"><a href="/@seoUrl">@urun.UrunAdi</a></h5>
+                                            </div>
+                                            <div class="ps-product__row">
+                                                <div class="ps-product__label">@Localize("Genel.Fiyat"):</div>
+                                                <div class="ps-product__value">
+                                                    <span class="ps-product__price">
+                                                        @urunListeFiyatDecimaltxt
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div class="ps-product__row">
+                                                <div class="ps-product__label">@Localize("Genel.Adet"):</div>
+                                                <div class="ps-product__value">@item.Adet</div>
+                                            </div>
+
+                                            <div class="ps-product__row">
+                                                <div class="ps-product__label">@Localize("Genel.AraToplamListeFiyat"):</div>
+                                                <div class="ps-product__value">
+                                                    <span class="ps-product__price">
+                                                        @_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString(), false)
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Diğer içerikler burada devam eder -->
+                                        </div>
+                                    </div>
+                                </li>
+
+                            }
+
+                        </ul>
+                        <div class="ps-shopping__table">
+                            <table class="table ps-table ps-table--product">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-product__remove"></th>
+                                        <th class="ps-product__thumbnail"></th>
+                                        <th class="ps-product__name">@Localize("Genel.Urun")</th>
+                                        <th class="ps-product__meta">@Localize("Genel.Fiyat")</th>
+                                        <th class="ps-product__quantity">@Localize("Genel.Adet")</th>
+                                        <th class="ps-product__subtotal">@Localize("Genel.Toplam")</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sepetListesi">
+                                    @foreach (var item in sepet)
+                                    {
+                                        var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+                                        var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
+                                        var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
+                                        var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
+
+
+                                        var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                        string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                        var urunListeFiyatTl = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                        string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+                                        var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
+
+
+                                        <tr>
+                                            <td class="ps-product__remove"> <a href="javascript: void(0)" onclick="SepetUrunSil(@item.UrunId)"><i class="icon-cross"></i></a></td>
+                                            <td class="ps-product__thumbnail">
+                                                <a class="ps-product__image" href="/@seoUrl">
+                                                    <figure><img src="@urunResimFirst" loading="lazy"></figure>
+                                                </a>
+                                            </td>
+                                            <td class="ps-product__name"> <a href="/@seoUrl">@urun.UrunAdi</a></td>
+                                            <td class="ps-product__meta">
+                                                <span class="ps-product__price">
+                                                    @urunListeFiyatDecimaltxt
+                                                </span>
+                                            </td>
+                                            <td data-title="Quantity">
+                                                <span class="sr-only">@Localize("Genel.Adet")</span>
+                                                <!-- Quantity -->
+                                                <div class="border rounded-pill py-1 width-122 w-xl-80 px-3 border-color-1">
+                                                    <div class="js-quantity row align-items-center">
+                                                        <div class="col">
+                                                            <input class="js-result form-control h-auto border-0 rounded p-0 shadow-none" type="text" value="@item.Adet">
+                                                        </div>
+                                                        <div class="col-auto pr-1">
+                                                            <a class="js-minus btn btn-icon btn-xs btn-outline-secondary rounded-circle border-0" onclick="SepeteEkle(@urun.UrunId, 1, '@SepetAdetGuncellemeDurumlari.Azalt', true)">
+                                                                <small class="fa fa-minus btn-icon__inner"></small>
+                                                            </a>
+                                                            <a class="js-plus btn btn-icon btn-xs btn-outline-secondary rounded-circle border-0" onclick="SepeteEkle(@urun.UrunId, 1, '@SepetAdetGuncellemeDurumlari.Arttir', true)">
+                                                                <small class="fa fa-plus btn-icon__inner"></small>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- End Quantity -->
+                                            </td>
+                                            <td class="ps-product__subtotal">
+                                                @_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString(),false)
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="kupon">
+                            <div class="ps-shopping__footer">
+                                <div class="ps-shopping__coupon">
+                                    <input class="form-control ps-input" type="text" name="KuponKodu" placeholder="@Localize("Genel.KuponKodu")">
+                                    <button class="ps-btn ps-btn--primary" type="button" id="btnKupon">@Localize("Genel.KuponKullan")</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-12 col-md-5 col-lg-3" id="sepetGenelToplam">
+                        <div class="ps-shopping__label">@Localize("Genel.SepetToplam")</div>
+                        <div class="ps-shopping__box">
+                            <div class="ps-shopping__row">
+                                <div class="ps-shopping__label">@Localize("Genel.AraToplamListeFiyat")</div>
+                                <div class="ps-shopping__price"><span class="ps-product__is-price">@listeToplamTL</span> </div>
+                            </div>
+                            <div class="ps-shopping__row">
+                                <div class="ps-shopping__label">@Localize("Genel.AraToplamBayiFiyat")</div>
+                                <div class="ps-shopping__price">@araToplamTL</div>
+                            </div>
+                            <div class="ps-shopping__row">
+                                <div class="ps-shopping__label">@Localize("Genel.AraToplamKdv")</div>
+                                <div class="ps-shopping__price">@kdvToplamTl</div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
+                            {
+                                <div class="ps-shopping__row">
+                                    <div class="ps-shopping__label">@Localize("Genel.Kupon")</div>
+                                    <div class="ps-shopping__price">- @(_sepetServis.KuponHesapla().Result.kuponIndirimTL)</div>
+                                </div>
+                            }
+                            <div class="ps-shopping__row">
+                                <div class="ps-shopping__label">@Localize("Genel.Kargo")</div>
+                                <div class="ps-shopping__price">@kargoToplam</div>
+                            </div>
+                            <div class="ps-shopping__row">
+                                <div class="ps-shopping__label">@Localize("Genel.GenelToplam")</div>
+                                <div class="ps-shopping__price">@genelToplamTL</div>
+                            </div>
+                            <div class="ps-shopping__checkout">
+                                <a class="ps-btn ps-btn--warning" asp-controller="Sepet" asp-action="Kasa">@Localize("Genel.AlisverisiTamamla")</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        }
+        else
+        {
+    <div>@Localize("Genel.SepetinizBos")</div>
+        }
+    </div>
+</div>

@@ -1,0 +1,57 @@
+﻿@model KategoriBanner
+@{
+    AppDbContext _context = new AppDbContext();
+    var DilListesi = ViewBag.Diller as IEnumerable<Diller>;
+    var dil = DilListesi.FirstOrDefault(x => x.Id == Model.DilId) ?? DilListesi.FirstOrDefault();
+
+    int rowspan = -1;
+    if (DilListesi.ToList().Count > 1)
+    {
+        rowspan = DilListesi.ToList().Count;
+    }
+}
+
+
+<tr class="kategoribanner-row" data-dil-id="@dil.Id">
+    <input type="hidden" asp-for="DilId" />
+    <input type="hidden" asp-for="KategoriId" />
+    <input type="hidden" asp-for="Resim" />
+    <input class="SilinmeDurum" type="hidden" asp-for="SilinmeDurum" />
+    <td class="text-start">
+        <div class="input-group">
+            <div class="input-group-text"><img src="@dil.Resim" width="25"></div>
+            <input type="text" placeholder="Url" class="form-control" asp-for="Url">
+        </div>
+    </td>
+
+    <td class="text-start">
+        <input type="file" class="form-control mb-3" asp-for="SayfaResim" lang="tr">
+        <div class="row">
+            <label for="example-text-input" class="col-md-1 col-form-label"></label>
+            <div class="col-md-9">
+                <img src="@Model.Resim" width="200" />
+            </div>
+        </div>
+    </td>
+
+    @if (Model.DilId == 1)
+    {
+
+        <td class="text-end" valign="@(DilListesi.ToList().Count == 1 ? "" : "middle")" rowspan="@rowspan">
+            <div class="input-group">
+                <input type="text" placeholder="Sıra" class="form-control" asp-for="Sira">
+            </div>
+        </td>
+        <td class="text-end" valign="middle" rowspan="@rowspan">
+            <button type="button" class="btn btn-danger kategoribanner-row-remove" aria-label="Sil"><i class="fas fa-minus-circle"></i></button>
+        </td>
+    }
+</tr>
+
+
+
+@section scripts
+{
+
+
+}

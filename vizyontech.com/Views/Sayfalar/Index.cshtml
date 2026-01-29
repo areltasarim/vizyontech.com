@@ -1,0 +1,119 @@
+﻿@model IEnumerable<SayfalarTranslate>
+@inject HelperServis _helperServis
+
+@{
+    var _context = new AppDbContext();
+
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+
+    ViewBag.MetaTitle = parentSayfa?.SayfaAdi ?? parentSayfa?.MetaBaslik;
+    ViewBag.MetaAnahtar = parentSayfa?.MetaAnahtar ?? siteAyariHelper?.MetaBaslik;
+    ViewBag.MetaAciklama = parentSayfa?.MetaAciklama ?? siteAyariHelper?.MetaAciklama;
+
+
+}
+
+
+
+@section Style
+{
+    <style>
+        .galeri386 {
+            width: 386px !important;
+        }
+
+        .ps-portfolio .ps-blog--latset .ps-blog__title {
+            text-align: center !important;
+        }
+    </style>
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.DinamikSayfaDetay || seoUrlListesi.EntityName == SeoUrlTipleri.Belgelerimiz || seoUrlListesi.EntityName == SeoUrlTipleri.Video)
+{
+    <partial name="~/Views/Sayfalar/_GenelSayfaListesi.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Blog)
+{
+    <partial name="~/Views/Sayfalar/_Blog.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Hizmetlerimiz)
+{
+    <partial name="~/Views/Sayfalar/_Hizmetlerimiz.cshtml" />
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Bolgelerimiz)
+{
+    <partial name="~/Views/Sayfalar/_Bolgeler.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Haberler)
+{
+    <partial name="~/Views/Sayfalar/_Haberler.cshtml" />
+}
+@if (url == "ekipler")
+{
+    <partial name="~/Views/Sayfalar/_Ekipler.cshtml" />
+}
+@*@if (seoUrlListesi.EntityName == SeoUrlTipleri.Video)
+    {
+        <partial name="~/Views/Sayfalar/_Videolar.cshtml" />
+    }*@
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Sartname)
+{
+    <partial name="~/Views/Sayfalar/_Sartname.cshtml" />
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Download)
+{
+    <partial name="~/Views/Sayfalar/_Download.cshtml" />
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.SSS)
+{
+    <partial name="~/Views/Sayfalar/_SSS.cshtml" />
+}
+
+
+
+@section Scripts
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Tüm iframe'leri seç
+            let iframes = document.querySelectorAll(".youtubePlayer");
+
+            iframes.forEach(iframe => {
+                let youtubeURL = iframe.getAttribute("data-youtubeurl"); // data-youtubeurl değerini al
+
+                function convertToEmbed(url) {
+                    let videoId = "";
+
+                    if (url.includes("watch?v=")) {
+                        videoId = url.split("v=")[1]?.split("&")[0]; // Normal YouTube linkleri
+                    } else if (url.includes("/shorts/")) {
+                        videoId = url.split("/shorts/")[1]?.split("?")[0]; // Shorts formatı
+                    } else if (url.includes("/embed/")) {
+                        videoId = url.split("/embed/")[1]?.split("?")[0]; // Embed formatı
+                    }
+
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+                }
+
+                iframe.src = convertToEmbed(youtubeURL); // src değerini güncelle
+            });
+        });
+    </script>
+}

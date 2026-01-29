@@ -1,0 +1,52 @@
+﻿@model SifremiUnuttumViewModel
+@{
+
+}
+@section Style
+{
+}
+
+
+
+<div class="container">
+    <div class="d-flex justify-content-center">
+        <div class="col-md-6 col-mb-8 mb-md-0">
+            <!-- Title -->
+            <div class="border-bottom border-color-1 mb-6">
+                <h3 class="d-inline-block section-title mb-0 pb-2 font-size-26">Şifremi Unuttum</h3>
+            </div>
+            <!-- End Title -->
+            <form class="js-validate" method="post">
+                <partial name="_BilgiMesaji" />
+
+                <!-- Form Group -->
+                <div class="js-form-message form-group">
+                    <label class="form-label" for="signinSrEmailExample3">
+                        Email
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" class="form-control" asp-for="Email" placeholder="Email" aria-label="Email">
+                    <span asp-validation-for="Email" class="text-danger"></span>
+
+                </div>
+                <!-- End Form Group -->
+                <!-- Button -->
+                <div class="mb-1">
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary-dark-w px-5">Şifremi Yenile</button>
+                    </div>
+                </div>
+                <!-- End Button -->
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+}
+

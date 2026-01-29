@@ -1,0 +1,111 @@
+﻿@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var urlId = _helperServis.GetUrl(url);
+
+    var ekipId = Convert.ToInt32(Context.Request.Query["EkipId"]);
+
+    var ekip = _helperServis.GetEkipDetay(ekipId);
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+@section Style
+{
+
+}
+
+<!-- breadcrumb-area-start -->
+<section class="breadcrumb-area breadcrumb-wrap">
+    <div class="breadcrumb-bg" data-background="assets/img/breadcrumb/breadcrumb-bg-12.jpg"></div>
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <div class="tpbreadcrumb">
+
+                    <h2 class="breadcrumb-title">Ekibimiz</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="breadcrumb-shape">
+        <div class="breadcrumb-shape-1 wow fadeInRight" data-wow-duration="1.8s" data-wow-delay=".4s">
+            <img src="assets/img/breadcrumb/breadcrumb-shape-1.png" alt="" loading="lazy">
+        </div>
+        <div class="breadcrumb-shape-4 wow slideInRight" data-wow-duration="1.2s" data-wow-delay=".1s">
+            <img src="assets/img/breadcrumb/breadcrumb-shape-3.png" alt="" loading="lazy">
+        </div>
+        <div class="breadcrumb-shape-5 wow slideInRight" data-wow-duration="1.4s" data-wow-delay=".3s">
+            <img src="assets/img/breadcrumb/breadcrumb-shape-2.png" alt="" loading="lazy">
+        </div>
+    </div>
+</section>
+<!-- breadcrumb-area-end -->
+<!-- team-details-area-start -->
+<section class="team-detals-area pt-120 pb-5">
+    <div class="container">
+        <div class="tp-team-details-head">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="tp-team-details-avatar-wrap d-flex align-items-center mb-75">
+                        <div class="tp-team-details-thumb">
+                            <img src="assets/img/team/details/team-details-thumb-1.jpg" alt="" loading="lazy">
+                        </div>
+                        <div class="tp-team-details-avatar">
+                            <h4 class="tp-team-details-avatar-title">Ad Soyad</h4>
+                            <span>Görev Tanımı</span>
+                            <h4>Hakkında</h4>
+
+                            <p>
+                                kısa hakkında yazısı gelecek
+                            </p>
+                            <div class="tp-team-details-avatar-list mb-35">
+                                <ul>
+                                    <li><span>Email:</span><a href="mailto:mail@mail.com"><span>mail@mail.com</span></a></li>
+                                </ul>
+                            </div>
+                            <div class="tp-team-details-avatar-social">
+                                <a href="#" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+                                <a href="#" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+                                <a href="#" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="#" target="_blank"><i class="fa-brands fa-twitter"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tp-team-details-info mb-45">
+                        <h4 class="tp-team-details-info-title mb-25">Mesleki Deneyim</h4>
+                        <p>
+                            Since joining Tecz in 2009, Matilda has helped turn the company from a group of bright
+                            technology minds working with startups into a global Digital Product Engineering Services
+                            leader helping Fortune 500 companies on their innovation agenda. In Matilda`s time as
+                            President and CEO of company, the company has experienced explosive growth in size and
+                            revenue – all while developing a culture that fosters engaged employees around innovation.
+                        </p>
+                        <p>
+                            Matilda is a frequent speaker on the topics of global innovation and digital disruption. She
+                            is also an avid cook and history buff. You can find him dining late at night with the chefs
+                            of the hotels where he stays during his travels, or reading in his home library.
+                        </p>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- team-details-area-end -->
+
+@using (Html.BeginScripts())
+{
+
+}

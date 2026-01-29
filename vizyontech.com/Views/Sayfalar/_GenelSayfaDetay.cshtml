@@ -1,0 +1,40 @@
+﻿@model Sayfalar
+@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfalar = _helperServis.GetSayfalar(SayfaTipleri.Blog, 1, 500);
+    var sayfa = _helperServis.GetSayfa(Model.Id).Result;
+    var sayfaResim = _helperServis.GetSayfaResim(Model.Id).Result;
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = sayfa.SayfaAdi ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+<div class="ps-post ps-post--sidebar">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">Ana Sayfa</a></li>
+            <li class="ps-breadcrumb__item active">@sayfa.SayfaAdi</li>
+        </ul>
+        <div class="ps-post__content">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="ps-post__title">@sayfa.SayfaAdi</h1>
+                    <div class="ps-blog__banner mb-0"> <img src="img/blog/blog13-992x525.jpg" alt="" loading="lazy"></div>
+                    <p class="ps-blog__text" style="color:none !important;">
+                        @Html.Raw(sayfa.Aciklama)
+                    </p>
+             
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>

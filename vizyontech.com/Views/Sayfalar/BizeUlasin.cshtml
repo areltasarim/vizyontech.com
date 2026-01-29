@@ -1,0 +1,117 @@
+﻿@inject HelperServis _helperServis
+@model BizeUlasinViewModel
+
+@{
+    var dil = _helperServis.GetCurrentCulture();
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var urlId = _helperServis.GetUrl(url);
+
+    var sabitMenu = await _helperServis.GetSabitMenu(SabitSayfaTipleri.BizeUlasin);
+
+    ViewBag.MetaTitle = sabitMenu.MenuAdi;
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+@section Style
+{
+
+
+
+}
+
+<div class="ps-contact">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.AnaSayfa")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.BizeUlasin")</li>
+        </ul>
+        <div class="ps-contact__content">
+            <div class="row">
+                <div class="col-12 col-lg-4">
+                    <div class="ps-contact__info">
+                        <h2 class="ps-contact__title">@Localize("Genel.BizeUlasinAciklama1")</h2>
+                        <p class="ps-contact__text">@Localize("Genel.BizeUlasinAciklama2")</p>
+                        <h3 class="ps-contact__fax">@adresBilgiHelper.Telefon</h3>
+                        <div class="ps-contact__work">@adresBilgiHelper.Adres</div>
+                        <div class="ps-contact__email"><a href="mailto:@adresBilgiHelper.Email">@adresBilgiHelper.Email</a></div>
+                        <ul class="ps-social">
+                            <partial name="_SosyalMedyaFooter" />
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-8">
+                    <div class="ps-contact__map">
+                        @Html.Raw(adresBilgiHelper.Harita)
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form enctype="multipart/form-data" asp-action="BizeUlasin" asp-controller="Sayfalar" asp-antiforgery="true"
+              data-ajax="true" data-ajax-loading="#spinnerfrmSayfaFormu"
+              data-ajax-method="post"
+              data-ajax-complete="OnComplete"
+              data-ajax-success="OnSuccess"
+              data-ajax-failure="OnFailure">
+            <input type="hidden" name="Captcha" id="Captcha" />
+            <input type="hidden" name="EntityId" />
+            <input type="hidden" name="SayfaFormTipi" value="@SayfaFormTipleri.Iletisim">
+            <div class="">
+                <partial name="_BizeUlasinMesaj" model="@("frmSayfaFormu")" />
+            </div>
+            <div class="ps-form--contact">
+                <h2 class="ps-form__title">@Localize("Genel.iletisimFormu")</h2>
+                <div class="row">
+                    <div class="col-12 col-md-4">
+                        <div class="ps-form__group">
+                            <input class="form-control ps-form__input" type="text" asp-for="AdSoyad" placeholder="@Localize("Genel.AdSoyad")">
+                            <span asp-validation-for="AdSoyad"></span>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="ps-form__group">
+                            <input class="form-control ps-form__input" type="email" asp-for="Email" placeholder="@Localize("Genel.Email")">
+                            <span asp-validation-for="Email"></span>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="ps-form__group">
+                            <input class="form-control ps-form__input" type="text" asp-for="Telefon" placeholder="@Localize("Genel.Telefon")">
+                            <span asp-validation-for="Telefon"></span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="ps-form__group">
+                            <textarea class="form-control ps-form__textarea" asp-for="Mesaj" rows="5" placeholder="@Localize("Genel.Mesaj")"></textarea>
+                            <span asp-validation-for="Mesaj"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ps-form__submit">
+                    <button class="ps-btn ps-btn--warning" type="submit">@Localize("Genel.MesajiGonder")</button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+
+
+    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["googleReCaptcha:SiteKey"]"></script>
+    <script>
+             grecaptcha.ready(function() {
+             window.grecaptcha.execute('@Configuration["googleReCaptcha:SiteKey"]', { action: 'home' }).then(function (token) {
+                 $("#Captcha").val(token);
+             });
+         });
+    </script>
+}

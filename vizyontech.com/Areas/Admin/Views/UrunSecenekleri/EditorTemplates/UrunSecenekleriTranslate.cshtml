@@ -1,0 +1,27 @@
+﻿@model UrunSecenekleriTranslate
+@{
+
+
+}
+
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DilId)
+
+@foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+{
+    if (dil.DilKoduId == Model.DilId)
+    {
+        <div class="row mb-3">
+            <label for="example-text-input" class="col-md-1 col-form-label">Seçenek Adı</label>
+            <div class="col-md-9">
+                <div class="input-group">
+                    <div class="input-group-text"><img src="@dil.Resim" width="25"></div>
+                    <input type="text" placeholder="Seçenek Adı" class="form-control" asp-for="SecenekAdi">
+                </div>
+            </div>
+        </div>
+    }
+}
+
+
+

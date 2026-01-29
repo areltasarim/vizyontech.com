@@ -1,0 +1,49 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var siteAyari = _context.SiteAyarlariTranslate.ToList().Where(p => p.SiteAyarId == 1).FirstOrDefault();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Facebook))
+{
+    <a href="@siteAyari?.SiteAyarlari.Facebook" class="facebook"><i class="fa fa-facebook"></i></a>
+
+}
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Instagram))
+{
+    <a href="@siteAyari?.SiteAyarlari.Instagram" class="instagram"><i class="fa fa-instagram"></i></a>
+
+}
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Twitter))
+{
+    <a href="@siteAyari?.SiteAyarlari.Twitter" class="twitter"><i class="fa fa-twitter"></i></a>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Linkedin))
+{
+    <a href="@siteAyari?.SiteAyarlari.Linkedin" class="linkedin"><i class="fa fa-linkedin"></i></a>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Pinterest))
+{
+    <a href="@siteAyari?.SiteAyarlari.Pinterest" class="pinterest"><i class="fa fa-pinterest"></i></a>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.GooglePlus))
+{
+    <a href="@siteAyari?.SiteAyarlari.GooglePlus" class="googleplus"><i class="fa fa-googleplus"></i></a>
+}
+
+@if (!string.IsNullOrEmpty(siteAyari?.SiteAyarlari.Youtube))
+{
+    <a href="@siteAyari?.SiteAyarlari.Youtube" class="youtube"><i class="fa fa-youtube"></i></a>
+
+}
+
+
+
+
+

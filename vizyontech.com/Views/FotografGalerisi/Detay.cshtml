@@ -1,0 +1,95 @@
+﻿@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var galeriKategori = _helperServis.GetGaleriKategori();
+    var galeri = _helperServis.GetGaleri(1);
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+@section Style
+{
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .gallery__list {
+            list-style-type: none;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .gallery__item {
+            width: calc(95% / 3);
+        }
+
+            .gallery__item:not(:nth-child(-n+2)) {
+                margin-top: 20px;
+            }
+
+            .gallery__item img {
+                width: 100%;
+                height: auto;
+            }
+
+            .gallery__item a {
+                transition: .5s;
+            }
+
+                .gallery__item a:hover {
+                    filter: opacity(0.7);
+                }
+
+                    .gallery__item a:hover img {
+                        box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+                    }
+    </style>
+}
+
+
+
+<!-- breadcrumb -->
+<section class="page-title" style="background: #0f2c49 !important; ">
+    <div class="auto-container">
+        <div class="title-outer">
+            <h1 class="title">Yaptığımız İşler</h1>
+            <!--<ul class="page-breadcrumb">
+                <li><a href="index.html">Anasayfa</a></li>
+                <li>Hakkımızda</li>
+            </ul>-->
+        </div>
+    </div>
+</section>
+
+<section class="about-section-five pb-60">
+    <div class="auto-container">
+        <section class="gallery">
+            <ul class="gallery__list">
+                @foreach (var item in galeri)
+                {
+                    <li class="gallery__item"><a href="@item.Resim" data-lightbox="group1" data-title=""><img src="@item.Resim" alt="" loading="lazy"></a></li>
+
+                }
+            </ul>
+        </section>
+    </div>
+</section>
+
+@section Scripts
+
+    {
+
+}

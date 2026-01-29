@@ -1,0 +1,22 @@
+﻿@inject HelperServis _helperServis
+
+@{
+    var adresler = _helperServis.GetUyeAdresler().Result;
+}
+
+@foreach (var item in adresler)
+{
+    <tr>
+        <th scope="row">@item.Id</th>
+        <td>@item.AdresAdi</td>
+        <td>@item.Adres</td>
+        <td>@item.Ilceler.Iller.IlAdi</td>
+        <td>@item.Ilceler.IlceAdi</td>
+        <td>
+            <a href="#" class="mb-10  modal-ac" data-toggle="modal" data-target="@Url.Action("_AdresEkle", "Account", new { Id = item.Id})" data-formid="frmAdresGuncelle" data-urlpost="/Account/AdresEkle" data-modalbaslik="Düzenle">
+                <i class="fa fa-edit" style="font-size: 20px !important; color: #15446c !important;" aria-hidden="true"></i>
+            </a>
+            <a asp-controller="Account" asp-action="AdresSil" asp-route-id="@item.Id" data-name="@item.AdresAdi" class="text-danger pull-right remove" data-toggle="modal" data-target="#staticBackdrop" data-placement="top" title="Sil" data-original-title="Sil"><i class="fa fa-remove font-size-18"></i></a>
+        </td>
+    </tr>
+}

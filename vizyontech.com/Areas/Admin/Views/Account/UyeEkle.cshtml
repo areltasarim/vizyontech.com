@@ -1,0 +1,96 @@
+﻿@model UyeOlViewModel
+
+@section styles
+{
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span>Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Tab panes-->
+                            <div class="form-group row">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Kullanıcı Adı</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="UserName" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.UserName)">
+                                    <span asp-validation-for="UserName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Ad</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Ad" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Ad)">
+                                    <span asp-validation-for="Ad" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Soyad</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Soyad" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Soyad)">
+                                    <span asp-validation-for="Soyad" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Email</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Email" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Email)">
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Şifre</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Password" type="password" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Password)">
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <!--  Tab panes-->
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <button type="submit" value="Kaydet" class="btn btn-success waves-effect waves-light mr-1">
+                                        <i class="fa fa-check"></i>  Kaydet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section scripts
+{
+
+
+} 

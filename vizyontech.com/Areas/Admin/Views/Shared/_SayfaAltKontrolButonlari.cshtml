@@ -1,0 +1,21 @@
+﻿@using EticaretWebCoreHelper
+@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+
+}
+<td>@Model.Sira</td>
+<td>
+    <div class="badge badge-soft-@(Model.Durum == SayfaDurumlari.Aktif ? "success" : "danger") font-size-12">@(Model.Durum == SayfaDurumlari.Aktif ? "Aktif" : "Pasif")</div>
+</td>
+@if (controllerValue.ToString() == "Kategoriler" | controllerValue.ToString() == "Urunler")
+{
+    <td>
+        <div class="badge badge-soft-@(Model.Vitrin == SayfaDurumlari.Aktif ? "success" : "danger") font-size-12">@(Model.Vitrin == SayfaDurumlari.Aktif ? "Aktif" : "Pasif")</div>
+    </td>
+}
+<td>
+    <a asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-id="@Model.Id" asp-route-SayfaTipi="@Context.Request.Query["SayfaTipi"]" class="mr-3 text-primary" data-toggle="tooltip" data-placement="top" title="Düzenle" data-original-title="Düzenle"><i class="mdi mdi-pencil font-size-18"></i></a>
+
+    <a asp-controller="@controllerValue" asp-action="Delete" asp-route-id="@Model.Id" class="text-danger remove" data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-placement="top" title="Sil" data-original-title="Sil"><i class="mdi mdi-trash-can font-size-18"></i></a>
+
+</td>

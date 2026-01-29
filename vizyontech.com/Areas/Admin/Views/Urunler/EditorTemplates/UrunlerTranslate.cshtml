@@ -1,0 +1,152 @@
+﻿@model UrunlerTranslate
+@{
+    var _context = new AppDbContext();
+    var dil = _context.Diller.Where(x => x.Id == Model.DilId).FirstOrDefault();
+}
+
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DilId)
+
+
+   
+<div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Ürün Adı</label>
+        <div class="col-md-9">
+            <input class="form-control" asp-for="UrunAdi" type="text">
+            <span asp-validation-for="UrunAdi" class="text-danger"></span>
+        </div>
+    </div>
+    @*<div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Kısa Açıklama</label>
+        <div class="col-md-9">
+            <textarea asp-for="KisaAciklama" class="ckeditor" rows="5"></textarea>
+        </div>
+    </div>*@
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Teknik Özellik</label>
+        <div class="col-md-9">
+            <textarea asp-for="Ozellik" class="form-control" rows="5"></textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Açıklama</label>
+        <div class="col-md-9">
+            <textarea id="elm_@Guid.NewGuid().ToString()" class="ckeditor" asp-for="Aciklama"></textarea>
+        </div>
+    </div>
+    @*<div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Özellikler</label>
+        <div class="col-md-9">
+            <textarea id="elm_@Guid.NewGuid().ToString()" class="ckeditor" asp-for="Aciklama2"></textarea>
+        </div>
+    </div>*@
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Meta Başlık</label>
+        <div class="col-md-9">
+            <input class="form-control" asp-for="MetaBaslik" type="text">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Meta Acıklama</label>
+        <div class="col-md-9">
+            <textarea class="form-control" asp-for="MetaAciklama" rows="3"></textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Meta Kelime</label>
+        <div class="col-md-9">
+            <textarea class="form-control" asp-for="MetaAnahtar" rows="3"></textarea>
+        </div>
+    </div>
+    <!--Resim-->
+    @*<div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label"></label>
+        <div class="col-md-9">
+            <img src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.Resim)" width="200" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Kapak Resmi</label>
+        <div class="col-md-9">
+            <div class="">
+                <input type="file" class="form-control" asp-for="SayfaResmi">
+            </div>
+        </div>
+    </div>*@
+    <!--Resim-->
+    <!--Youtube Resim-->
+    @*<div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label"></label>
+        <div class="col-md-9">
+            <img src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.YoutubeResim)" width="200" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Youtube Resmi</label>
+        <div class="col-md-9">
+            <div class="">
+                <input type="file" class="form-control" asp-for="YoutubeResim">
+            </div>
+        </div>
+    </div>*@
+    <!--Youtube Resim-->
+
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Video (Youtube Linki)</label>
+        <div class="col-md-9">
+            <input class="form-control" asp-for="Video" type="text">
+        </div>
+    </div>
+    <!--Dosya-->
+
+    @*@if (Model.Id > 0)
+    {
+        <div class="row mb-3">
+            <label for="example-text-input" class="col-md-1 col-form-label"></label>
+            <div class="col-md-9">
+                <div class="custom-file">
+                    <a target="_blank" href="@Model.Dosya">
+                        <img src="/Admin/Content/Theme/assets/images/dosya.png" width="35">
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Dosya</label>
+        <div class="col-md-9">
+            <div class="custom-file">
+                <input class="form-control" type="file" asp-for="SayfaDosya" />
+            </div>
+        </div>
+    </div>*@
+    <!--Dosya-->
+    <!--Dosya 2-->
+    @*@if (Model.Id > 0)
+    {
+        <div class="row mb-3">
+            <label for="example-text-input" class="col-md-1 col-form-label"></label>
+            <div class="col-md-9">
+                <div class="custom-file">
+                    <a target="_blank" href="@Model.Dosya2">
+                        <img src="/Admin/Content/Theme/assets/images/dosya.png" width="35">
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Dosya</label>
+        <div class="col-md-9">
+            <div class="custom-file">
+                <input class="form-control" type="file" asp-for="SayfaDosya2" />
+            </div>
+        </div>
+    </div>*@
+    <!--Dosya 2-->
+</div>
+
+
+
+

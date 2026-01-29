@@ -1,0 +1,235 @@
+﻿@inject HelperServis _helperServis
+@model MenuYerleri
+@{
+
+    var _context = new AppDbContext();
+
+    var anamenu = _helperServis.GetMenu(Model).Result;
+
+    var aktifDil = _helperServis.GetCurrentCulture();
+    var controller = HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString();
+    var action = HttpContextAccessor.HttpContext.Request.RouteValues["action"].ToString();
+
+    string anamenulicss = "has-mega-menu";
+    string altmenulicss = "has-mega-menu";
+
+    string anamenuacss = "";
+    string altmenuacss = "";
+
+
+    string altmenuulliacss = "";
+
+    string anamenuastyle = controller == "Home" ? "" : "";
+    string altmenuastyle = controller == "Home" ? "" : "";
+
+
+    string anamenuulcss = "";
+    string altmenuulcss = "";
+
+
+    string megamenuulcss = "sub-menu--mega";
+    string meganormalmenuulcss = "";
+
+
+
+    var url = "";
+    string active = "active";
+
+    string sekmeDurumu = "";
+    string altsekmeDurumu = "";
+
+
+    url = ViewContext.RouteData.Values["url"]?.ToString();
+
+    void AnaMenu(IEnumerable<HelperServis.MenulerDTO> anamenu)
+    {
+
+
+        foreach (HelperServis.MenulerDTO item in anamenu)
+        {
+
+            switch (item.SekmeDurumu)
+            {
+                case MenuSekmeleri.AyniSekme:
+                    sekmeDurumu = "_self";
+                    break;
+                case MenuSekmeleri.YeniSekme:
+                    sekmeDurumu = "_blank";
+                    break;
+                default:
+                    break;
+            }
+
+
+            if (item.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.Url == url)
+            {
+                active = "active";
+            }
+            else
+            {
+                active = "";
+            }
+
+            var menuhosturl = _helperServis.GetMenuUrl(item.Id, item.MenuTipi, item.MenuYeri);
+
+            if (item.AltMenuler.Count() > 0)
+            {
+                if (item.MenuKolon == 1)
+                {
+
+
+                    <li class="@altmenulicss">
+                        <a href="@(menuhosturl)" class="@anamenuacss" target="@sekmeDurumu">
+                            @(item.MenulerTranslate.SingleOrDefault(p=> p.DilKodu == aktifDil)?.MenuAdi) <span class="sub-toggle"><i class="fa fa-chevron-down"></i></span>
+                        </a>
+                        @if (item.MenuKolon == 1)
+                        {
+
+
+                            UrunAltKategori(item);
+
+
+                        }
+                        else
+                        {
+                            <ul class="@altmenuulcss">
+                                @{
+                                    AltMenu(item);
+                                }
+                            </ul>
+                        }
+
+                    </li>
+
+
+
+                }
+                else
+                {
+                    <li class="@altmenulicss">
+                        <a href="@menuhosturl" class="@altmenuacss" target="@sekmeDurumu">
+                            @(item.MenulerTranslate.SingleOrDefault(p=> p.DilKodu == aktifDil)?.MenuAdi)
+                        </a>
+
+                        <ul class="@anamenuulcss">
+                            @{
+                                AltMenu(item);
+                            }
+                        </ul>
+                    </li>
+                }
+            }
+            else
+            {
+
+
+                <li class="@anamenulicss @active">
+                    <a class="@anamenuacss" href="@menuhosturl" target="@sekmeDurumu"> @(item.MenulerTranslate.SingleOrDefault(p=> p.DilKodu == aktifDil)?.MenuAdi)</a>
+                </li>
+            }
+        }
+
+    }
+
+    void AltMenu(HelperServis.MenulerDTO menu)
+    {
+
+        foreach (HelperServis.MenulerDTO altmenu in menu.AltMenuler.OrderBy(p => p.Sira))
+        {
+            var menuhosturl = _helperServis.GetMenuUrl(altmenu.Id, altmenu.MenuTipi, altmenu.MenuYeri);
+
+            switch (altmenu.SekmeDurumu)
+            {
+                case MenuSekmeleri.AyniSekme:
+                    altsekmeDurumu = "_self";
+                    break;
+                case MenuSekmeleri.YeniSekme:
+                    altsekmeDurumu = "_blank";
+                    break;
+                default:
+                    break;
+            }
+
+            @if (altmenu.ParentMenu != null && altmenu.ParentMenu.MenuKolon > 0)
+            {
+
+                string colcss = "";
+                if (altmenu.ParentMenu.MenuKolon > 0)
+                {
+                    var colsayisi = 12 / altmenu.ParentMenu.MenuKolon;
+                    colcss = "col-md-" + colsayisi;
+                }
+
+
+                <li class="@altmenulicss">
+                    <a href="@menuhosturl" class="@altmenuacss" target="@altsekmeDurumu">
+                        @(altmenu.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi)
+                    </a>
+                    @if (altmenu.AltMenuler.Count() > 0)
+                    {
+                        <ul class="@altmenuulcss">
+                            @{
+                                AltMenu(altmenu);
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+            else
+            {
+
+                <li>
+                    <a href="@menuhosturl" class="" target="@altsekmeDurumu">
+                        @(altmenu.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.MenuAdi)
+                    </a>
+                </li>
+
+            }
+        }
+    }
+
+
+    void UrunAltKategori(HelperServis.MenulerDTO menu)
+    {
+        var menuhosturl = _helperServis.GetMenuUrl(menu.Id, menu.MenuTipi, menu.MenuYeri);
+
+        <div class="mega-menu">
+            <div class="container">
+                <div class="mega-menu__row">
+                    @foreach (var item in _context.Menuler.Where(m => m.ParentMenuId != 1 && m.MenuKolon == 1 && m.MenuYeri == MenuYerleri.UstMenu && m.ParentMenuId == menu.Id).ToList())
+                    {
+                        <div class="mega-menu__column">
+                            <h4>
+                                <a href="@menuhosturl">
+                                    @(item.MenulerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == aktifDil)?.MenuAdi)
+                                </a>
+                            </h4>
+                            @if (item.AltMenuler != null && item.AltMenuler.Any())
+
+                            {
+                                <ul class="@megamenuulcss">
+                                    @foreach (var altmenu in item.AltMenuler)
+                                    {
+                                        <li>
+                                            <a href="@menuhosturl">
+                                                @(altmenu.MenulerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == aktifDil)?.MenuAdi)
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+}
+
+
+@{
+    AnaMenu(anamenu);
+}
+
+

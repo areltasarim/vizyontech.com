@@ -1,0 +1,109 @@
+﻿@using EticaretWebCoreEntity
+@using EticaretWebCoreEntity.Enums
+@model IEnumerable<Urunler>
+@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var dil = _helperServis.GetCurrentCulture();
+    var urunler = _helperServis.GetUrunler();
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var urlId = _helperServis.GetUrl(url);
+    var kategoriBilgi = await _helperServis.GetUrunKategoriBilgi(urlId);
+
+
+    var sabitMenu = await _helperServis.GetSabitMenu(SabitSayfaTipleri.Urunler);
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+
+    ViewBag.MetaTitle = sabitMenu.MenuAdi;
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+
+@section Style
+{
+
+}
+
+
+
+
+<div class="ps-categogy ps-categogy--separate">
+    <div class="ps-categogy__main">
+        <div class="container">
+            <div class="ps-categogy__product">
+                <div class="row m-0">
+                    @foreach (var item in urunler)
+                    {
+                        var urunResimFirst = _helperServis.GetUrunResimFirst(item.UrunId, UrunResimKategorileri.UrunResim).Resim;
+                        var seoUrl = _helperServis.GetSeoUrl(item.UrunId, SeoUrlTipleri.Urun).Result.Url;
+
+                        <div class="col-6 col-lg-4 col-xl-4 p-0">
+                            <div class="ps-product ps-product--standard">
+                                <div class="ps-product__thumbnail">
+                                    <a class="ps-product__image" href="@seoUrl">
+                                        <figure>
+                                            <img src="@urunResimFirst" alt="" loading="lazy" />
+                                        </figure>
+                                    </a>
+                                    <div class="ps-product__actions">
+                                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@item.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                    </div>
+                                    <div class="ps-product__badge">
+                                    </div>
+                                </div>
+                                <div class="ps-product__content">
+                                    <a class="ps-product__branch" href="#">@item?.Urunler?.Markalar?.MarkaAdi</a>
+                                    <h5 class="ps-product__title"><a href="@seoUrl">@item.UrunAdi</a></h5>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                    {
+                                        <div class="ps-product__meta">
+                                            <span class="ps-product__price sale">@item.Urunler.ListeFiyat.ToString("C2")</span><span class="ps-product__del">@item.Urunler.ListeFiyat.ToString("C2")</span>
+                                        </div>
+                                    }
+                                    <div class="ps-product__desc">
+                                        @{
+                                            string ozellik = item.Ozellik;
+                                            var urunozellikleri = !string.IsNullOrWhiteSpace(ozellik)
+                                                ? ozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                : new string[0];
+                                        }
+                                        <ul class="ps-product__list">
+                                            @foreach (var teknikozellik in urunozellikleri)
+                                            {
+                                                <li>@teknikozellik</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && item.Urunler.ListeFiyat > 0)
+                                    {
+                                        <div class="ps-product__actions ps-product__group-mobile">
+                                            <div class="ps-product__quantity">
+                                                <div class="def-number-input number-input safari_only">
+                                                    <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                    <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                    <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@item.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@item.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@item.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

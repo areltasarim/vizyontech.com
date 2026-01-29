@@ -1,0 +1,35 @@
+﻿@section Style
+{
+    <link href="~/Content/Theme/assets/css/style.css" rel="stylesheet" />
+}
+
+<div class="page-header">
+    <div class="container d-flex flex-column align-items-center">
+        <nav aria-label="breadcrumb" class="breadcrumb-nav">
+            <div class="container">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Hesabım</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Email Doğrulama
+                    </li>
+                </ol>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<div class="container reset-password-container">
+    <div class="row">
+        <div class="col-lg-6 offset-lg-3">
+            <div class="feature-box border-top-primary">
+                <div class="feature-box-content">
+                    <form method="post">
+                        <p>
+                            @ViewBag.Status
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

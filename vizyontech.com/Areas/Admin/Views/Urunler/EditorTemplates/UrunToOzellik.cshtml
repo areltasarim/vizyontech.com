@@ -1,0 +1,55 @@
+﻿@model UrunToOzellik
+@{
+    AppDbContext _context = new AppDbContext();
+    var DilListesi = ViewBag.Diller as IEnumerable<Diller>;
+    var dil = DilListesi.FirstOrDefault(x => x.Id == Model.DilId) ?? DilListesi.FirstOrDefault();
+    string key = $"{Model.UrunOzellikId.ToString()}-{Model.DilId}";
+    int rowspan = -1;
+    if (DilListesi.ToList().Count > 1)
+    {
+        rowspan = DilListesi.ToList().Count;
+    }
+}
+
+<tr class="ozellik-deger-row" data-dil-id="@dil.Id">
+    <input type="hidden" class="form-control" asp-for="DilId">
+    <input type="hidden" class="form-control" asp-for="UrunId">
+    <input type="hidden" class="form-control" asp-for="Resim">
+    <input class="SilinmeDurum" type="hidden" asp-for="SilinmeDurum" />
+
+    <td class="text-start">
+        <div class="input-group">
+            <div class="input-group-text"><img src="@dil.Resim" width="25"></div>
+            <select class="form-control" asp-for="UrunOzellikId" asp-items="@ViewData["UrunOzellikleri"] as IEnumerable<SelectListItem>">
+                <option>Seçiniz</option>
+            </select>
+        </div>
+
+    </td>
+
+    <td class="text-start">
+        <input type="file" class="form-control mb-3" asp-for="OzellikResim" lang="tr">
+        <div class="row">
+            <label for="example-text-input" class="col-md-1 col-form-label"></label>
+            <div class="col-md-9">
+                <img src="@Model.Resim" width="200" />
+            </div>
+        </div>
+    </td>
+
+    <td class="text-start">
+        <div class="input-group">
+            <textarea class="editortinycme" id="elm_@Guid.NewGuid().ToString()" asp-for="Aciklama"></textarea>
+        </div>
+    </td>
+ 
+        <td class="text-end" valign="middle" >
+            <button type="button" class="btn btn-danger urunozellik-row-remove" aria-label="Sil"><i class="fas fa-minus-circle"></i></button>
+        </td>
+  
+
+</tr>
+
+<script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+<script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>

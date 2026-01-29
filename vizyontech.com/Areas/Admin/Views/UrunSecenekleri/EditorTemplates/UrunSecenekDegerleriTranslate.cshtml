@@ -1,0 +1,45 @@
+﻿@model UrunSecenekDegerleriTranslate
+@{
+    AppDbContext _context = new AppDbContext();
+    var DilListesi = ViewBag.Diller as IEnumerable<Diller>;
+    var dil = DilListesi.FirstOrDefault(x => x.Id == Model.DilId) ?? DilListesi.FirstOrDefault();
+    int rowspan = -1;
+    if (DilListesi.ToList().Count > 1)
+    {
+        rowspan = DilListesi.ToList().Count;
+    }
+}
+
+
+<tr class="secenek-deger-row">
+    <input type="hidden" asp-for="UrunSecenekDegerId" />
+    <input class="SilinmeDurum" type="hidden" asp-for="SilinmeDurum" />
+    <td class="text-start">
+        <input type="hidden" asp-for="DilId" />
+        <div class="input-group">
+            <div class="input-group-text"><img src="@dil.Resim" width="25"></div>
+            <input type="text" placeholder="Seçenek Değeri" class="form-control" asp-for="DegerAdi">
+        </div>
+    </td>
+    @if (Model.DilId == 1)
+    {
+
+        <td class="text-end" valign="middle" rowspan="@rowspan">
+            <div class="input-group">
+                <input type="text" placeholder="Sıra" class="form-control" asp-for="Sira">
+            </div>
+        </td>
+       
+        <td class="text-end" valign="middle" rowspan="@rowspan">
+            <button type="button" class="btn btn-danger urunsecenekdeger-row-remove" aria-label="Sil"><i class="fas fa-minus-circle"></i></button>
+        </td>
+    }
+</tr>
+
+
+
+@section scripts
+{
+
+
+}

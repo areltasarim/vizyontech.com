@@ -1,0 +1,122 @@
+﻿@model Sayfalar
+@inject HelperServis _helperServis
+
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7);
+
+    var sayfa = Model.SayfalarTranslate.ToList().SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var sayfaresim = sayfa?.Resim == "/Content/Upload/Images/resimyok.png" ? Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim : resimDizini + "Sayfalar/" + sayfa?.Resim;
+
+    var sayfalar = _context.Sayfalar.Where(p => p.Durum == SayfaDurumlari.Aktif).ToList().OrderBy(p => p.Sira);
+
+    var altSayfalar = _context.Sayfalar.Where(p => p.ParentSayfaId == Model.ParentSayfaId && p.Durum == SayfaDurumlari.Aktif && p.Id != 1).ToList();
+    var sayfaResimleri = _context.SayfaResimleri.Where(p => p.SayfaId == Model.Id).ToList();
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == Model.ParentSayfaId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+
+    ViewBag.MetaTitle = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.MetaBaslik ?? Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.SayfaAdi;
+    ViewBag.MetaAnahtar = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.MetaAnahtar ?? siteAyariHelper?.MetaBaslik;
+    ViewBag.MetaAciklama = Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.MetaAciklama ?? siteAyariHelper?.MetaAciklama;
+
+}
+
+
+
+@section Style
+{
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.DinamikSayfaDetay || seoUrlListesi.EntityName == SeoUrlTipleri.Belgelerimiz || seoUrlListesi.EntityName == SeoUrlTipleri.Video)
+{
+    <partial name="~/Views/Sayfalar/_GenelSayfaDetay.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Hakkimizda)
+{
+    <partial name="~/Views/Sayfalar/_Hakkimizda.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Hizmetlerimiz)
+{
+    <partial name="~/Views/Sayfalar/_HizmetDetay.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Blog)
+{
+    <partial name="~/Views/Sayfalar/_BlogDetay.cshtml" />
+}
+
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Projeler)
+{
+    <partial name="~/Views/Sayfalar/_ProjeDetay.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Referanslar)
+{
+    <partial name="~/Views/Sayfalar/_ReferansDetay.cshtml" />
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Haberler)
+{
+    <partial name="~/Views/Sayfalar/_HaberDetay.cshtml" />
+}
+
+
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.KullanimKilavuzlari)
+{
+    <partial name="~/Views/Sayfalar/_KullanimKilavuzlari.cshtml" />
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Sozluk)
+{
+
+    <partial name="~/Views/Sayfalar/_Sozluk.cshtml" />
+}
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.SSS)
+{
+    <partial name="~/Views/Sayfalar/_SSS.cshtml" />
+}
+
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Sartname)
+{
+    <partial name="~/Views/Sayfalar/_Sartname.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.Download)
+{
+    <partial name="~/Views/Sayfalar/_Download.cshtml" />
+}
+
+@if (seoUrlListesi.EntityName == SeoUrlTipleri.EkibimizSabitMenu)
+{
+
+    @if (Convert.ToInt32(Context.Request.Query["EkipId"]) == 0)
+    {
+        <partial name="~/Views/Sayfalar/_Ekipler.cshtml" />
+    }
+    else
+    {
+        <partial name="~/Views/Sayfalar/_EkipDetay.cshtml" />
+    }
+
+}
+
+@section Scripts
+{
+
+}

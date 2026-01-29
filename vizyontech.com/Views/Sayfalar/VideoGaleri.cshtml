@@ -1,0 +1,118 @@
+﻿@model IEnumerable<Sayfalar>
+@{
+    var _context = new AppDbContext();
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+
+
+    var parentsayfaAdi = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var adres = _context.AdresBilgileri.ToList().FirstOrDefault();
+
+    var adresBilgisi = _context.AdresBilgileriTranslate.ToList().Where(p => p.AdresBilgiId == adres.Id).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    ViewBag.MetaTitle = parentsayfaAdi?.SayfaAdi ?? parentsayfaAdi?.MetaBaslik;
+    ViewBag.MetaAnahtar = parentsayfaAdi?.MetaAnahtar ?? siteAyari?.MetaBaslik;
+    ViewBag.MetaAciklama = parentsayfaAdi?.MetaAciklama ?? siteAyari?.MetaAciklama;
+
+
+}
+
+
+<!-- breadcrumb -->
+<div class="breadcrumb-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <ol class="breadcrumb">
+                    <li>
+                        <i class="fa fa-home"></i>
+                        <a href="/">Ana Sayfa</a>
+                        <i class="fa fa-angle-right"></i>
+                    </li>
+                    <li><a href="#">Videolar</a></li>
+                </ol>
+            </div>
+        </div><!-- row end -->
+    </div><!-- container end -->
+</div>
+<!-- breadcrumb end -->
+
+<section class="main-content category-layout-1 pt-0">
+
+    <div class="container">
+        <div class="sidebar-widget featured-tab post-tab mb-20">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a class="nav-link animated active fadeIn" href="#post_tab_a" data-toggle="tab">
+                        <span class="tab-head">
+                            <span class="tab-text-title">Tümü</span>
+                        </span>
+                    </a>
+                </li>
+                @foreach (var item in Model.Where(x => x.SayfaTipi == SayfaTipleri.Video && x.ParentSayfaId == 8).ToList())
+                {
+                    var sayfa = item.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+                    <li class="nav-item">
+                        <a class="nav-link animated fadeIn" href="#post_tab_@item.Id" data-toggle="tab">
+                            <span class="tab-head">
+                                <span class="tab-text-title">@sayfa?.SayfaAdi</span>
+                            </span>
+                        </a>
+                    </li>
+                }
+
+            </ul>
+            <div class="gap-50 d-none d-md-block"></div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="tab-content">
+                        @foreach (var item in Model.Where(x => x.SayfaTipi == SayfaTipleri.Video && x.ParentSayfaId == 8).ToList())
+                        {
+                            var sayfa = item.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+                            <div class="tab-pane active animated fadeInRight" id="post_tab_a">
+                                <div class="list-post-block">
+                                    <div class="row">
+                                        @foreach (var video in Model.Where(x => x.ParentSayfaId == item.Id).ToList())
+                                        {
+                                            var videosayfa = item.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+                                            var sayfaresim = item.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim == "/Content/Upload/Images/resimyok.png" ? item.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR")?.Resim : resimDizini + item.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim;
+
+                                            <div class="col-lg-6">
+                                                <div class="post-block-style clearfix">
+                                                    <div class="post-thumb">
+                                                        <img class="img-fluid" src="@sayfaresim" alt="" loading="lazy">
+                                                        <a class="popup cboxElement" href="https://www.youtube.com/embed/@(videosayfa?.YoutubeVideoLink)?autoplay=1&amp;loop=1">
+                                                            <div class="video-icon">
+                                                                <i class="fa fa-play"></i>
+                                                            </div>
+                                                        </a>
+                                                    </div><!-- Post thumb end -->
+                                                    <div class="post-content">
+                                                        <h2 class="post-title title-small">
+                                                            <a href="#">@videosayfa?.SayfaAdi</a>
+                                                        </h2>
+                                                    </div><!-- Post content end -->
+                                                </div>
+                                            </div>
+                                        }
+                                    </div><!-- List post end -->
+                                </div>
+                            </div>
+                        }
+                    </div><!-- tab content -->
+                </div>
+            </div>
+        </div>
+    </div><!-- container end -->
+</section><!-- category-layout end -->

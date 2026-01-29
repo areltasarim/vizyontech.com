@@ -1,0 +1,129 @@
+﻿@inject HelperServis _helperServis
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+    var shoppingCart = ViewData["shoppingCart"] as SepetServis;
+
+    var sepetIdCookie = Context.Request.Cookies["SepetCookie"];
+
+    var sepet = _context.Sepet.Where(p => p.CookieId == sepetIdCookie).ToList();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var sepetBilgi = _sepetServis.GetSepetBilgi().Result;
+
+
+    // decimal lazım
+    //var kdvDec = (decimal)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: false);
+
+    // string (sembollüSizeOzelFiyat
+    var kdvToplamTl = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+
+    // string (sembolsüz)
+    // var kdvNum = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: false);
+
+
+    // decimal lazım
+    //var araToplamDec = (decimal)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: false);
+
+    // string (sembollüSizeOzelFiyat
+    var listeToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+
+    var araToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+
+    // string (sembolsüz)
+    //var araToplamNum = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: false);
+
+
+    // decimal lazım
+    //var genelaraToplamDec = (decimal)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: false);
+
+    // string (sembollüSizeOzelFiyat
+    string genelToplamTL = (string)await _sepetServis.YeniSepetGenelToplamAsync(
+    FiyatTipleri.BayiFiyat,
+    dovizDurum: true,     // TL olarak
+    formatted: true,      // Formatlı string
+    paraBirimiGosterimi: true
+);
+
+    // string (sembolsüz)
+    //var genelaraToplamNum = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: false);
+
+
+
+
+    // string (sembolsüz)
+    var kargoToplam = (string)await _sepetServis.YeniSepetKargoAsync(FiyatTipleri.ListeFiyat, true, true);
+
+}
+
+@if (sepet.Count > 0)
+{
+    <ul class="ps-cart__items">
+
+        @foreach (var item in sepet)
+        {
+            var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
+            var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == dil);
+            var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
+            var kurCeviri = _helperServis.GetKurTLCeviri(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD).Result;
+
+            <li class="ps-cart__item">
+                <div class="ps-product--mini-cart">
+                    <a class="ps-product__thumbnail" href="@seoUrl"><img src="@urunResimFirst" alt="" loading="lazy" /></a>
+                    <div class="ps-product__content">
+                        <a class="ps-product__name" href="@seoUrl">@urun.UrunAdi</a>
+                        <p class="ps-product__meta">
+                            <span class="ps-product__sale">@_helperServis.FormatCurrency(urun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString(), false)</span>
+                            <span class="ps-product__is-price" style="text-decoration:none !important">@_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString(), false)</span>
+                        </p>
+                    </div><a class="ps-product__remove" href="javascript: void(0)" onclick="SepetUrunSil(@item.UrunId)"><i class="icon-cross"></i></a>
+                </div>
+            </li>
+        }
+    </ul>
+    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamListeFiyat") </span><span class="ps-product__is-price">@listeToplamTL</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamBayiFiyat") </span><span>@araToplamTL</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamKdv") </span><span>@kdvToplamTl</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.Kargo") </span><span>@kargoToplam</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.GenelToplam") </span><span>@genelToplamTL</span></div>
+
+
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestAraToplam") </span><span>@araToplamTL</span></div>*@
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestAraToplam") </span><span>@araToplamTL</span></div>
+        <div class="ps-cart__total"><span>@Localize("Genel.TestAraToplam") </span><span>@araToplamNum</span></div>*@
+
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestAraToplamKdv") </span><span>@kdvTL</span></div>*@
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestAraToplamKdv") </span><span>@araToplamTL</span></div>
+        <div class="ps-cart__total"><span>@Localize("Genel.TestAraToplamKdv") </span><span>@kdvTL</span></div>*@
+
+
+
+
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestKargo") </span><span>@kargo</span></div>*@
+
+
+
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestGenelAraToplam") </span><span>@genelToplamTL</span></div>*@
+    @*<div class="ps-cart__total"><span>@Localize("Genel.TestGenelAraToplam") </span><span>@genelaraToplamTL</span></div>
+        <div class="ps-cart__total"><span>@Localize("Genel.TestGenelAraToplam") </span><span>@genelaraToplamNum</span></div>*@
+
+
+    @if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
+    {
+        <div class="ps-cart__total"><span>@Localize("Genel.Kupon") </span><span>- @(_sepetServis.KuponHesapla().Result.kuponIndirimTL)</span></div>
+    }
+    @*<div class="ps-cart__total"><span>@Localize("Genel.Kargo") </span><span>@_helperServis.GetKargoFiyat((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.ListeFiyat))</span></div>
+        <div class="ps-cart__total"><span>@Localize("Genel.GenelToplam") </span><span>@((string)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat,true))</span></div>*@
+    <div class="ps-cart__footer">
+        <a class="ps-btn ps-btn--outline" asp-controller="Sepet" asp-action="Sepet">@Localize("Genel.Sepet")</a>
+        <a class="ps-btn ps-btn--warning" asp-controller="Sepet" asp-action="Kasa">@Localize("Genel.Kasa")</a>
+    </div>
+}
+else
+{
+    <div class="ps-cart__footer">
+        @Localize("Genel.SepetinizBos")
+    </div>
+}

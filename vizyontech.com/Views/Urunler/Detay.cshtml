@@ -1,0 +1,843 @@
+﻿@inject HelperServis _helperServis
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@model Urunler
+@{
+    var urunKodu = Context.Request.Query["UrunKodu"].ToString();
+    var url = "";
+    if (!string.IsNullOrEmpty(urunKodu))
+    {
+        AppDbContext _context = new AppDbContext();
+
+        string duzeltilmisUrunKodu = urunKodu.Replace("-", " ");
+
+        var urunid = _context.Urunler.FirstOrDefault(x => x.UrunKodu == duzeltilmisUrunKodu).Id;
+
+        if (urunid != null)
+        {
+            var urunSeoUrl = _context.SeoUrl
+                .Where(x => x.EntityId == urunid && x.EntityName == SeoUrlTipleri.Urun)
+                .Select(x => x.Url)
+                .FirstOrDefault();
+
+            url = urunSeoUrl ?? "";
+        }
+    }
+
+    else
+    {
+        url = ViewContext.RouteData.Values["url"].ToString();
+    }
+
+    var urun = await _helperServis.GetUrun(_helperServis.GetUrl(url));
+    var urunResim = await _helperServis.GetUrunResim(Model.Id);
+    var youtubeKapakResim = await _helperServis.GetUrunYoutubeKapakResim(Model.Id);
+    var urunDosya = await _helperServis.GetUrunDosya(Model.Id);
+    var urunDosya2 = await _helperServis.GetUrunDosya2(Model.Id);
+    var urunResimleri = _helperServis.GetUrunResimleri(Model.Id, UrunResimKategorileri.UrunResim);
+    var urunResimFirst = _helperServis.GetUrunResimFirst(Model.Id, UrunResimKategorileri.UrunResim).Resim;
+    var urunDosyalari = _helperServis.GetUrunResimleri(Model.Id, UrunResimKategorileri.UrunDosya);
+    var kullanimKilavuzlari = _helperServis.GetUrunResimleri(Model.Id, UrunResimKategorileri.KullanimKulavuzu).ToList();
+    var sartnameler = _helperServis.GetUrunResimleri(Model.Id, UrunResimKategorileri.Sartname).ToList();
+
+    var belgeler = _helperServis.GetUrunResimleri(Model.Id, UrunResimKategorileri.Belge).ToList();
+    var videolar = _helperServis.GetUrunResimleri(Model.Id, UrunResimKategorileri.Video).ToList();
+
+    var kategoriler = await _helperServis.GetKategoriler();
+    var urunKategori = await _helperServis.GetUrunKategori(Model.Id);
+    var digerUrunler = _helperServis.GetDigerUrunler(Model.Id);
+    //var kurCeviri = _helperServis.GetKurTLCeviri(Model.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+    //var sizeOzelkurCeviri = _helperServis.GetKurTLCeviri(Model.SizeOzelFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+
+    var urlId = _helperServis.GetUrl(url);
+
+    var aktifKategoriId = _helperServis.GetAktifKategori(urun.UrunId).Result;
+    var aktifKategori = await _helperServis.GetUrunKategoriBilgi(Convert.ToInt32(aktifKategoriId));
+
+    var breadcrumbKategori = _helperServis.GetBreadcrumbKategori(Convert.ToInt32(aktifKategoriId));
+
+
+    var urunOzellikleri = _helperServis.GetUrunOzellikleri(Model.Id);
+
+    var oncekiUrun = _helperServis.GetOncekiUrun(Model.Id).Result;
+    var sonrakiUrun = _helperServis.GetSonrakiUrun(Model.Id).Result;
+
+    var oncekiSayfaUrl = await _helperServis.GetOncekiSayfaUrl(Model.Id, SeoUrlTipleri.Urun);
+    var sonrakiSayfaUrl = await _helperServis.GetSonrakiSayfaUrl(Model.Id, SeoUrlTipleri.Urun);
+
+    //var sabitMenu = await _helperServis.GetSabitMenu(SabitSayfaTipleri.Kategoriler);
+
+    var siteAyari = await _helperServis.GetSiteAyari();
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var dil = _helperServis.GetCurrentCulture();
+
+
+
+    ViewBag.MetaTitle = urun?.MetaBaslik ?? urun?.UrunAdi;
+    ViewBag.MetaAnahtar = urun?.MetaAnahtar ?? siteAyari?.MetaAnahtar;
+    ViewBag.MetaAciklama = urun?.MetaAciklama ?? siteAyari?.MetaAciklama;
+}
+
+@section Style
+{
+    <style>
+        .ps-product__content img, .ps-product__info img {
+            height: auto !important;
+        }
+
+        .ps-product__row {
+            display: flex;
+            justify-content: space-between; /* Öğeleri yatayda aralarına boşluk bırakarak hizalar */
+            align-items: center; /* Dikeyde ortalar */
+            margin-bottom: 10px; /* Her bir satır arasında boşluk bırakır */
+        }
+
+        /* Masaüstü için Tab Wrapper Gizle */
+        @@media (min-width: 768px) {
+            .ps-tab-wrapper {
+                display: none;
+            }
+        }
+
+        /* Mobil için Tab Yatay Scroll */
+        @@media (max-width: 767.98px) {
+            .ps-product__content {
+                position: relative;
+            }
+
+            .ps-tab-wrapper {
+                display: flex;
+                align-items: center;
+                margin-bottom: 0;
+                position: relative;
+                overflow: visible;
+            }
+
+            .ps-tab-scroll-btn {
+                flex-shrink: 0;
+                background: transparent;
+                border: none;
+                border-radius: 0;
+                width: 24px;
+                height: auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                color: #103178;
+                z-index: 20;
+                padding: 0;
+                font-size: 18px;
+                position: relative;
+            }
+
+            .ps-tab-scroll-btn:hover {
+                color: #0a2552;
+                opacity: 0.8;
+            }
+
+            .ps-tab-scroll-btn:active {
+                opacity: 0.6;
+            }
+
+            .ps-tab-scroll-left {
+                margin-right: 8px;
+            }
+
+            .ps-tab-scroll-right {
+                margin-left: 8px;
+            }
+
+            .ps-tab-scroll-btn.hidden {
+                display: none;
+            }
+
+            .ps-tab-list {
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                scrollbar-color: #ccc transparent;
+                margin-bottom: 15px;
+                padding-bottom: 5px;
+                scroll-behavior: smooth;
+                flex: 1;
+                min-width: 0;
+                position: relative;
+                z-index: 1;
+                padding-left: 0;
+                padding-right: 0;
+                max-width: calc(100% - 64px);
+            }
+
+            .ps-tab-list::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .ps-tab-list::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            .ps-tab-list::-webkit-scrollbar-thumb {
+                background: #888;
+                border-radius: 10px;
+            }
+
+            .ps-tab-list::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+            .ps-tab-list .nav-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            .ps-tab-list .nav-link {
+                font-size: 14px !important;
+                padding: 16px !important;
+            }
+        }
+    </style>
+}
+
+
+<div class="ps-page--product4">
+    <div class="container">
+        <ul class="ps-breadcrumb d-none d-md-block">
+            @foreach (var item in breadcrumbKategori)
+            {
+                var seoUrl = _helperServis.GetSeoUrl(item.KategoriId, SeoUrlTipleri.Kategori).Result.Url;
+
+                <li class="ps-breadcrumb__item">
+                    <a href="@seoUrl">
+                        @item.KategoriAdi
+                    </a>
+                </li>
+            }
+            <li class="ps-breadcrumb__item active" aria-current="page">@urun.Urunler.Markalar?.MarkaAdi @urun.Urunler.UrunKodu @urun.UrunAdi</li>
+        </ul>
+        <div class="ps-page__content">
+            <div class="ps-product--detail ps-product--full">
+                <div class="row">
+                    <div class="col-12 col-xl-5">
+                        <div class="ps-product--gallery">
+                            <div class="ps-product__thumbnail">
+
+
+                                <div class="slide">
+                                    <img src="@($"{urunResimFirst}?width=600&height=600&rmode=pad&bgcolor=ffffff")" loading="lazy" />
+                                </div>
+
+
+                                @foreach (var item in urunResimleri)
+                                {
+                                    <div class="slide"><img src="@($"{item.Resim}?width=600&height=600&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" /></div>
+                                }
+                            </div>
+                            <div class="ps-gallery--image d-none d-md-block">
+                                <div class="slide">
+                                    <div class="ps-gallery__item"><img src="@($"{urunResimFirst}?width=89&height=89&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" /></div>
+                                </div>
+                                @foreach (var item in urunResimleri)
+                                {
+                                    <div class="slide">
+                                        <div class="ps-gallery__item"><img src="@($"{item.Resim}?width=600&height=600&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" /></div>
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl-7">
+                        <div class="ps-product__info">
+                            @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                            {
+                                @if (urun.Urunler.Stok >= 0)
+                                {
+                                    <div class="ps-product__badge">
+                                        <span class="ps-badge ps-badge--@(urun.Urunler.Stok > 0 ? "instock" : "outstock")"> 
+                                            @if (urun.Urunler.Stok >= 10)
+                                            {
+                                                <text>10+</text>
+                                            }
+                                            else if (urun.Urunler.Stok >= 0)
+                                            {
+                                                <text>@urun.Urunler.Stok</text>
+                                            }
+                                        </span>
+                                    </div>
+                                }
+                            }
+                            <div class="ps-product__title"><a href="#">@urun.Urunler.Markalar?.MarkaAdi @urun.Urunler.UrunKodu @urun.UrunAdi</a></div>
+                            <div class="ps-product__type">
+                                <ul class="ps-product__list">
+                                    <li>
+                                        <span class="ps-list__title">@Localize("Genel.Marka"): </span><a class="ps-list__text" href="#">@(urun?.Urunler?.Markalar?.MarkaAdi)</a>
+                                    </li>
+                                    <li>
+                                        <span class="ps-list__title">@Localize("Genel.Kategori"): </span><a class="ps-list__text" href="#">@aktifKategori?.KategoriAdi</a>
+                                    </li>
+                                    <li>
+                                        <span class="ps-list__title">@Localize("Genel.StokKodu"): </span><a class="ps-list__text" href="#">@urun.Urunler.UrunKodu</a>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="ps-product__desc">
+                                @{
+                                    string ozellik = urun.Ozellik;
+                                    var urunozellikleri = !string.IsNullOrWhiteSpace(ozellik)
+                                    ? ozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                    : new string[0];
+                                }
+                                <ul class="ps-product__list">
+                                    @foreach (var teknikozellik in urunozellikleri)
+                                    {
+                                        <li>@teknikozellik</li>
+                                    }
+                                </ul>
+                            </div>
+                            <div class="ps-product__meta">
+                                <!--<a href="#"><span class="ps-badge ps-badge--hot">Fiyat İçin Giriş Yap</span></a><br />-->
+                                <table class="table ps-table ps-table--oriented m-0">
+                                    <tbody>
+                                        @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                        {
+                                            var listeFiyatkurCeviri = _helperServis.GetKurTLCeviri(Model.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD).Result;
+                                            var bayiFiyatkurCeviri = _helperServis.GetKurTLCeviri(Model.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+                                            var sizeOzelFiyatkurCeviri = _helperServis.GetKurTLCeviri(Model.SizeOzelFiyat, FiyatTipleri.SizeOzelFiyat, ParaBirimi.USD).Result;
+
+
+
+                                            // 1) Hesapla (decimal kullanacağım)
+                                            var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(Model.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                            string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                            var urunListeFiyatTl = await _helperServis.GetPriceAsync(Model.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                            string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+
+
+                                            var urunBayiFiyatDoviz = await _helperServis.GetPriceAsync(Model.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false);
+                                            string urunBayiFiyatDecimaltxt = urunBayiFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                            var urunBayiFiyatTl = await _helperServis.GetPriceAsync(Model.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true);
+                                            string urunBayiFiyatTlDecimaltxt = urunBayiFiyatTl.Format(true);          // => "₺x.xx"
+
+
+                                            var urunSizeOzelFiyatDoviz = await _helperServis.GetPriceAsync(Model.ListeFiyat, FiyatTipleri.SizeOzelFiyat, ParaBirimi.USD, dovizDurum: false, urunId: Model.Id);
+                                            string urunSizeOzelFiyatDecimaltxt = urunSizeOzelFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                            var urunSizeOzelFiyatTl = await _helperServis.GetPriceAsync(Model.ListeFiyat, FiyatTipleri.SizeOzelFiyat, ParaBirimi.USD, dovizDurum: true, urunId: Model.Id);
+                                            string urunSizeOzelFiyatTlDecimaltxt = urunSizeOzelFiyatTl.Format(true);          // => "₺x.xx"
+
+                                            <tr>
+                                                <th class="ps-table__th"><span class="ps-product__price sale fiyat-label">@Localize("Genel.ListeFiyati")</span></th>
+                                                <td>
+                                                    <span class="ps-product__price sale">@urunListeFiyatDecimaltxt</span>
+                                                    <span class="ps-product__del">@urunListeFiyatTlDecimaltxt</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-table__th"><span class="ps-product__price sale fiyat-label">@Localize("Genel.BayiFiyati")</span></th>
+                                                <td>
+                                                    <span class="ps-product__price sale ozel-fiyat">@urunBayiFiyatDecimaltxt</span>
+                                                    <span class="ps-product__del">@urunBayiFiyatTlDecimaltxt</span>
+                                                </td>
+                                            </tr>
+
+
+                                            <tr>
+                                                @if (Model.SizeOzelFiyat > 0)
+                                                {
+                                                    <th class="ps-table__th"><span class="ps-product__price sale fiyat-label">@Localize("Genel.SizeOzelFiyat")</span></th>
+                                                    <td>
+                                                        <span class="ps-product__price sale ozel-fiyat">@urunSizeOzelFiyatDecimaltxt</span>
+                                                        <span class="ps-product__del">@urunSizeOzelFiyatTlDecimaltxt</span>
+                                                        @if (Model.OzelFiyatStokSarti > 0)
+                                                        {
+                                                            <span>@($"En az {Model.OzelFiyatStokSarti} adet alımlar için geçerlidir.")</span>
+                                                        }
+                                                    </td>
+                                                }
+                                            </tr>
+                                            @if (urun.Urunler.Stok >= 0)
+                                            {
+                                                <tr>
+                                                    <th class="ps-table__th"><span class="ps-product__price sale fiyat-label">@Localize("Genel.MevcutStok")</span></th>
+                                                    <td>
+                                                        <span class="ps-product__price sale mevcut-stok">
+                                                            @if (urun.Urunler.Stok >= 10)
+                                                            {
+                                                                <text>10+</text>
+                                                            }
+                                                            else
+                                                            {
+                                                                <text>@urun.Urunler.Stok</text>
+                                                            }
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <th class="ps-table__th"><span class="ps-product__price sale fiyat-label">@Localize("Genel.Fiyat")</span></th>
+                                                <td>
+                                                    <a asp-controller="Account" asp-action="GirisYap">
+                                                        <span class="ps-badge ps-badge--outstock">@Localize("Genel.FiyaticinGirisYapin") </span>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <hr />
+                            @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && Model.ListeFiyat > 0)
+                            {
+                                <div class="ps-product__quantity d-none d-md-block mt-10">
+                                    <div class="d-md-flex align-items-center">
+                                        <div class="def-number-input number-input safari_only">
+                                            <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                            <input class="quantity UrunAdet-@urun.UrunId" min="0" name="quantity" value="1" type="number" />
+                                            <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                        </div><a class="ps-btn ps-btn--warning" onclick="SepeteEkle('@urun.UrunId', $('.UrunAdet-@urun.UrunId').val(),'@SepetAdetGuncellemeDurumlari.Arttir', false)" data-toggle="modal" data-target="#popupAddcartV2">@Localize("Genel.SepeteEkle")</a>
+                                    </div>
+
+                                </div>
+
+                                <div class="ps-product__quantity d-flex d-md-none align-items-center" id="mobil-sepet-buton">
+                                    <div class="def-number-input number-input safari_only">
+                                        <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                        <input class="quantity UrunAdet-@urun.UrunId" min="0" name="quantity" value="1" type="number" />
+                                        <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                    </div>
+                                    <a class="ps-btn ps-btn--warning" onclick="SepeteEkle('@urun.UrunId', $('.UrunAdet-@urun.UrunId').val(),'@SepetAdetGuncellemeDurumlari.Arttir', false)" data-toggle="modal" data-target="#popupAddcartV2">@Localize("Genel.SepeteEkle")</a>
+                                </div>
+                            }
+                            <div class="ps-product__content">
+                                <div class="ps-tab-wrapper d-md-none">
+                                    <button class="ps-tab-scroll-btn ps-tab-scroll-left" id="tabScrollLeft" aria-label="Scroll Left">
+                                        <i class="fa fa-chevron-left"></i>
+                                    </button>
+                                    <ul class="nav nav-tabs ps-tab-list" id="productContentTabs" role="tablist">
+                                    <li class="nav-item" role="presentation"><a class="nav-link active" id="aciklama-tab" data-toggle="tab" href="#aciklama-content" role="tab" aria-controls="aciklama-content" aria-selected="true">@Localize("Genel.Aciklama")</a></li>
+                                    @if (kullanimKilavuzlari.Count > 0)
+                                    {
+                                        <li class="nav-item" role="presentation"><a class="nav-link" id="kullanimkulavuzu-tab" data-toggle="tab" href="#kullanimkulavuzu-content" role="tab" aria-controls="kullanimkulavuzu-content" aria-selected="true">@Localize("Genel.KullanimKilavuzu")</a></li>
+                                    }
+                                    @if (sartnameler.Count > 0)
+                                    {
+                                        <li class="nav-item" role="presentation"><a class="nav-link" id="sartname-tab" data-toggle="tab" href="#sartname-content" role="tab" aria-controls="sartname-content" aria-selected="true">@Localize("Genel.Sartname")</a></li>
+                                    }
+                                    @if (Model.DataSheetId != null)
+                                    {
+                                        var dataSheet = _helperServis.GetDosyalar((int)Model.DataSheetId).ToList();
+                                        if (dataSheet.Count > 0)
+                                        {
+                                            <li class="nav-item" role="presentation"><a class="nav-link" id="dataSheet-tab" data-toggle="tab" href="#dataSheet-content" role="tab" aria-controls="dataSheet-content" aria-selected="true">@Localize("Genel.DataSheet")</a></li>
+                                        }
+                                    }
+
+                                    @if (belgeler.Count > 0)
+                                    {
+                                        <li class="nav-item" role="presentation"><a class="nav-link" id="belge-tab" data-toggle="tab" href="#belge-content" role="tab" aria-controls="belge-content" aria-selected="false">@Localize("Genel.Belgeler")</a></li>
+                                    }
+                                    @if (!string.IsNullOrEmpty(urun.Video))
+                                    {
+                                        <li class="nav-item" role="presentation"><a class="nav-link" id="kurulum-video-tab" data-toggle="tab" href="#kurulum-video-content" role="tab" aria-controls="kurulum-video-content" aria-selected="false">@Localize("Genel.KurulumVideo")</a></li>
+                                    }
+                                    </ul>
+                                    <button class="ps-tab-scroll-btn ps-tab-scroll-right" id="tabScrollRight" aria-label="Scroll Right">
+                                        <i class="fa fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="tab-content" id="productContent">
+                                    <div class="tab-pane fade show active" id="aciklama-content" role="tabpanel" aria-labelledby="aciklama-tab">
+                                        @Html.Raw(urun.Aciklama)
+                                    </div>
+
+                                    <div class="tab-pane fade" id="kullanimkulavuzu-content" role="tabpanel" aria-labelledby="kullanimkulavuzu-tab">
+                                        <table class="table ps-table ps-table--oriented">
+                                            <tbody>
+
+                                                @foreach (var item in kullanimKilavuzlari)
+                                                {
+                                                    <tr>
+                                                        <th class="ps-table__th align-middle">@item.ResimAdi</th>
+                                                        <td class="align-middle">
+                                                            <div class="ps-form--subscribe">
+                                                                <a href="@item.Resim" target="_blank" class="ps-btn ps-btn--warning">@Localize("Genel.Goruntule")</a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+
+                                    <div class="tab-pane fade" id="sartname-content" role="tabpanel" aria-labelledby="sartname-tab">
+                                        <table class="table ps-table ps-table--oriented">
+                                            <tbody>
+
+                                                @foreach (var item in sartnameler)
+                                                {
+                                                    <tr>
+                                                        <th class="ps-table__th align-middle">@item.ResimAdi</th>
+                                                        <td class="align-middle">
+                                                            <div class="ps-form--subscribe">
+                                                                <a href="@item.Resim" target="_blank" class="ps-btn ps-btn--warning">@Localize("Genel.Goruntule")</a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    @if (Model.DataSheetId != null)
+                                    {
+
+                                        var dataSheet = _helperServis.GetDosyalar((int)Model.DataSheetId).ToList();
+                                        <div class="tab-pane fade" id="dataSheet-content" role="tabpanel" aria-labelledby="dataSheet-tab">
+                                            <table class="table ps-table ps-table--oriented">
+                                                <tbody>
+
+                                                    @foreach (var item in dataSheet)
+                                                    {
+                                                        <tr>
+                                                            <th class="ps-table__th align-middle">@item.DosyaAdi</th>
+                                                            <td class="align-middle">
+                                                                <div class="ps-form--subscribe">
+                                                                    <a href="@item.Dosya" target="_blank" class="ps-btn ps-btn--warning">@Localize("Genel.Goruntule")</a>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    }
+
+                                    <div class="tab-pane fade" id="belge-content" role="tabpanel" aria-labelledby="belge-tab">
+                                        <table class="table ps-table ps-table--oriented">
+                                            <tbody>
+
+                                                @foreach (var item in belgeler)
+                                                {
+                                                    <tr>
+                                                        <th class="ps-table__th align-middle">@item.ResimAdi</th>
+                                                        <td class="align-middle">
+                                                            <div class="ps-form--subscribe">
+                                                                <a href="@item.Resim" target="_blank" class="ps-btn ps-btn--warning">@Localize("Genel.Goruntule")</a>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+
+                                    <div class="tab-pane fade" id="kurulum-video-content" role="tabpanel" aria-labelledby="kurulum-video-tab">
+                                        <div class="row">
+                                            <div class="col-md-12 mb-5">
+                                                <div class="embed-responsive embed-responsive-16by9">
+                                                    <iframe class="youtubePlayer embed-responsive-item"
+                                                            data-youtubeurl="@urun.Video"
+                                                            allowfullscreen>
+                                                    </iframe>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @{
+                // Önce benzer ürünleri kontrol et, yoksa aynı kategorideki diğer ürünleri getir
+                var benzerUrunListesi = _helperServis.GetBenzerUrunler(Model.Id).ToList();
+                var gosterilecekUrunler = benzerUrunListesi.Any() 
+                    ? benzerUrunListesi 
+                    : _helperServis.GetDigerUrunler(Model.Id).Take(20).ToList();
+            }
+            @if (gosterilecekUrunler.Count > 0)
+            {
+                <section class="ps-section--latest">
+                    <h3 class="ps-section__title">@Localize("Genel.BenzerUrunler")</h3>
+                    <div class="ps-section__carousel">
+                        <div class="owl-carousel" data-owl-auto="false" data-owl-loop="false" data-owl-speed="13000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="5" data-owl-item-xs="2" data-owl-item-sm="2" data-owl-item-md="3" data-owl-item-lg="5" data-owl-item-xl="5" data-owl-duration="1000" data-owl-mousedrag="on">
+                            @foreach (var benzerUrun in gosterilecekUrunler)
+                            {
+                                var seoUrl = _helperServis.GetSeoUrl(benzerUrun.UrunId, SeoUrlTipleri.Urun).Result.Url;
+                                var benzerUrunResimFirst = _helperServis.GetUrunResimFirst(benzerUrun.UrunId, UrunResimKategorileri.UrunResim).Resim;
+
+                                <div class="ps-section__product">
+                                    <div class="ps-product ps-product--standard">
+                                        <div class="ps-product__thumbnail">
+                                            <a class="ps-product__image" href="@seoUrl">
+                                                <figure>
+                                                    <img src="@($"{benzerUrunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" />
+                                                    <img src="@($"{benzerUrunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" />
+                                                </figure>
+                                            </a>
+                                            <div class="ps-product__actions">
+                                                <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>
+                                                <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                                <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+
+                                            </div>
+                                            @*<div class="ps-product__badge">
+                                                    <div class="ps-badge ps-badge--sold">Sold Out</div>
+                                                </div>*@
+                                        </div>
+                                        <div class="ps-product__content">
+                                            <h5 class="ps-product__title"><a href="@seoUrl">@benzerUrun.Urunler.Markalar?.MarkaAdi @benzerUrun.Urunler.UrunKodu @benzerUrun.UrunAdi</a></h5>
+                                            @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                            {
+                                                var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(benzerUrun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                                string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                                var urunListeFiyatTl = await _helperServis.GetPriceAsync(benzerUrun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                                string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+
+
+                                                <div class="ps-product__meta">
+                                                    <span class="ps-product__price sale">@urunListeFiyatDecimaltxt</span>
+                                                    <span class="ps-product__del">@urunListeFiyatTlDecimaltxt</span>
+                                                </div>
+                                            }
+                                            <div class="ps-product__desc">
+                                                @{
+                                                    string benzerUrunozellik = benzerUrun.Ozellik;
+                                                    var benzerUrunurunozellikleri = !string.IsNullOrWhiteSpace(benzerUrunozellik)
+                                                    ? benzerUrunozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                    : new string[0];
+                                                }
+                                                <ul class="ps-product__list">
+                                                    @foreach (var benzerUrunteknikozellik in benzerUrunurunozellikleri)
+                                                    {
+                                                        <li>@benzerUrunteknikozellik</li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                            @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && benzerUrun.Urunler.ListeFiyat > 0)
+                                            {
+                                                <div class="ps-product__actions ps-product__group-mobile">
+                                                    <div class="ps-product__quantity">
+                                                        <div class="def-number-input number-input safari_only">
+                                                            <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                            <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                            <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="ps-product__cart"> <a class="ps-btn ps-btn--warning" href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)">@Localize("Genel.SepeteEkle")</a></div>
+                                                    <div class="ps-product__item cart" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-shopping-basket"></i></a></div>
+                                                    <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+
+            }
+
+        </div>
+    </div>
+</div>
+@if (_helperServis.GetTamamlayiciUrunler(Model.Id).ToList().Count > 0)
+{
+    <section class="ps-section--latest">
+        <div class="container">
+            <h3 class="ps-section__title">@Localize("Genel.TamamlayiciUrunler")</h3>
+            <div class="ps-section__carousel">
+                <div class="owl-carousel" data-owl-auto="false" data-owl-loop="false" data-owl-speed="13000" data-owl-gap="0" data-owl-nav="true" data-owl-dots="true" data-owl-item="5" data-owl-item-xs="2" data-owl-item-sm="2" data-owl-item-md="3" data-owl-item-lg="5" data-owl-item-xl="5" data-owl-duration="1000" data-owl-mousedrag="on">
+                    @foreach (var tamamlayiciUrun in _helperServis.GetTamamlayiciUrunler(Model.Id))
+                    {
+                        var seoUrl = _helperServis.GetSeoUrl(tamamlayiciUrun.UrunId, SeoUrlTipleri.Urun).Result.Url;
+                        var tamamlayiciUrunResimFirst = _helperServis.GetUrunResimFirst(tamamlayiciUrun.UrunId, UrunResimKategorileri.UrunResim).Resim;
+
+                        <div class="ps-section__product">
+                            <div class="ps-product ps-product--standard">
+                                <div class="ps-product__thumbnail">
+                                    <a class="ps-product__image" href="@seoUrl">
+                                        <figure>
+                                            <img src="@tamamlayiciUrunResimFirst" alt="" loading="lazy" />
+                                            <img src="@tamamlayiciUrunResimFirst" alt="" loading="lazy" />
+                                        </figure>
+                                    </a>
+                                    <div class="ps-product__actions">
+                                        @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && tamamlayiciUrun.Urunler.ListeFiyat > 0)
+                                        {
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                        }
+                                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+
+                                    </div>
+                                    @*<div class="ps-product__badge">
+                                            <div class="ps-badge ps-badge--sale">@Localize("Genel.Indirim")</div>
+                                        </div>*@
+                                </div>
+                                <div class="ps-product__content">
+                                    <h5 class="ps-product__title"><a href="@seoUrl">@tamamlayiciUrun.Urunler.Markalar?.MarkaAdi @tamamlayiciUrun.Urunler.UrunKodu @tamamlayiciUrun.UrunAdi</a></h5>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                    {
+                                        var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(tamamlayiciUrun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                        string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                        var urunListeFiyatTl = await _helperServis.GetPriceAsync(tamamlayiciUrun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                        string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+
+
+                                        <div class="ps-product__meta">
+                                            <span class="ps-product__price sale">@urunListeFiyatDecimaltxt</span>
+                                            <span class="ps-product__del">@urunListeFiyatTlDecimaltxt</span>
+                                        </div>
+                                    }
+                                    <div class="ps-product__desc">
+                                        @{
+                                            string tamamlayiciUrunozellik = tamamlayiciUrun.Ozellik;
+                                            var tamamlayiciUrunurunozellikleri = !string.IsNullOrWhiteSpace(tamamlayiciUrunozellik)
+                                            ? tamamlayiciUrunozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                            : new string[0];
+                                        }
+                                        <ul class="ps-product__list">
+                                            @foreach (var tamamlayiciUrunteknikozellik in tamamlayiciUrunurunozellikleri)
+                                            {
+                                                <li>@tamamlayiciUrunteknikozellik</li>
+                                            }
+                                        </ul>
+                                    </div>
+
+                                    <div class="ps-product__actions ps-product__group-mobile">
+                                        @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && tamamlayiciUrun.Urunler.ListeFiyat > 0)
+                                        {
+                                            <div class="ps-product__quantity">
+                                                <div class="def-number-input number-input safari_only">
+                                                    <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                    <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                    <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="ps-product__cart"> <a class="ps-btn ps-btn--warning" href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)">@Localize("Genel.SepeteEkle")</a></div>
+                                            <div class="ps-product__item cart" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-shopping-basket"></i></a></div>
+                                        }
+                                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+
+
+@section Scripts
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Tüm iframe'leri seç
+            let iframes = document.querySelectorAll(".youtubePlayer");
+
+            iframes.forEach(iframe => {
+                let youtubeURL = iframe.getAttribute("data-youtubeurl"); // data-youtubeurl değerini al
+
+                function convertToEmbed(url) {
+                    let videoId = "";
+
+                    if (url.includes("watch?v=")) {
+                        videoId = url.split("v=")[1]?.split("&")[0]; // Normal YouTube linkleri
+                    } else if (url.includes("/shorts/")) {
+                        videoId = url.split("/shorts/")[1]?.split("?")[0]; // Shorts formatı
+                    } else if (url.includes("/embed/")) {
+                        videoId = url.split("/embed/")[1]?.split("?")[0]; // Embed formatı
+                    }
+
+                    return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+                }
+
+                iframe.src = convertToEmbed(youtubeURL); // src değerini güncelle
+            });
+
+            // Tab Scroll Butonları
+            const tabList = document.getElementById('productContentTabs');
+            const scrollLeftBtn = document.getElementById('tabScrollLeft');
+            const scrollRightBtn = document.getElementById('tabScrollRight');
+
+            if (tabList && scrollLeftBtn && scrollRightBtn) {
+                function updateScrollButtons() {
+                    const scrollLeft = tabList.scrollLeft;
+                    const scrollWidth = tabList.scrollWidth;
+                    const clientWidth = tabList.clientWidth;
+
+                    if (scrollLeft <= 0) {
+                        scrollLeftBtn.classList.add('hidden');
+                    } else {
+                        scrollLeftBtn.classList.remove('hidden');
+                    }
+
+                    if (scrollLeft >= scrollWidth - clientWidth - 1) {
+                        scrollRightBtn.classList.add('hidden');
+                    } else {
+                        scrollRightBtn.classList.remove('hidden');
+                    }
+                }
+
+                scrollLeftBtn.addEventListener('click', function() {
+                    tabList.scrollBy({ left: -200, behavior: 'smooth' });
+                });
+
+                scrollRightBtn.addEventListener('click', function() {
+                    tabList.scrollBy({ left: 200, behavior: 'smooth' });
+                });
+
+                tabList.addEventListener('scroll', updateScrollButtons);
+                window.addEventListener('resize', updateScrollButtons);
+                updateScrollButtons(); // İlk yüklemede kontrol et
+
+                // Tab tıklama olayında odaklanma
+                const tabLinks = tabList.querySelectorAll('.nav-link');
+                tabLinks.forEach(function(link) {
+                    link.addEventListener('click', function(e) {
+                        // Tıklanan tab'ı görünür alana getir
+                        setTimeout(function() {
+                            link.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'nearest',
+                                inline: 'center'
+                            });
+                            // Scroll sonrası butonları güncelle
+                            setTimeout(updateScrollButtons, 300);
+                        }, 50);
+                    });
+                });
+            }
+        });
+    </script>
+}
+

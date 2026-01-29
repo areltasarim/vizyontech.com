@@ -1,0 +1,55 @@
+﻿@inject HelperServis _helperServis
+@model IEnumerable<Urunler>
+@{
+    var dil = _helperServis.GetCurrentCulture();
+    
+}
+@foreach (var item in Model)
+{
+    var urun = item.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var seoUrl = _helperServis.GetSeoUrl(item.Id, SeoUrlTipleri.Urun).Result.Url;
+    var urunresim = item.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim == "/Content/Upload/Images/resimyok.png" ? item.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR")?.Resim : item.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim;
+
+    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+        <div class="product-cart-wrap hover-up">
+            <div class="product-img-action-wrap">
+                <div class="product-img product-img-zoom">
+                    <a href="shop-product-right.html" tabindex="0">
+                        <img class="default-img" src="https://cdnsta.avansas.com/mnresize/300/-/urun/2082W8/euro-vending-karton-bardak-yildiz-desenli-7-oz-50-adet--10-lu-paket-zoom-1.jpg" alt="" loading="lazy" />
+                        <img class="hover-img" src="https://cdnsta.avansas.com/mnresize/300/-/urun/2082W8/euro-vending-karton-bardak-yildiz-desenli-7-oz-50-adet--10-lu-paket-zoom-1.jpg" alt="" loading="lazy" />
+                    </a>
+                </div>
+                <div class="product-action-1">
+                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-search"></i></a>
+                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
+                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                </div>
+                <div class="product-badges product-badges-position product-badges-mrg">
+                    <span class="hot">%40 İndirimli</span>
+                </div>
+            </div>
+
+            <div class="product-content-wrap">
+                <div class="product-category">
+                    <a href="@seoUrl"> Ürün Kodu: @item.UrunKodu </a>
+                </div>
+                <h2><a href="@seoUrl" tabindex="0"> @urun?.UrunAdi</a></h2>
+
+                <div style="padding-top:20px;">
+                    <span class="font-small text-muted">
+                        * 480 sayfa kapasite<br />
+                        * Avrupa mekanizma
+                    </span>
+                </div>
+            </div>
+            @if (item.ListeFiyat > 0)
+            {
+                <div class="product-card-bottom">
+                    <div class="add-cart" style="width:100%;">
+                        <a class="add" onclick="SepeteEkle(@urun.UrunId, 1)"><i class="fi-rs-shopping-cart mr-5"></i>Sepete Ekle </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}

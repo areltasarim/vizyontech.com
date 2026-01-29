@@ -1,0 +1,304 @@
+﻿@*@using Microsoft.AspNetCore.Authorization
+    @inject IAuthorizationService AuthorizationService
+    @using EticaretWebCoreHelper
+    <h1>Sayfa Yetkileri</h1>
+    <br />
+    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Uyeler.Uyeler_Roller.View)).Result.Succeeded)
+    {
+        <button class="btn btn-success">Create</button>
+    }
+    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Uyeler.View)).Result.Succeeded)
+    {
+        <button class="btn btn-info">View</button>
+    }
+    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Uyeler.Edit)).Result.Succeeded)
+    {
+        <button class="btn btn-warning">Modify</button>
+    }
+    @if ((AuthorizationService.AuthorizeAsync(User, Permissions.Uyeler.Delete)).Result.Succeeded)
+    {
+        <button class="btn btn-danger">Delete</button>
+    }*@
+
+<!-- Tam genişlikte ortalama için ayrı container -->
+<!-- Aktif Kullanıcı Sayısı Başlığı (Ortalanmış, harita genişliğine göre) -->
+<!-- Harita ve Sayaç Ortak Kapsayıcı -->
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Harita ve Sayaç ortak col'u -->
+        <div class="col-lg-8 col-12 mx-auto">
+            <!-- Sayaç: Harita üstüne ortalı -->
+            <div class="text-center mb-3">
+                <h4 class="text-success mb-0">🟢 Şu Anki Aktif Kullanıcı Sayısı:</h4>
+                <h1 id="liveUsers" class="fw-bold text-dark">Yükleniyor...</h1>
+            </div>
+
+            <!-- Harita -->
+            <div id="container" style="height: 600px;"></div>
+        </div>
+
+        <!-- Tablo -->
+        <div class="col-lg-4 col-12 mt-lg-0 mt-4">
+            <div class="text-center mb-3">
+                <h4 class="text-success mb-0">Kullanıcı Sayıları </h4>
+                <h1 class="fw-bold text-dark">Şehir Bazlı</h1>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <table class="table table-bordered table-hover table-striped mb-0 text-center" id="cityTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Şehir</th>
+                                <th>Aktif Kullanıcı</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4>📄 Bugün Ziyaret Edilen Sayfalar</h4>
+                        <table id="pageTable" class="table table-bordered table-hover table-striped mb-0 text-center">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Sayfa Başlığı</th>
+                                    <th>Görüntüleme</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- JS ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4>💻 Cihazlara Göre Aktif Kullanıcılar</h4>
+
+                        <table id="deviceTable" class="table table-bordered table-hover table-striped mb-0 text-center">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Cihaz Türü</th>
+                                    <th>Aktif Kullanıcı</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- JS ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+
+
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/exporting.js"></script>
+
+    <script src="https://code.highcharts.com/maps/modules/map.js"></script>
+    <script src="https://code.highcharts.com/mapdata/countries/tr/tr-all.js"></script>
+    <script>
+        //canlı kullanıcı sayısı
+        function getLiveUsers() {
+            $.ajax({
+                url: "/Admin/Home/GetLiveUsers", // veya doğru route neyse
+                type: "GET",
+                success: function (data) {
+                    $('#liveUsers').text(data.activeUsers);
+                },
+                error: function (xhr) {
+                    $('#liveUsers').text("Hata!");
+                    console.error("Hata:", xhr.responseText);
+                }
+            });
+        }
+
+        getLiveUsers();
+        setInterval(getLiveUsers, 10000);
+
+
+        // Şehir adını ID'ye çeviren eşleme (Highcharts ID'leri)
+        // Türkçe karakterleri düzelt
+        function normalize(str) {
+            return str
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/ğ/g, "g").replace(/Ğ/g, "G")
+                .replace(/ü/g, "u").replace(/Ü/g, "U")
+                .replace(/ş/g, "s").replace(/Ş/g, "S")
+                .replace(/ı/g, "i").replace(/İ/g, "I")
+                .replace(/ö/g, "o").replace(/Ö/g, "O")
+                .replace(/ç/g, "c").replace(/Ç/g, "C");
+        }
+
+        let districtToCity = {};
+        let cityToHCKey = {};
+
+        async function loadDistrictToCityMap() {
+            const response = await fetch('/mapdata/ilceler.json'); // İlçe → İl
+            const data = await response.json();
+
+            for (const il in data) {
+                data[il].forEach(ilce => {
+                    districtToCity[normalize(ilce)] = normalize(il);
+                });
+            }
+        }
+
+        async function loadCityHCKeyMap() {
+            const response = await fetch('/mapdata/iller.json'); // İl → hc-key
+            cityToHCKey = await response.json();
+        }
+
+        async function getLiveData() {
+            const response = await fetch('/Admin/Home/GetLiveCityData');
+            const result = await response.json();
+            const cityData = result.cities;
+
+            const groupedData = {};
+            for (const rawCity in cityData) {
+                const normalizedDistrict = normalize(rawCity);
+                const resolvedCity = districtToCity[normalizedDistrict] || normalizedDistrict;
+                groupedData[resolvedCity] = (groupedData[resolvedCity] || 0) + cityData[rawCity];
+            }
+
+            const highchartsData = [];
+            for (const city in groupedData) {
+                const normalized = normalize(city);
+                const hcKey = cityToHCKey[normalized];
+
+                console.log(`🧩 Şehir: ${city} ➜ Normalize: ${normalized} ➜ hc-key: ${hcKey}`);
+
+                if (hcKey) {
+                    highchartsData.push({ 'hc-key': hcKey, value: groupedData[city] });
+                } else {
+                    console.warn(`⚠️ '${city}' için hc-key bulunamadı (normalize: ${normalized})`);
+                }
+            }
+
+
+            // Tabloyu güncelle
+            const tbody = document.querySelector('#cityTable tbody');
+            tbody.innerHTML = '';
+            for (const city in groupedData) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${city}</td><td>${groupedData[city]}</td>`;
+                tbody.appendChild(tr);
+            }
+
+            // Haritayı çiz
+            Highcharts.getJSON('https://code.highcharts.com/mapdata/countries/tr/tr-all.geo.json', function (geojson) {
+                Highcharts.mapChart('container', {
+                    chart: { map: geojson },
+                    title: { text: 'Türkiye Şehir Bazlı Aktif Kullanıcılar' },
+                    colorAxis: { min: 0 },
+                    series: [{
+                        data: highchartsData,
+                        name: 'Aktif Kullanıcı',
+                        joinBy: 'hc-key',
+                        states: {
+                            hover: { color: '#a4edba' }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            allowOverlap: true, // çakışsa bile göster
+                            crop: false,         // kenarda bile olsa göster
+                            overflow: 'allow'
+                        }
+
+                    }]
+                });
+            });
+        }
+
+        // Başlat
+        Promise.all([loadDistrictToCityMap(), loadCityHCKeyMap()]).then(() => {
+            getLiveData();
+            setInterval(getLiveData, 10000);
+        });
+
+
+
+
+        //sayfa bazlı
+        async function loadPageViews() {
+            try {
+                const response = await fetch('/Admin/Home/GetLivePageData');
+                const data = await response.json();
+
+                const tbody = document.querySelector('#pageTable tbody');
+                tbody.innerHTML = '';
+
+                const entries = Object.entries(data);
+
+                if (entries.length > 0) {
+                    entries.forEach(([title, count]) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${title}</td><td>${count}</td>`;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="2">Veri bulunamadı</td>`;
+                    tbody.appendChild(tr);
+                }
+
+            } catch (error) {
+                console.error("Veri alınamadı:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPageViews();
+            setInterval(loadPageViews, 10000);
+        });
+
+
+        //cihaz bazlı
+        async function loadDeviceData() {
+            const response = await fetch('/Admin/Home/GetLiveDeviceData');
+            const data = await response.json();
+
+            const tbody = document.querySelector('#deviceTable tbody');
+            tbody.innerHTML = '';
+
+            for (const device in data) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${device}</td><td>${data[device]}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // Sayfa yüklenince başlat
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDeviceData();
+            setInterval(loadDeviceData, 10000); // 10 saniyede bir güncelle
+        });
+
+
+      
+
+    
+    </script>
+
+
+}
+
+

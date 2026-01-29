@@ -1,0 +1,627 @@
+﻿@model SayfaYetkiViewModel
+@{ ViewData["Title"] = ViewData["AltBaslik"].ToString(); }
+
+@section styles
+{
+    
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+
+<form method="post" asp-controller="SayfaYetkileri" asp-action="RolYetkiGuncelle" enctype="multipart/form-data" class="custom-validation">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Tab panes-->
+                            <input asp-for="@Model.RoleId" type="hidden" />
+                            <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                                <!---->
+                                <tr>
+                                    <td>
+                                        <button type="button" class="btn btn-success exploder btn-sm toogle" data-hedef="toogleUyeler" data-drm="0">
+                                            <i class="fa fa-plus"></i>Üyeler
+                                        </button>
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Uyeler_View" />
+                                                    Görüntüleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Create")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Uyeler_Create" />
+                                                    Ekleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Edit")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Uyeler_Edit" />
+                                                    Düzenleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Delete")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Uyeler_Delete" />
+                                                    Silme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                </tr>
+                                <tr class="toogleUyeler" style="display:none">
+                                    <td>Roller</td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Roller.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_View" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Roller.Create")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_Create" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Roller.Edit")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_Edit" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Roller.Delete")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_Delete" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr class="toogleUyeler" style="display:none">
+                                    <td>Uyeler</td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Uyeler.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_View" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Uyeler.Create")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_Create" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Uyeler.Edit")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_Edit" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Uyeler.Uyeler.Delete")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Uyeler_Delete" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <!---->
+                                <tr>
+                                    <td>
+                                        <button type="button" class="btn btn-success exploder btn-sm toogle" data-hedef="toogleSayfalar" data-drm="0">
+                                            <i class="fa fa-plus"></i>Sayfalar
+                                        </button>
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Sayfalar_View" />
+                                                    Görüntüleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Create")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Sayfalar_Create" />
+                                                    Ekleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Edit")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Sayfalar_Edit" />
+                                                    Düzenleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Delete")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Sayfalar_Delete" />
+                                                    Silme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                </tr>
+                                <tr class="toogleSayfalar" style="display:none">
+                                    <td>Roller</td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Roller.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_View" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Roller.Create")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_Create" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Roller.Edit")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_Edit" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Roller.Delete")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_Delete" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <tr class="toogleSayfalar" style="display:none">
+                                    <td>Sayfalar</td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Sayfalar.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_View" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Sayfalar.Create")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_Create" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Sayfalar.Edit")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_Edit" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Sayfalar.Sayfalar.Delete")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Sayfalar_Delete" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <!---->
+                                <!---->
+                                <tr>
+                                    <td>
+                                        <button type="button" class="btn btn-success exploder btn-sm toogle" data-hedef="toogleHome" data-drm="0">
+                                            <i class="fa fa-plus"></i>Home
+                                        </button>
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Home_View" />
+                                                    Görüntüleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Create")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Home_Create" />
+                                                    Ekleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Edit")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Home_Edit" />
+                                                    Düzenleme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Delete")
+                                            {
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Islem" data-hedef="Permissions_Home_Delete" />
+                                                    Silme Yetkisi
+                                                </div>
+                                            }
+                                        }
+
+                                    </td>
+                                </tr>
+                                <tr class="toogleHome" style="display:none">
+                                    <td>Home</td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Home.View")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Home_View" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Home.Create")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Home_Create" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Home.Edit")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Home_Edit" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        @for (int i = 0; i < Model.RoleClaims.Count(); i++)
+                                        {
+                                            if (Model.RoleClaims[i].Value == "Permissions.Home.Home.Delete")
+                                            {
+
+                                                <input asp-for="@Model.RoleClaims[i].Type" type="hidden" />
+                                                <input asp-for="@Model.RoleClaims[i].Value" type="hidden" />
+                                                <div class="form-check m-1">
+                                                    <input asp-for="@Model.RoleClaims[i].Selected" class="form-check-input Permissions_Home_Delete" />
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                                <!---->
+                            </table>
+                      
+
+                        </div>
+                        <div class="col-md-12 mb-2 mt-4 center-block">
+                            <div class="text-center">
+                                <div class="form-group mb-0">
+                                    <div>
+                                        <partial name="_SayfaButonlari" />
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@section scripts
+{
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            //Fixing jQuery Click Events for the iPad
+            //var ua = navigator.userAgent,
+            //    event = (ua.match(/iPad/i)) ? "touchstart" : "click";
+            //if ($('.table').length > 0) {
+            //    $('.table .header').on(event, function () {
+            //        $(this).toggleClass("active", "").nextUntil('.header').css('display', function (i, v) {
+            //            return this.style.display === 'table-row' ? 'none' : 'table-row';
+            //        });
+            //    });
+            //}
+
+            $('.Islem').change(function () {
+                var Drm = this.checked;
+                var hedef = $(this).attr("data-hedef");
+                jQuery('.' + hedef).each(function (index, currentElement) {
+                    $(currentElement).prop("checked", Drm);
+                });
+            });
+
+            $('.toogle').click(function () {
+                var display = "none";
+                var Drm = $(this).attr("data-drm");
+                if (Drm == "0") {
+                    Drm = 1;
+                }
+                else if (Drm == "1") {
+                    Drm = 0;
+                }
+                if (Drm == 1)
+                {
+                    display=""
+                }
+                if (Drm == 0)
+                {
+                    display = "none"
+                }
+                var hedef = $(this).attr("data-hedef");
+                $(this).attr("data-drm", Drm);
+                jQuery('.' + hedef).each(function (index, currentElement) {
+                    if (Drm == 1) {
+                        $(currentElement).show();
+                    }
+                    else {
+                        $(currentElement).hide();
+                    }
+                });
+            });
+
+        })
+    </script>
+} 

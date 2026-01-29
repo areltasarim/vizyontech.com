@@ -1,0 +1,120 @@
+﻿@model Diller
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+}
+
+@section styles
+{
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="d">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Tab panes-->
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">@ViewData["Baslik"]</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="DilKoduId" asp-items="@ViewData["DilKodlari"] as IEnumerable<SelectListItem>">
+                                        <option>Seçiniz</option>
+                                    </select>
+                                    <span asp-validation-for="DilKoduId" class="text-danger"></span>
+
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Dil Adı</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="DilAdi" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.DilAdi)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Kısa Dil Adı</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="KisaDilAdi" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.KisaDilAdi)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.Resim)" width="75" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Dil Resmi</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="DilResim" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Sira</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Sira" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Sira)">
+
+                                </div>
+                            </div>
+                            <!--  Tab panes-->
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(() => {
+            $("#pictureFile").on('change', (e) => {
+
+                var reader = new FileReader();
+                reader.onloadend = (evt) => {
+                    $('#picturePreview').attr('src', reader.result);
+
+                };
+                reader.readAsDataURL(document.getElementById('pictureFile').files[0]);
+            });
+        });
+    </script>
+} 

@@ -1,0 +1,42 @@
+﻿@model SiparisViewModel
+
+
+
+<div class="card mb-3">
+    <div class="card-header">
+        @Localize("Genel.TeslimatBilgileri")
+    </div>
+    <div class="card-body">
+        <select asp-for="TeslimatAdresId" asp-items="@ViewData["Adresler"] as IEnumerable<SelectListItem>" class="form-control dropdown-select">
+            <option value="0">@Localize("Genel.Seciniz")</option>
+        </select>
+        <span asp-validation-for="TeslimatAdresId" class="text-danger"></span>
+
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        @Localize("Genel.FaturaBilgileri")
+    </div>
+    <div class="card-body">
+        <select asp-for="FaturaAdresId" asp-items="@ViewData["Adresler"] as IEnumerable<SelectListItem>" class="form-control dropdown-select">
+            <option value="0">@Localize("Genel.Seciniz")</option>
+        </select>
+    </div>
+</div>
+
+
+<script>
+    $('.odeme-yap').click(function () {
+        var teslimatadresiselectedValue = $('#TeslimatAdresId').val();
+        if (teslimatadresiselectedValue === "0") {
+            alert("Telismat adresini seçin!");
+        } 
+
+        var faturaadresiselectedValue = $('#FaturaAdresId').val(); 
+        if (faturaadresiselectedValue === "0") { 
+            alert("Fatura adresini seçin!"); 
+        } 
+    });
+</script>

@@ -1,0 +1,14 @@
+﻿@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+}
+
+<ul class="nav nav-tabs nav-tabs-custom mb-4">
+    <li class="nav-item me-2">
+        <button type="submit" class="btn btn-danger waves-effect text-white remove" value="SeciliKayitlariSil" id="selectedpagecheck">
+            <i class="fa fa-check"></i>  Seçili Kayıtları Sil
+        </button>
+    </li>
+    <li class="nav-item mb-2">
+        <a asp-area="Admin" asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-SayfaTipi="@Context.Request.Query["SayfaTipi"]" class="btn btn-success  text-white"><i class="mdi mdi-plus mr-2"></i> @ViewData["AltBaslik"]</a>
+    </li>
+</ul>

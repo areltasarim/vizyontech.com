@@ -1,0 +1,36 @@
+﻿@using EticaretWebCoreService
+@model IEnumerable<Menuler>
+@{
+    var _context = new AppDbContext();
+}
+
+@{
+
+    foreach (var item in Model)
+    {
+
+        var Menus = MenulerServis.MenuKonumlari(item.MenuYeri).ToList().Where(x => x.ParentMenuId == item.Id).ToList();
+
+        <li id="list_@item.Id">
+            <div>
+                <i class="fa fa-arrows"></i>  @(item.MenulerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR")?.MenuAdi)
+                <p id="@item.Id" style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;">
+                    <a asp-controller="Menuler" asp-action="AddOrUpdate" asp-route-id="@item.Id" asp-route-MenuYeri="@Context.Request.Query["MenuYeri"]"><i class="zmdi zmdi-settings"></i> Düzenle</a>
+                    |
+                    <a href="Javascript: Void()" onclick="MenuListeKaldir(@item.Id)"><i class="zmdi zmdi-delete"></i> Sil</a>
+                </p>
+            </div>
+
+
+            @if (Menus.Count() > 0)
+            {
+                <ol>
+                    <partial name="_MenuListesi" model="Menus">
+                </ol>
+            }
+        </li>
+
+
+    }
+
+}

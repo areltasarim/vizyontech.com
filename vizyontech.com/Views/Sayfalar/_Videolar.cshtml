@@ -1,0 +1,155 @@
+﻿@model Sayfalar
+@inject HelperServis _helperServis
+@{
+    var aktifDil = _helperServis.GetAktifDil().Result;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfa = _helperServis.GetSayfa(Model.Id).Result;
+    var parentSayfa = _helperServis.GetParentSayfa(SayfaTipleri.Hakkimizda).Result;
+    var sayfaResim = _helperServis.GetSayfaResim(Model.Id).Result;
+    var sayfaResim2 = _helperServis.GetAnaSayfaResim(Model.Id).Result;
+    var sayfaResimleri = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri1, aktifDil.Id);
+    var sayfaResimleri2 = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri2, aktifDil.Id);
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+
+    var altSayfalar = _helperServis.GetAltSayfalar(Model.Id).ToPagedList(1, 10);
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = sayfa.SayfaAdi;
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+
+}
+
+
+<!--Page Title-->
+<section class="page-title">
+    <div class="auto-container">
+        <div class="title-outer">
+            <h1>Teknik Destek</h1>
+            <ul class="page-breadcrumb">
+                <li><a href="/">Teknik Destek</a></li>
+                <li>Destek Videoları</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!--End Page Title-->
+<!-- Sidebar Page Container -->
+<div class="sidebar-page-container">
+    <div class="auto-container">
+        <div class="row">
+            <!--Content Side-->
+            <div class="content-side col-lg-12 col-md-12 col-sm-12">
+                <div class="blog-grid">
+                    <div class="row">
+                        <!-- News Block -->
+                        @foreach (var item in altSayfalar)
+                        {
+                            var altsayfaResim = _helperServis.GetSayfaResim(item.SayfaId).Result;
+
+                            <div class="news-block col-lg-6 col-md-6 col-sm-12">
+                                <div class="inner-box">
+                                    <div class="image-box">
+                                        <div class="embed-responsive embed-responsive-16by9">
+                                            <figure class="image">
+                                                <a class="video-modal" data-video="@item.YoutubeVideoLink" data-toggle="modal" data-target="#videoModal">
+                                                    <img src="@altsayfaResim" data-toggle="modal" alt="" loading="lazy" />
+                                                </a>
+                                            </figure>
+                                        </div>
+                                    </div>
+                                    <div class="lower-content">
+                                        <h3>
+                                            <a class="video-modal" data-video="@item.YoutubeVideoLink" data-toggle="modal" data-target="#videoModal">
+                                                @item.SayfaAdi
+                                            </a>
+                                        </h3>
+                                        <p class="text">
+                                            @Html.Raw(item.Aciklama)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+
+                    <ul>
+                        @Html.PagedListPager((IPagedList)altSayfalar, sayfa => Url.Action(null, url, new { sayfa }),
+                                                new PagedListRenderOptions()
+                                                {
+                                                    //DisplayLinkToFirstPage = PagedListDisplayMode.IfNeeded,
+                                                    //DisplayLinkToLastPage = PagedListDisplayMode.IfNeeded,
+                                                    //DisplayLinkToPreviousPage = PagedListDisplayMode.IfNeeded,
+                                                    //DisplayLinkToNextPage = PagedListDisplayMode.IfNeeded,
+                                                    DisplayLinkToIndividualPages = true,
+                                                    DisplayPageCountAndCurrentLocation = false,
+                                                    MaximumPageNumbersToDisplay = 10,
+                                                    //DisplayEllipsesWhenNotShowingAllPageNumbers = true,
+                                                    //EllipsesFormat = "&#8230;",
+                                                    //LinkToFirstPageFormat = "««",
+                                                    //LinkToPreviousPageFormat = "",
+                                                    //LinkToIndividualPageFormat = "{0}",
+                                                    //LinkToNextPageFormat = "",
+                                                    //LinkToLastPageFormat = "»»",
+                                                    PageCountAndCurrentLocationFormat = "Sayfa {0} of {1}.",
+                                                    ItemSliceAndTotalFormat = "{0} kayıttan {1} - {2} arasındaki kayıtlar gösteriliyor ",
+                                                    FunctionToDisplayEachPageNumber = null,
+                                                    ClassToApplyToFirstListItemInPager = null,
+                                                    ClassToApplyToLastListItemInPager = null,
+                                                    ContainerDivClasses = new[] { "" },
+                                                    UlElementClasses = new[] { "pagination" },
+                                                    LiElementClasses = new[] { "" },
+                                                    PageClasses = new string[] { "current" },
+                                                    //ActiveLiElementClass = "page-item",
+                                                })
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@using (Html.BeginScripts())
+{
+
+
+    <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Youtube</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="embed-container">
+                        <iframe width="100%" height="350" src="" frameborder="0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(".video-modal").click(function () {
+            var theModal = $(this).data("target"),
+                videoSRC = $(this).attr("data-video"),
+                videoSRCauto = videoSRC + "?modestbranding=1&rel=0&controls=0&showinfo=0&html5=1&autoplay=1";
+            $(theModal + ' iframe').attr('src', videoSRCauto);
+            $(theModal).on('hidden.bs.modal', function () {
+                $(theModal + ' iframe').attr('src', videoSRC);
+            });
+        });
+    </script>
+
+}
+

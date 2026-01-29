@@ -1,0 +1,551 @@
+﻿@inject HelperServis _helperServis
+@inject SepetServis _sepetServis
+@{
+    var dil = _helperServis.GetCurrentCulture();
+
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var controller = HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString();
+
+    var sabitMenuIletisim = await _helperServis.GetSabitMenu(SabitSayfaTipleri.BizeUlasin);
+
+    var headerAciklama = await _helperServis.GetParentSayfa(SayfaTipleri.HeaderAcilklama);
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+    string hostUrl = $"{HttpContextAccessor.HttpContext.Request.Scheme}://{HttpContextAccessor.HttpContext.Request.Host}";
+
+    var seourl = ViewContext.RouteData.Values["url"]?.ToString();
+
+    if (!string.IsNullOrWhiteSpace(seourl))
+    {
+        hostUrl = $"{hostUrl}/{seourl}";
+    }
+
+    var currentPath = Context.Request.Path + Context.Request.QueryString;
+    var currentUrl = $"{Context.Request.Scheme}://{Context.Request.Host}{currentPath}";
+    var whatsappMessage = Uri.EscapeDataString($"Merhaba Vizyontech {currentUrl} ürünü hakkında bilgi almak istiyorum. Yardımcı olur musunuz?");
+
+    // WhatsApp telefon numarası formatı - ülke kodu ile başlamalı (90)
+    var whatsappPhone = siteAyari?.Whatsapp;
+    if (!string.IsNullOrEmpty(whatsappPhone) && !whatsappPhone.StartsWith("90"))
+    {
+        // Eğer 0 ile başlıyorsa 0'ı kaldır ve 90 ekle
+        if (whatsappPhone.StartsWith("0"))
+        {
+            whatsappPhone = "90" + whatsappPhone.Substring(1);
+        }
+        else
+        {
+            whatsappPhone = "90" + whatsappPhone;
+        }
+    }
+
+}
+
+<!DOCTYPE html>
+<html lang="@siteAyari.AktifDil.KisaDilAdi.ToLower()">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="keywords" content="@Html.Raw((String)ViewBag.MetaAnahtar)" />
+    <meta name="description" content="@Html.Raw((String)ViewBag.MetaAciklama)" />
+    <title>@Html.Raw((String)ViewBag.MetaTitle)</title>
+    <link rel="icon" href="@(siteAyari?.Favicon)" sizes="32x32" type="image/png">
+    <link rel="canonical" href="@(hostUrl)" />
+
+    <partial name="_CssPartial" />
+
+    @Html.Raw(siteAyari?.HeaderKod ?? "")
+    @await RenderSectionAsync("Style", false)
+
+</head>
+
+<body>
+    @Html.Raw(siteAyari?.BodyKod ?? "")
+
+    <div class="ps-page">
+        <header class="ps-header ps-header--2">
+
+            <div class="ps-header__top">
+                <div class="container">
+                    <div class="ps-header__text">
+
+                        <strong>@siteAyariHelper.HeaderAciklama</strong>
+                    </div>
+
+                    <div class="ps-top__right">
+                        @if (_helperServis.GetDiller().Result.Count > 1)
+                        {
+                            <div class="ps-language-currency">
+                                <a class="ps-dropdown-value" href="javascript:void(0);" data-toggle="modal" data-target="#popupLanguage">@_helperServis.GetAktifDil().Result.DilAdi</a>
+                            </div>
+                        }
+                        <div class="ps-top__social">
+                            <ul class="ps-social">
+                                <partial name="_SosyalMedya" />
+                            </ul>
+                        </div>
+                        <ul class="menu-top">
+
+
+                            @foreach (var item in _helperServis.GetMenuTranslate(MenuYerleri.UstMenu2))
+                            {
+                                <li class="nav-item"><a class="nav-link" href="@item.Url">@item.MenuAdi</a></li>
+                            }
+
+
+                        </ul>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="ps-header__middle">
+                <div class="container">
+                    <div class="ps-logo"><a href="/"> <img src="@siteAyari.UstLogo" loading="lazy"><img class="sticky-logo" src="@siteAyari.UstLogo" width="266" height="54" loading="lazy"></a></div><a class="ps-menu--sticky" href="#"><i class="fa fa-bars"></i></a>
+
+                    <div class="ps-header__right">
+                        <ul class="ps-header__icons">
+                            <!-- Hesabım Dropdown -->
+
+
+                            <li><a class="ps-header__item open-search" href="#"><i class="icon-magnifier"></i></a></li>
+                            @if (uyeLoginmi.User != null)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="hesabimDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fa fa-user"></i> Hesabım
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="hesabimDropdown">
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="HesabimiGuncelle">@Localize("Genel.Hesabim")</a>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Siparisler"> @Localize("Genel.Siparisler")</a>
+                                        <a class="dropdown-item" asp-controller="Account" asp-action="Adresler">@Localize("Genel.Adreslerim")</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="CikisYap">@Localize("Genel.CikisYap")</a>
+                                    </div>
+                                </li>
+                            }
+                            else
+                            {
+                                @*<li>
+                                        <a class="ps-header__item" href="#" id="login-modal"><i class="icon-user"></i></a>
+                                        <div class="ps-login--modal">
+                                            <form method="post" asp-controller="Account" asp-action="GirisYap">
+                                                <div class="form-group">
+                                                    <label>@Localize("Genel.Email")</label>
+                                                    <input class="form-control" name="Email" type="text">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>@Localize("Genel.Sifre")</label>
+                                                    <input class="form-control" name="Password" type="password">
+                                                </div>
+                                                <div class="form-group form-check">
+                                                    <input class="form-check-input" name="RememberMe" type="checkbox">
+                                                    <label>@Localize("Genel.BeniHatirla")</label>
+                                                </div>
+                                                <button class="ps-btn ps-btn--warning" type="submit">@Localize("Genel.GirisYap")</button>
+                                            </form>
+                                            <a class="ps-btn ps-btn--primary mt-3" asp-controller="Account" asp-action="UyeOl">@Localize("Genel.UyeOl")</a>
+                                        </div>
+                                    </li>*@
+                            }
+
+                            @*<li><a class="ps-header__item" asp-controller="Sepet" asp-action="AlisverisListem"><i class="fa fa-heart-o"></i><span class="badge alisverislisteurunsayisi"><partial name="~/Views/Sepet/_AlisverisListeUrunSayisi.cshtml" /></span></a></li>*@
+                            <li>
+                                <a class="ps-header__item" href="#" id="cart-mini"><i class="icon-cart-empty"></i><span class="badge sepeturunsayisi"><partial name="~/Views/Sepet/_SepetUrunSayisi.cshtml" /></span></a>
+                                <div class="ps-cart--mini headersepetListesi">
+                                    <partial name="~/Views/Sepet/_HeaderSepet.cshtml" />
+                                </div>
+                            </li>
+                        </ul>
+                        @if (_helperServis.GetDiller().Result.Count > 1)
+                        {
+                            <div class="ps-language-currency">
+                                <a class="ps-dropdown-value" href="javascript:void(0);" data-toggle="modal" data-target="#popupLanguage">@_helperServis.GetAktifDil().Result.DilAdi</a>
+                            </div>
+                        }
+
+                        <div class="ps-header__search">
+
+
+
+                            <form class="searchForm desktop-search" asp-controller="Urunler" asp-action="Arama" method="get">
+                                <div class="ps-search-table">
+                                    <div class="input-group">
+                                        <input class="form-control searchInput desktop-input ps-input" type="text" name="keyword" placeholder="@Localize("Genel.UrunArama")">
+                                        <div class="input-group-append">
+                                            <a href="javascript:void(0);" onclick="submitSearchForm('desktop'); return false;">
+                                                <i class="fa fa-search"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+                        </div>
+
+                        <div class="ps-header__menu">
+                            <ul class="menu">
+                                <li class="has-mega-menu">
+                                    @if (User.Identity.IsAuthenticated && User.IsInRole("Bayi"))
+                                    {
+                                        string ad = _helperServis.GetUye().Result.Ad;
+                                        string firmaAdi = _helperServis.GetUye().Result.FirmaAdi;
+
+                                        string unvan = !string.IsNullOrEmpty(ad) ? ad : (!string.IsNullOrEmpty(firmaAdi) ? firmaAdi : "Bilinmiyor");
+
+                                        @*<a href="#" style="font-size:14px !important">
+                                                <i class="fa fa-user"></i>@unvan<span class="sub-toggle"><i class="fa fa-chevron-use"></i></span>
+                                            </a>*@
+
+                                        <a href="@hostUrl/cari-odeme/@EncryptionHelper.Encrypt(_helperServis.GetUye().Result.Id.ToString())" style="background:red !important"> <i class="fa fa-credit-card"></i>@Localize("Genel.OnlineOdeme")<span class="sub-toggle"><i class="fa fa-chevron-use"></i></span></a>
+
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Account" asp-action="GirisYap"> <i class="fa fa-user"></i>@Localize("Genel.BayiGiris")<span class="sub-toggle"><i class="fa fa-chevron-use"></i></span></a>
+                                        <a asp-controller="Account" asp-action="UyeOl"> <i class="fa fa-user"></i>@Localize("Genel.BayiOl")<span class="sub-toggle"><i class="fa fa-chevron-use"></i></span></a>
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="ps-navigation">
+                <div class="container">
+                    <div class="ps-navigation__left">
+                        <nav class="ps-main-menu">
+                            <ul class="menu">
+                                <li class="has-mega-menu">
+                                    <a href="#" id="accordion-open-menu" class="open-menu-button"> <i class="fa fa-bars"></i>@Localize("Genel.UrunKategorileri")<span class="sub-toggle"><i class="fa fa-chevron-down"></i></span></a>
+                                </li>
+                                <partial name="_DesktopMenu" model="MenuYerleri.UstMenu" />
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <header class="ps-header ps-header--1 ps-header--mobile">
+            <div class="ps-noti">
+                <div class="container">
+                    <p class="m-0"><strong> @siteAyariHelper.HeaderAciklama</strong></p>
+                </div><a class="ps-noti__close"><i class="icon-cross"></i></a>
+            </div>
+            <div class="ps-header__middle">
+                <div class="container">
+                    <div class="ps-logo"><a href="/"> <img src="@siteAyari.MobilLogo" loading="lazy"></a></div>
+                    <div class="ps-header__right">
+                        <ul class="ps-header__icons">
+                            <li><a class="ps-header__item open-search" href="#"><i class="fa fa-search"></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        @RenderBody()
+
+        <footer class="ps-footer ps-footer--1 pt-5">
+            <div class="container">
+                <div class="ps-footer__middle">
+                    <div class="row">
+                        <div class="col-12 col-md-7">
+                            <div class="row">
+                                <div class="col-12 col-md-4">
+                                    <div class="ps-footer--address">
+                                        <div class="ps-logo">
+                                            <a href="/">
+                                                <img class="logo-green" src="@siteAyari.FooterLogo" loading="lazy">
+                                            </a>
+                                        </div>
+                                        <div class="ps-footer__title">@Localize("Genel.AdresBilgileri")</div>
+                                        <p>@adresBilgiHelper.Adres</p>
+                                        <p><a target="_blank" href="@adresBilgiHelper.HaritaLink">@Localize("Genel.GoogleMap")</a></p>
+                                        <ul class="ps-social">
+                                            <partial name="_SosyalMedyaFooter" />
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-8">
+                                    <div class="ps-footer--contact">
+                                        <h5 class="ps-footer__title">@Localize("Genel.BizeUlasin")</h5>
+                                        <div class="ps-footer__fax"><i class="icon-telephone"></i><a href="tel:@adresBilgiHelper.Telefon">@adresBilgiHelper.Telefon</a></div>
+                                        <p class="ps-footer__work">@adresBilgiHelper.CalismaSaatlari</p>
+                                        <hr>
+                                        <p><a class="ps-footer__email" href="mailto:@adresBilgiHelper.Email"> <i class="icon-envelope"></i><span class="__cf_email__" data-cfemail="c3a0acadb7a2a0b783a6bba2aeb3afa6eda0acae">@adresBilgiHelper.Email</span> </a></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <div class="row">
+                                <div class="col-6 col-md-4">
+                                    <div class="ps-footer--block">
+                                        <h5 class="ps-block__title">@Localize("Genel.FooterMenu1")</h5>
+                                        <ul class="ps-block__list">
+                                            <partial name="_DesktopFooterMenu" model="MenuYerleri.FooterMenuSol" />
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="ps-footer--block">
+                                        <h5 class="ps-block__title">@Localize("Genel.FooterMenu2")</h5>
+                                        <ul class="ps-block__list">
+                                            <partial name="_DesktopFooterMenu" model="MenuYerleri.FooterMenuOrta" />
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="ps-footer--block">
+                                        <h5 class="ps-block__title">@Localize("Genel.FooterMenu3")</h5>
+                                        <ul class="ps-block__list">
+                                            <partial name="_DesktopFooterMenu" model="MenuYerleri.FooterMenuSag" />
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ps-footer--bottom">
+                    <div class="row">
+                        <div class="col-12 col-md-6">
+                            <p>Copyright © @DateTime.Now.Year Web Tasarım &nbsp;<a href="https://www.areltasarim.com"> Arel Tasarım </a> &nbsp;| @Localize("Genel.TumHaklariSaklidir")</p>
+                        </div>
+                        <div class="col-12 col-md-6 text-right"><img src="~/Content/Theme/img/payment.png" loading="lazy"><img class="payment-light" src="~/Content/Theme/img/payment-light.png" loading="lazy"></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="ps-navigation--footer">
+        <div class="ps-nav__item"><a href="#" id="open-menu"><i class="icon-menu"></i></a><a href="#" id="close-menu"><i class="icon-cross"></i></a></div>
+        <div class="ps-nav__item"><a href="/"><i class="icon-home2"></i></a></div>
+        <div class="ps-nav__item"><a asp-controller="Account" asp-action="GirisYap"><i class="icon-user"></i></a></div>
+        <div class="ps-nav__item"><a asp-controller="Sepet" asp-action="Sepet"><i class="icon-cart-empty"></i><span class="badge sepeturunsayisi"><partial name="~/Views/Sepet/_SepetUrunSayisi.cshtml" /></span></a></div>
+        <div class="ps-nav__item"><a asp-controller="Account" asp-action="AlisverisListem"><i class="fa fa-heart-o"></i><span class="badge alisverislisteurunsayisi"><partial name="~/Views/Sepet/_AlisverisListeUrunSayisi.cshtml" /></span></a></div>
+        @if (!string.IsNullOrEmpty(siteAyari?.Whatsapp))
+        {
+            <div class="ps-nav__item"><a href="https://web.whatsapp.com/send?phone=@whatsappPhone&text=@whatsappMessage" target="_blank"><i class="fa fa-whatsapp" style="font-size:27px; color: #25D366"></i></a></div>
+        }
+    </div>
+
+
+    <button class="btn scroll-top"><i class="fa fa-angle-double-up"></i></button>
+
+
+    <div class="ps-menu--slidebar">
+        <div class="ps-menu__content">
+            <ul class="menu--mobile">
+                <partial name="_MobilMenu" model="MenuYerleri.AccordionMenu" />
+                <hr />
+                <partial name="_MobilMenu" model="MenuYerleri.UstMenu" />
+            </ul>
+        </div>
+        <div class="ps-menu__footer">
+            <div class="ps-menu__item">
+                <ul class="ps-language-currency">
+                    <partial name="_Dil" />
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="hizligoruntule_modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered ps-quickview">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="wrap-modal-slider container-fluid ps-quickview__body">
+                        <button class="close ps-quickview__close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <div class="ps-product--detail">
+                            <div class="row" id="hizligoruntule_modal_content">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="popupLanguage" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered ps-popup--select">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="wrap-modal-slider container-fluid">
+                        <button class="close ps-popup__close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <div class="ps-popup__body">
+                            <h2 class="ps-popup__title">@Localize("Genel.DilSec")</h2>
+                            <ul class="ps-popup__list">
+                                <partial name="_Dil" />
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="ps-search">
+        <div class="ps-search__content ps-search--mobile">
+            <a class="ps-search__close" asp-controller="Urunler" asp-action="Arama" id="close-search"><i class="icon-cross"></i></a>
+            <h3>@Localize("Genel.Arama")</h3>
+            <form class="searchForm mobile-search" asp-controller="Urunler" asp-action="Arama" method="post">
+                <div class="ps-search-table">
+                    <div class="input-group">
+                        <input class="form-control searchInput mobile-input ps-input" type="text" name="keyword" placeholder="@Localize("Genel.UrunArama")">
+                        <div class="input-group-append"><a href="javascript:void(0);" onclick="submitSearchForm('mobile'); return false;"><i class="fa fa-search"></i></a></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="backdrop" class="backdrop"></div>
+    <div id="offcanvas-menu" class="offcanvas">
+        <div class="offcanvas-header">
+            <h2>@Localize("Genel.UrunKategorileri")</h2>
+            <button id="close-menu" class="close-button">✕</button>
+        </div>
+        <partial name="_AccordionMenu" model="MenuYerleri.AccordionMenu" />
+    </div>
+
+
+    <partial name="_Modal" />
+
+    @Html.Raw(siteAyari?.FooterKod ?? "")
+
+    @*@if (!string.IsNullOrEmpty(siteAyari?.Whatsapp))
+        {
+            <div class="d-none d-md-block">
+                <partial name="_Whatsapp" />
+            </div>
+        }*@
+
+
+    <div class="whtspdestek d-none d-md-block">
+
+        <span>Destek Numaralarımız</span>
+        <a class="whtspp" href="https://web.whatsapp.com/send?phone=9@(siteAyari?.Whatsapp)&text=@whatsappMessage" target="_blank" style="background-color: #25D366; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none;">
+            <i class="fa fa-whatsapp"></i> @siteAyari?.Whatsapp
+        </a>
+        <a class="sbtt" href="tel:@adresBilgiHelper.Telefon" target="_blank">
+            <i class="fa fa-phone"></i> @adresBilgiHelper.Telefon
+        </a>
+    </div>
+
+
+    @await Html.PartialAsync("_ScriptPartial")
+
+    @await RenderSectionAsync("Scripts", false)
+    @Html.PageScripts()
+
+    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["googleReCaptcha:SiteKey"]"></script>
+    <style>
+        .grecaptcha-badge {
+            visibility: hidden !important;
+            opacity: 0 !important;
+            display: none !important;
+        }
+    </style>
+    <script>
+             grecaptcha.ready(function() {
+             window.grecaptcha.execute('@Configuration["googleReCaptcha:SiteKey"]', { action: 'home' }).then(function (token) {
+                 $("#Captcha").val(token);
+                });
+             });
+
+        function submitSearchForm(type) {
+            let form, input;
+
+            if (type === 'desktop') {
+                form = document.querySelector('.desktop-search');
+                input = document.querySelector('.desktop-input');
+            } else if (type === 'mobile') {
+                form = document.querySelector('.mobile-search');
+                input = document.querySelector('.mobile-input');
+            }
+
+            if (!input || !input.value.trim()) {
+                alert('Lütfen arama yapmak için bir şeyler yazın.');
+                return;
+            }
+
+            form.submit();
+        }
+
+    </script>
+
+    <script>
+        (function () {
+            const COMPANY_NAME = "vizyontech";
+            const PHONE_E164 = "905323309852";
+            const BASE_MESSAGE = "Merhaba " + COMPANY_NAME + ", ";
+
+            function getPageTitle() {
+                const h1 = document.querySelector("h1, .product-title, [itemprop='name']");
+                if (h1 && h1.textContent.trim().length > 3) return h1.textContent.trim();
+
+                const og = document.querySelector('meta[property="og:title"]');
+                if (og && og.content && og.content.trim().length > 3) return og.content.trim();
+
+                const t = (document.title || "").trim();
+                return t.replace(/\s*\|\s*.+$|\s*-\s*.+$/, "").trim();
+            }
+
+            function isProductPage() {
+                if (document.querySelector('[itemtype*="Product"], .product-detail, .urun, .product')) return true;
+                const url = location.pathname.toLowerCase();
+                return /urun|product|kategori\/.+\/.+|\/p-/.test(url);
+            }
+
+            function buildWhatsAppURL(phoneNumber) {
+                const pageURL = location.href;
+                const title = getPageTitle();
+                const message = isProductPage()
+                    ? BASE_MESSAGE + "\"" + title + "\" ürünü hakkında bilgi almak istiyorum."
+                    : BASE_MESSAGE + "yardımcı olur musunuz?";
+                const fullText = message + "\n\nBağlantı: " + pageURL;
+                const phone = phoneNumber || PHONE_E164;
+                return "https://wa.me/" + phone + "?text=" + encodeURIComponent(fullText);
+            }
+
+            // Mevcut WhatsApp linklerini güncelle
+            document.addEventListener("DOMContentLoaded", function () {
+                const whatsappLinks = document.querySelectorAll('a[href*="whatsapp"], a[href*="wa.me"]');
+                whatsappLinks.forEach(function (link) {
+                    const href = link.getAttribute("href");
+                    if (href && (href.includes("whatsapp") || href.includes("wa.me"))) {
+                        // Telefon numarasını href'den çıkar
+                        const phoneMatch = href.match(/phone=([^&]+)/);
+                        const phone = phoneMatch ? phoneMatch[1] : PHONE_E164;
+                        link.href = buildWhatsAppURL(phone);
+
+                        // Click event'inde de güncelle
+                        link.addEventListener("click", function () {
+                            link.href = buildWhatsAppURL(phone);
+                        });
+                    }
+                });
+            });
+        })();
+    </script>
+
+</body>
+</html>
+
+
+
+

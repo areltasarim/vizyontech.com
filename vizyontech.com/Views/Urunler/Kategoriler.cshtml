@@ -1,0 +1,27 @@
+﻿@inject HelperServis _helperServis
+@model IEnumerable<KategorilerTranslate>
+@{
+    var siteAyari = await _helperServis.GetSiteAyari();
+
+    var dil = _helperServis.GetCurrentCulture();
+    var kategoriler = await _helperServis.GetKategoriler();
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var urlId = _helperServis.GetUrl(url);
+    var kategoriBilgi = await _helperServis.GetUrunKategoriBilgi(urlId);
+
+
+    ViewBag.MetaTitle = kategoriBilgi?.MetaBaslik ?? kategoriBilgi?.KategoriAdi;
+    ViewBag.MetaAnahtar = kategoriBilgi?.MetaAnahtar ?? siteAyari?.MetaAnahtar;
+    ViewBag.MetaAciklama = kategoriBilgi?.MetaAciklama ?? siteAyari?.MetaAciklama;
+}
+
+@section Style
+{
+
+}
+
+
+
+
+

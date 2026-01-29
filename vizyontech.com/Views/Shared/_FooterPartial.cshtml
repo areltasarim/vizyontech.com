@@ -1,0 +1,63 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var siteAyari = _context.SiteAyarlariTranslate.ToList().Where(p => p.SiteAyarId == 1).FirstOrDefault();
+    var footerLogo = siteAyari?.SiteAyarlari.FooterLogo ?? "";
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+<footer class="ps-footer ps-footer--3">
+    <div class="container">
+
+        <div class="ps-footer--bottom">
+            <div class="row">
+                <div class="col-12 col-md-12 col-lg-12">
+                    <p style="text-align:center;"><img src="@footerLogo" alt="" width="237" height="237" loading="lazy"></p>
+                    <div class="ps-footer__copyright" style="text-align:center;">
+                        Copyright ©   All Rights Reserved. | Web Solution & Technology: <a href="http://www.simurgsoft.com/">Simurgsoft</a>
+
+                    </div>
+                </div>
+                <div class="col-12 col-md-12 col-lg-12">
+                    <div class="ps-language-currency" style="justify-content: center;">
+                        <ul class="ps-social">
+                            @if (siteAyari?.SiteAyarlari.Facebook != null || siteAyari?.SiteAyarlari.Facebook == "")
+                            {
+                                <li><a class="ps-social__link facebook" href="@(siteAyari?.SiteAyarlari.Facebook)"><i class="fa fa-facebook"> </i><span class="ps-tooltip">Facebook</span></a></li>
+                            }
+                            @if (siteAyari?.SiteAyarlari.Instagram != null || siteAyari?.SiteAyarlari.Instagram == "")
+                            {
+                                <li><a class="ps-social__link instagram" href="@(siteAyari?.SiteAyarlari.Instagram)"><i class="fa fa-instagram"></i><span class="ps-tooltip">Instagram</span></a></li>
+                            }
+                            @if (siteAyari?.SiteAyarlari.Twitter != null || siteAyari?.SiteAyarlari.Twitter == "")
+                            {
+                                <li><a class="ps-social__link twitter" href="@(siteAyari?.SiteAyarlari.Twitter)"><i class="fa fa-twitter"> </i><span class="ps-tooltip">Twitter</span></a></li>
+                            }
+
+                            @if (siteAyari?.SiteAyarlari.Linkedin != null || siteAyari?.SiteAyarlari.Linkedin == "")
+                            {
+                                <li><a class="ps-social__link linkedin" href="@(siteAyari?.SiteAyarlari.Linkedin)"><i class="fa fa-linkedin"></i><span class="ps-tooltip">Linkedin</span></a></li>
+                            }
+
+                            @if (siteAyari?.SiteAyarlari.Pinterest != null || siteAyari?.SiteAyarlari.Pinterest == "")
+                            {
+                                <li><a class="ps-social__link pinterest" href="@(siteAyari?.SiteAyarlari.Pinterest)"><i class="fa fa-pinterest-p"></i><span class="ps-tooltip">Pinterest</span></a></li>
+                            }
+
+                            @if (siteAyari?.SiteAyarlari.GooglePlus != null || siteAyari?.SiteAyarlari.GooglePlus == "")
+                            {
+                                <li><a href="@(siteAyari?.SiteAyarlari.GooglePlus ?? "")" target="_blank"><i class="fa fa-google-plus"></i></a></li>
+                            }
+
+                            @if (siteAyari?.SiteAyarlari.Youtube != null || siteAyari?.SiteAyarlari.Youtube == "")
+                            {
+                                <li><a class="ps-social__link youtube" href="@(siteAyari?.SiteAyarlari.Youtube)"><i class="fa fa-youtube-play"></i><span class="ps-tooltip">Youtube</span></a></li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

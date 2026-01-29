@@ -1,0 +1,59 @@
+﻿@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+}
+
+
+<script>
+    //Modal Silme Başlangıç
+    $(function () {
+        var checklength = 0;
+        $("#tablolist input:checkbox").on("change", function () {
+            checklength = $("#tablolist input[name='Deletes']:checked").length;
+        });
+
+        $("#pagecheck").click(function () {
+            checklength = $("#tablolist input[name='Deletes']:checked").length;
+        });
+
+        var removeUrl = "";
+
+        $("body").on('click', '.remove', function () {
+
+
+            sayfaurl = $(this).attr('href');
+
+
+            var selectedValue = $(this).attr('value');
+            if (selectedValue == "SeciliKayitlariSil") {
+                if (checklength == 0) {
+                    alert("Lütfen Silmek İstediğiniz Verileri Seçiniz");
+                    return false;
+                }
+                else {
+
+                    $('#itemName').text("Seçili Olan Kayıtlar Silinecektir.");
+                    $('#staticBackdrop').modal('show');
+
+                   
+                    removeUrl = sayfaurl;
+                    return false;
+                }
+
+            }
+            else {
+                $('#itemName').text($(this).attr("data-name") + " isimli kayıt tamamen silinecektir.");
+
+                $('#staticBackdrop').modal('show');
+
+                removeUrl = sayfaurl;
+                return false;
+            }
+        });
+
+        $('#remove').click(function () {
+            window.location = removeUrl;
+        })
+    })
+    //Modal Silme Bitiş
+
+</script>

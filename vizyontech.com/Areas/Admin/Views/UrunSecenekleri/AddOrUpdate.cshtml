@@ -1,0 +1,194 @@
+﻿@model UrunSecenekViewModel
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+    var DilListesi = ViewBag.Diller as IEnumerable<Diller>;
+}
+
+@section styles
+{
+
+    <link href="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+
+    <link href="~/Admin/Content/Theme/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css" rel="stylesheet" />
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data" id="urunSecenekViewModel">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @Html.EditorFor(x => Model.UrunSecenek.UrunSecenekleriTranslate)
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Seceçek Tipi</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="UrunSecenek.SecenekTipi" asp-items="Html.GetEnumSelectList<UrunSecenekTipleri>()">
+                                            <option value="0">Seçiniz</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Sıra</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="UrunSecenek.Sira" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.UrunSecenek.Sira)">
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <table class="table table-bordered table-hover">
+                                        <thead>
+                                            <tr>
+                                                <td class="text-left">Seçenek Değer Adı</td>
+                                                <td class="text-left">Sıra</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="UrunSecenekDegerListe">
+                                            @Html.EditorFor(x => Model.UrunSecenekDegerListesi)
+                                           
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td ></td>
+                                                <td class="text-right" rowspan="2">
+                                                    <button type="button" onclick="urunSecenekDegerEkle();" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title="Değer Ekle">
+                                                        <i class="fa fa-plus-circle"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+@section scripts
+{
+
+    <script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/libs/select2/js/select2.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-advanced.init.js"></script>
+
+    <script>
+        $(() => {
+            $("input:file").change(function () {
+                var dosyaad = $(this).val();
+                var hedefdata = $(this).data("hedef");
+                var hedef = $(hedefdata);
+                var dil = hedef.data("dil");
+                var ifade = dil + '|' + dosyaad;
+                hedef.val(ifade);
+
+                //Resim Önizleme
+                var oFReader = new FileReader();
+                oFReader.readAsDataURL(document.getElementById("uploadImage_" + dil).files[0]);
+                oFReader.onload = function (oFREvent) {
+                    document.getElementById("uploadPreview_" + dil).src = oFREvent.target.result;
+                };
+                //Resim Önizleme
+
+            });
+        });
+
+
+        function urunSecenekDegerEkle() {
+            $.ajax({
+                async: true,
+                data: $('#urunSecenekViewModel').serialize(),
+                type: "POST",
+                url: '/Admin/UrunSecenekleri/UrunSecenekDegerEkle',
+                success: function (data) {
+                    $('#UrunSecenekDegerListe').html(data);
+                }
+            });
+        }
+
+
+
+        //Ürün Seçenek Değeri Silme
+          @{
+      var jsCode = new System.Text.StringBuilder();
+      jsCode.AppendLine("function removeRows() {");
+      foreach (var item in DilListesi)
+      {
+          jsCode.AppendLine(@"
+          var nextRow = currentRow.next('.secenek-deger-row');
+          var nextRowsilinmeDurumInput = nextRow.find('.SilinmeDurum');
+          nextRowsilinmeDurumInput.val(true);
+          nextRow.hide();
+      ");
+      }
+      jsCode.AppendLine("}");
+  }
+
+                $(document).on('click', '.urunsecenekdeger-row-remove', function () {
+                var currentRow = $(this).closest('tr');
+                var silinmeDurumInput = currentRow.find('.SilinmeDurum');
+                silinmeDurumInput.val(true);
+                currentRow.hide();
+
+                // Dil sayısı kadar silme işlemi gerçekleştiriyoruz
+                var dilSayisi = @DilListesi.ToList().Count; // Dil sayısını C# tarafından alıyoruz
+                for (var i = 0; i < dilSayisi - 1; i++) {
+                    var nextRow = currentRow.next('.secenek-deger-row');
+                    var nextRowsilinmeDurumInput = nextRow.find('.SilinmeDurum');
+                    nextRowsilinmeDurumInput.val(true);
+                    nextRow.hide();
+                }
+            });
+        //Ürün Seçenek Değeri Silme
+
+    </script>
+
+
+} 

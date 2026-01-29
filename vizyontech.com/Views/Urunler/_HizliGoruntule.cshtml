@@ -1,0 +1,111 @@
+﻿@model UrunlerTranslate
+@inject HelperServis _helperServis
+@{
+    var urunResimFirst = _helperServis.GetUrunResimFirst(Model.UrunId, UrunResimKategorileri.UrunResim).Resim;
+    var urunResimleri = _helperServis.GetUrunResimleri(Model.UrunId, UrunResimKategorileri.UrunResim);
+    var dil = _helperServis.GetCurrentCulture();
+
+    var aktifKategoriId = _helperServis.GetAktifKategori(Model.UrunId).Result;
+    var aktifKategori = await _helperServis.GetUrunKategoriBilgi(Convert.ToInt32(aktifKategoriId));
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+}
+
+<div class="col-12 col-xl-6">
+    <div class="ps-product--gallery">
+        <div class="ps-product__thumbnail">
+            <div class="slide"><img src="@urunResimFirst" alt="" loading="lazy" /></div>
+
+            @foreach (var item in urunResimleri)
+            {
+                <div class="slide"><img src="@item.Resim" alt="" loading="lazy" /></div>
+            }
+        </div>
+        <div class="ps-gallery--image">
+            <div class="slide">
+                <div class="ps-gallery__item"><img src="@urunResimFirst" alt="" loading="lazy" /></div>
+            </div>
+            @foreach (var item in urunResimleri)
+            {
+                <div class="slide">
+                    <div class="ps-gallery__item"><img src="@item.Resim" alt="" loading="lazy" /></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="col-12 col-xl-6">
+    <div class="ps-product__info">
+        @if (Model.Urunler.Stok >= 0)
+        {
+            <div class="ps-product__badge">
+                <span class="ps-badge ps-badge--@(Model.Urunler.Stok > 0 ? "instock" : "outstock")">
+                    @if (Model.Urunler.Stok >= 10)
+                    {
+                        <text>10+</text>
+                    }
+                    else if (Model.Urunler.Stok >= 0)
+                    {
+                        <text>@Model.Urunler.Stok</text>
+                    }
+                </span>
+            </div>
+        }
+        <div class="ps-product__branch"><a href="#">@aktifKategori?.KategoriAdi</a></div>
+        <div class="ps-product__title"><a href="#">@Model.Urunler.Markalar?.MarkaAdi @Model.Urunler.UrunKodu @Model.UrunAdi</a></div>
+        @*<div class="ps-product__rating">
+            <select class="ps-rating" data-read-only="true">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4" selected="selected">4</option>
+                <option value="5">5</option>
+            </select><span class="ps-product__review">(5 Reviews)</span>
+        </div>*@
+        <div class="ps-product__desc">
+            @{
+                string ozellik = Model.Ozellik;
+                var urunozellikleri = !string.IsNullOrWhiteSpace(ozellik)
+                    ? ozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    : new string[0];
+            }
+            <ul class="ps-product__list">
+                @foreach (var teknikozellik in urunozellikleri)
+                {
+                    <li>@teknikozellik</li>
+                }
+            </ul>
+        </div>
+        @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+        {
+            <div class="ps-product__meta">
+                <span class="ps-product__price">@_helperServis.FormatCurrency(Model.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</span>
+            </div>
+
+            <div class="ps-product__quantity">
+                <h6>Adet</h6>
+                <div class="d-md-flex align-items-center">
+                    <div class="def-number-input number-input safari_only">
+                        <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                        <input class="quantity UrunAdet-@Model.UrunId" min="0" name="quantity" value="1" type="number" />
+                        <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                    </div>
+                    <a class="ps-btn ps-btn--warning" href="javascript:;" onclick="SepeteEkle('@Model.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)">@Localize("Genel.SepeteEkle")</a>
+                </div>
+            </div>
+        }
+     
+        <div class="ps-product__type">
+            <ul class="ps-product__list">
+                <li>
+                    <span class="ps-list__title">Ürün Kodu: </span><a class="ps-list__text" href="#">@Model.Urunler.UrunKodu</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="~/Content/Theme/js/main.js"></script>

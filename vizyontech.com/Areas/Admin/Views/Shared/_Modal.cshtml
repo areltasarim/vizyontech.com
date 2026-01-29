@@ -1,0 +1,68 @@
+﻿<div id="modal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+   
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Uyarı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="Display" class="alert alert-rounded Status" style="display:none">
+                        <span id="Mesaj"></span>
+                    </div>
+                    <div class="modal-icerik">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="btnkapat" class="btn btn-light waves-effect" data-bs-dismiss="modal">Kapat</button>
+                    <button type="button" id="btnGonder" class="btn btn-danger waves-effect waves-light">Kaydet</button>
+                    @*<button type="button" id="btnOzellikKaydet" class="btnOzellikKaydet btn btn-danger waves-effect waves-light">Kaydet</button>*@
+                </div>
+            </div>
+    </div>
+</div>
+<script>
+    $('.btnOzellikKaydet').click(function (e) {
+        e.preventDefault(); // Sayfa yenilenmesini engelle
+        var $button = $(this); // Tıklanan buton
+        var originalText = $button.text(); // Orijinal metni sakla
+
+        // Buton metnini değiştir ve işlem başlasın
+        $button.text('Yapılıyor...').prop('disabled', true);
+
+        var formData = $('#frmUrunSecenekEkle').serialize(); // Form verilerini al
+      
+        $.ajax({
+            type: 'POST',
+            url: '/Admin/Urunler/OzellikKaydet',
+            data: formData,
+            beforeSend: function ()
+            {
+                // İstek gönderilmeden önce yapılacak işlemler
+            },
+            success: function (response)
+            {
+                if (response.Durum) {
+                    UrunSecenekListesiYukle(response.Result.SecenekTip, response.Result.Secenek);
+                    var modal = $('#modal');
+                    if (typeof (model) != "undefined") {
+                        model.hide();
+                    }
+                }
+                else {
+                    alert(response.Mesaj);
+                }
+                
+            },
+            complete: function () {
+                // İstek tamamlandığında yapılacak işlemler
+                $button.text(originalText).prop('disabled', false); // Buton metnini eski haline getir
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+    });
+
+</script>

@@ -1,0 +1,14 @@
+﻿@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var banner = _context.SayfalarTranslate.Where(p => p.SayfaId == 20).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var banner_tr_dil = _context.SayfalarTranslate.Where(p => p.SayfaId == 20).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR");
+    var bannerresim = banner?.Resim == "/Content/Upload/Images/resimyok.png" ? banner_tr_dil?.Resim : banner?.Resim;
+}
+<!-- Banner Ad Widget -->
+<div class="widget banner-ad-widget">
+    <img src="@(bannerresim)" alt="" loading="lazy">
+    <a href="/kategoriler">  <span>@(banner?.SayfaAdi)</span></a>
+</div>

@@ -1,0 +1,49 @@
+﻿@inject HelperServis _helperServis
+@model UyeOlViewModel
+@{
+    AppDbContext _context = new AppDbContext();
+    var model = _context.Users.Find(Convert.ToInt32(ViewContext.RouteData.Values["Id"]));
+
+    var uye = await _helperServis.GetUye();
+}
+
+<form>
+    <input type="hidden" asp-for="ParentId" value="@uye.Id" />
+    <div class="row">
+        <div class="form-group col-md-6">
+            <label>Ad<span class="required">*</span></label>
+            <input class="form-control" asp-for="Ad" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : model.Ad)" />
+            <span class="text-danger " asp-validation-for="Ad"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label>Soyad<span class="required">*</span></label>
+            <input class="form-control" asp-for="Soyad" type="text"  value="@(ViewContext.RouteData.Values["Id"] == null ? "" : model.Soyad)" />
+            <span class="text-danger" asp-validation-for="Soyad"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label>Telefon<span class="required">*</span></label>
+            <input class="form-control" asp-for="Gsm" type="tel" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : model.Gsm)" />
+            <span class="text-danger" asp-validation-for="Gsm"></span>
+        </div>
+        <div class="form-group col-md-6">
+            <label>Sabit Telefon   <span class="required">*</span></label>
+            <input class="form-control" asp-for="PhoneNumber" type="tel" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : model.PhoneNumber)" />
+        </div>
+        <div class="form-group col-md-6">
+            <label>Email   <span class="required">*</span></label>
+            <input class="form-control" asp-for="Email" type="email" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : model.Email)" />
+            <span class="text-danger" asp-validation-for="Email"></span>
+        </div>
+
+        <div class="form-group col-md-12">
+            <label>Şifre  <span class="required">*</span></label>
+            <input class="form-control" asp-for="Password" type="password" />
+            <span class="text-danger" asp-validation-for="Password"></span>
+        </div>
+    </div>
+</form>
+
+
+@await Html.PartialAsync("_ValidationScriptsPartial")
+
+

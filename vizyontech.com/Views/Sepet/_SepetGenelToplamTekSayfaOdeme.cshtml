@@ -1,0 +1,30 @@
+﻿@model int
+
+@inject SepetServis _sepetServis
+@inject HelperServis _helperServis
+@{
+    var sepetBilgi = _sepetServis.GetSepetBilgi().Result;
+}
+
+@if (Model > 0)
+{
+    <tr>
+        <th>@Localize("Genel.AraToplamListeFiyat")</th>
+        <td>@_sepetServis.SepetAraToplam(FiyatTipleri.BayiFiyat)</td>
+    </tr>
+    @if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
+    {
+        <tr>
+            <th>@Localize("Genel.Kupon")</th>
+            <td>- @(_sepetServis.KuponHesapla().Result.kuponIndirimTL)</td>
+        </tr>
+    }
+    <tr>
+        <th>@Localize("Genel.Kargo")</th>
+        <td>@_helperServis.GetKargoFiyat((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat))</td>
+    </tr>
+    <tr>
+        <th>@Localize("Genel.GenelToplam")</th>
+        <td><strong>@((string)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat,true))</strong></td>
+    </tr>
+}

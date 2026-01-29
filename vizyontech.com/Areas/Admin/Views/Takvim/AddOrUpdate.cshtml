@@ -1,0 +1,180 @@
+﻿@model Takvim
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+}
+
+@section styles
+{
+    <link href="assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Başlık</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="BaslikCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.TakvimTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Baslik)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Açıklama</label>
+                                            <div class="col-md-9">
+                                                <textarea id="elm_@Guid.NewGuid().ToString()"
+                                                          class="editortinycme"
+                                                          name="AciklamaCeviri">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.TakvimTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Aciklama)
+                                                                        </textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Başlangıç Tarihi</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control Tarih" asp-for="BaslangicTarihi" data-provide="datepicker" data-date-format="dd-mm-yy" data-date-autoclose="true" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.BaslangicTarihi)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Bitiş Tarihi</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control Tarih" asp-for="BitisTarihi" data-provide="datepicker" data-date-format="dd-mm-yy" data-date-autoclose="true" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.BitisTarihi)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Renk</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control form-control-color mw-100" asp-for="Renk" type="color" value="@(ViewContext.RouteData.Values["Id"] == null ? "#5438dc" : Model.Renk)" id="example-color-input">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                        </select>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+@section scripts
+{
+    <script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
+
+    <script>
+        //Resim Önizleme
+        $(() => {
+            $("#pictureFile").on('change', (e) => {
+                var reader = new FileReader();
+                reader.onloadend = (evt) => {
+                    $('#picturePreview').attr('src', reader.result);
+                };
+                reader.readAsDataURL(document.getElementById('pictureFile').files[0]);
+            });
+        });
+        //Resim Önizleme
+
+        //Datepicker Tarih Türkçeleştirme
+        $(function ($) {
+            $.fn.datepicker.dates['tr'] =
+            {
+                days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"],
+                daysShort: ["Pz", "Pzt", "Sal", "Çrş", "Prş", "Cu", "Cts", "Pz"],
+                daysMin: ["Pz", "Pzt", "Sa", "Çr", "Pr", "Cu", "Ct", "Pz"],
+                months: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
+                monthsShort: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
+                today: "Bugün",
+                suffix: [],
+                meridiem: []
+            };
+        });
+
+        $(function ($) {
+            $(".Tarih").datepicker(
+                {
+                    language: "tr",
+                    format: "dd-mm-yy"
+                });
+        });
+    //Datepicker Tarih Türkçeleştirme
+    </script>
+} 

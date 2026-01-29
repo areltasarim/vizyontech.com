@@ -1,0 +1,100 @@
+﻿@model IEnumerable<SayfalarTranslate>
+@inject HelperServis _helperServis
+@{
+    var _context = new AppDbContext();
+
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == url).FirstOrDefault();
+    var sayfalar = _helperServis.GetSayfalar(SayfaTipleri.Sartname, 1, 24);
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+}
+<style>
+    .kutu-liste {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        gap: 6px; /* kutular arası boşluk */
+        list-style: none;
+    }
+
+        .kutu-liste li {
+            padding: 8px 8px;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block
+        }
+
+            .kutu-liste li:hover {
+                background-color: #e0e0e0;
+            }
+</style>
+
+<div class="ps-blog ps-blog--masonry">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href=/">Ana Sayfa</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@parentSayfa.SayfaAdi</li>
+        </ul>
+        <h1 class="ps-blog__title">@parentSayfa.SayfaAdi</h1>
+        <div class="ps-blog__content">
+            <div class="row">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">Ürün Adı</th>
+                            <th scope="col">Marka</th>
+                            <th scope="col">Model</th>
+                            <th scope="col">Dosya İndir</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in sayfalar.Where(x => x.Sayfalar.ParentSayfaId != 20))
+                        {
+                            <tr>
+                                <th scope="row" style="vertical-align: middle;">@item.SayfaAdi</th>
+                                <td>@item.SayfaAdiAltAciklama</td>
+                                <td>@item.SayfaAdiAltAciklama2</td>
+                                <td>
+                                    <ul class="kutu-liste">
+                                        @foreach (var dosya in item.Sayfalar.SayfaResimleri.ToList())
+                                        {
+                                            var dosyatipi = _helperServis.GetFileExtension(dosya.Resim).Result;
+                                            var dosyaikon = "";
+                                            if (dosyatipi == ".pdf")
+                                            {
+                                                dosyaikon = "/Content/Theme/img/pdf.png";
+                                            }
+                                            if (dosyatipi == ".docx")
+                                            {
+                                                dosyaikon = "/Content/Theme/img/word.png";
+                                            }
+                                            <li>
+                                                <a href="@(dosya.Resim)" target="_blank"><img src="@dosyaikon" width="25" loading="lazy" /> İndir</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @*<div class="ps-blog__button"> <a class="ps-btn ps-btn--primary" href="#">Load more</a></div>*@
+        </div>
+    </div>
+</div>

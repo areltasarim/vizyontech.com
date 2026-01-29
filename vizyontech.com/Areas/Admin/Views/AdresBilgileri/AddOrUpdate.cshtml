@@ -1,0 +1,185 @@
+﻿@model AdresBilgileri
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+}
+
+@section styles
+{
+    <link href="assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+
+                                <input type="hidden" asp-for="SiteAyarId" value="@(Context.Request.Query["SiteAyarId"])" />
+
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Adres Baslığı</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="AdresBasligiCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.AdresBasligi)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Telefon</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="TelefonCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Telefon)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Faks</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="FaksCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Faks)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Gsm</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="GsmCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Gsm)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Email</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="EmailCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Email)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Adres</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="AdresCeviri" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Adres)</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Harita</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="HaritaCeviri" rows="5">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Harita)</textarea>
+
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Harita Link</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="HaritaLinkCeviri" rows="5">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.HaritaLink)</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Çalışma Saatleri</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="CalismaSaatlariCeviri" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.AdresBilgileriTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.CalismaSaatlari)</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                    <div class="col-md-9">
+                                        <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.Resim)" width="200" />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Mağaza Resmi</label>
+                                    <div class="col-md-9">
+                                        <div class="custom-file">
+                                            <input type="file" class="form-control" id="pictureFile" name="MagazaResim" lang="tr">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Sıra</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Sira" type="text">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+@section scripts
+{
+    <script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script>
+        $(() => {
+            $("#pictureFile").on('change', (e) => {
+
+                var reader = new FileReader();
+                reader.onloadend = (evt) => {
+                    $('#picturePreview').attr('src', reader.result);
+
+                };
+                reader.readAsDataURL(document.getElementById('pictureFile').files[0]);
+            });
+        });
+
+
+
+    </script>
+
+} 

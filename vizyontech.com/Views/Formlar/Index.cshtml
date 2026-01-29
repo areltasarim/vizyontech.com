@@ -1,0 +1,30 @@
+﻿@model IEnumerable<Sayfalar>
+@{
+    var _context = new AppDbContext();
+
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+   var urlseo = ViewContext.RouteData.Values["url"].ToString();
+
+
+    var seoUrlListesi = _context.SeoUrl.Where(p => p.Url == urlseo).FirstOrDefault();
+
+    var sayfalar = _context.Sayfalar.Where(p => p.Durum == SayfaDurumlari.Aktif && p.Vitrin == SayfaDurumlari.Aktif).OrderBy(p => p.Sira).ToList().OrderBy(p => p.Sira);
+
+
+    var parentsayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == seoUrlListesi.EntityId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var adres = _context.AdresBilgileri.ToList().FirstOrDefault();
+
+    var adresBilgisi = _context.AdresBilgileriTranslate.ToList().Where(p => p.AdresBilgiId == adres.Id).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    ViewBag.MetaTitle = siteAyari?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyari?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyari?.MetaAciklama ?? "";
+}
+

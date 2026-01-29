@@ -1,0 +1,51 @@
+﻿@model KategorilerTranslate
+@{
+    var _context = new AppDbContext();
+    var dil = _context.Diller.Where(x => x.Id == Model.DilId).FirstOrDefault();
+}
+
+@Html.HiddenFor(x => x.Id)
+@Html.HiddenFor(x => x.DilId)
+
+
+
+<div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Kategori Adı</label>
+        <div class="col-md-9">
+            <input class="form-control" asp-for="KategoriAdi" type="text">
+            <span asp-validation-for="KategoriAdi" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Açıklama</label>
+        <div class="col-md-9">
+            <textarea id="elm_@Guid.NewGuid().ToString()"
+                      class="editortinycme"
+                      asp-for="Aciklama">
+             </textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Meta Başlık</label>
+        <div class="col-md-9">
+            <input class="form-control" asp-for="MetaBaslik" type="text">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Meta Açıklama</label>
+        <div class="col-md-9">
+            <textarea class="form-control" asp-for="MetaAciklama" rows="3"></textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="example-text-input" class="col-md-1 col-form-label">Meta Kelime</label>
+        <div class="col-md-9">
+            <textarea class="form-control" asp-for="MetaAnahtar" rows="3"></textarea>
+        </div>
+    </div>
+</div>
+
+
+
+

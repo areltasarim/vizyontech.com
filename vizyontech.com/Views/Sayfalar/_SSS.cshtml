@@ -1,0 +1,74 @@
+﻿@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfalar = _helperServis.GetSayfalar(SayfaTipleri.SSS, 1, 500);
+
+    var parentsayfa = await _helperServis.GetParentSayfa(SayfaTipleri.SSS);
+    var sssResim = _helperServis.GetParentSayfaResim(SayfaTipleri.SSS).Result;
+
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+<!--Page Title-->
+<section class="page-title">
+    <div class="auto-container">
+        <div class="title-outer">
+            <h1>Sık Sorulan Sorular</h1>
+            <ul class="page-breadcrumb">
+                <li><a href="/">Teknik Destek</a></li>
+                <li>Sık Sorulan Sorular</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!--End Page Title-->
+<!-- Faqs Section -->
+<section class="faqs-section">
+    <div class="auto-container">
+
+        @foreach (var sssKategori in sayfalar.Where(x => x.Sayfalar.ParentSayfaId == 3))
+        {
+            var sayfaResim = _helperServis.GetSayfaResim(sssKategori.SayfaId).Result;
+
+            <h3>@sssKategori.SayfaAdi</h3>
+            <!--Accordian Box-->
+
+            <ul class="accordion-box">
+                <!--Block-->
+                @foreach (var sss in sayfalar.Where(x => x.Sayfalar.ParentSayfaId == sssKategori.SayfaId && x.Sayfalar.ParentSayfaId != 3))
+                {
+                    var sayfashow = sss == _helperServis.GetParentSayfalar(sss.SayfaId).FirstOrDefault() ? "active-block" : "";
+                    var sayfaaktif = sss == _helperServis.GetParentSayfalar(sss.SayfaId).FirstOrDefault() ? "active" : "";
+                    var sayfacurrent = sss == _helperServis.GetParentSayfalar(sss.SayfaId).FirstOrDefault() ? "current" : "";
+
+                    <li class="accordion block @sayfashow">
+                        <div class="acc-btn @sayfaaktif">@sss.SayfaAdi <span class="icon flaticon-add"></span></div>
+                        <div class="acc-content @sayfacurrent">
+                            <div class="content">
+                                @Html.Raw(sss.Aciklama)
+                            </div>
+                        </div>
+                    </li>
+                }
+
+            </ul>
+
+        }
+
+
+    </div>
+</section>
+<!-- End Faqs Section -->
+
+@using (Html.BeginScripts())
+{
+
+}

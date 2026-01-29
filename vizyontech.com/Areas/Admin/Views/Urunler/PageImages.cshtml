@@ -1,0 +1,67 @@
+﻿@model IEnumerable<UrunResimleri>
+
+@{
+    Layout = null;
+}
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div>
+                    <form method="post" class="dropzone" asp-area="Admin" asp-controller="Urunler" asp-action="PageImages" enctype="multipart/form-data">
+                        <input type="hidden" name="UrunResimKategoriId" value="@Context.Request.Query["UrunResimKategoriId"]" />
+                        <div class="fallback">
+                            <input name="file" type="file" multiple="multiple">
+                        </div>
+                        <div class="dz-message needsclick">
+                            <div class="mb-3">
+                                <i class="display-4 text-muted ri-upload-cloud-2-line"></i>
+                            </div>
+                            <h6>Yüklemek istediginiz dosyalari surukleyip burakabilirsiniz. veya buraya tiklayarak bilgisayarinizdan secim yapabilirsiniz.</h6>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> <!-- end col -->
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-body">
+                <ul class="fileinput-new  Liste" style="clear: both; display: block;">
+                    @foreach (var item in Model.OrderBy(x => x.Sira))
+                    {
+                        string width = "150px";
+                        if (item.UrunResimKategori == UrunResimKategorileri.UrunDosya)
+                        {
+                            width = "200px";
+                        }
+
+                        <li class="Liste_@item.Id" id="sira_@item.Id" style="width:@width">
+                            <div class="fa-border" style="height:120px;">
+                                @if (item.UrunResimKategori == UrunResimKategorileri.UrunResim)
+                                {
+                                    <img src="@item.Resim?width=120" class="img-thumbnail" style="background:none !important" alt="" />
+                                }
+
+                                @if (item.UrunResimKategori == UrunResimKategorileri.UrunDosya)
+                                {
+                                    <span class="btn btn-info mb-4">@item.ResimAdi</span>
+                                    <span>
+                                        <a href="@item.Resim" target="_blank" class="btn btn-dark btn-sm waves-effect waves-light mb-1"> Dosyayı Görüntüle</a>
+                                    </span>
+                                }
+
+                            </div>
+                            <a href="javascript: void()" class="btn btn-danger btn-sm waves-effect waves-light" onclick="Sil(@item.Id,'Urunler','PageImagesDelete')" style="margin-top:50px">Listeden Kaldır</a>
+                        </li>
+
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_DropzoneCssScriptsPartial" />

@@ -1,0 +1,40 @@
+﻿<script src="~/Content/Theme/plugins/jquery.min.js"></script>
+<script src="~/Content/Theme/plugins/popper.min.js"></script>
+<script src="~/Content/Theme/plugins/bootstrap4/js/bootstrap.min.js"></script>
+<script src="~/Content/Theme/plugins/select2/dist/js/select2.full.min.js"></script>
+<script src="~/Content/Theme/plugins/owl-carousel/owl.carousel.min.js"></script>
+<script src="~/Content/Theme/plugins/jquery-bar-rating/dist/jquery.barrating.min.js"></script>
+<script src="~/Content/Theme/plugins/noUiSlider/nouislider.min.js"></script>
+<script src="~/Content/Theme/plugins/slick/slick/slick.min.js"></script>
+<script src="~/Content/Theme/plugins/lightGallery/dist/js/lightgallery-all.min.js"></script>
+<!-- custom code-->
+<script src="~/Content/Theme/js/main.js"></script>
+
+<script src="~/Content/accordionmenu/accordion.js"></script>
+<!--Özel Script-->
+@*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
+@*<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>*@
+
+<script src="~/js/jquery.toast.js"></script>
+
+<script src="~/js/site.js"></script>
+<script src="~/js/cart.js"></script>
+
+<script src="~/lib/jquery-ajax-unobtrusive/jquery.unobtrusive-ajax.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<script type="text/javascript">
+    (function ($) {
+        $.validator.unobtrusive.adapters.addBool("checkboxrequired", "required");
+    }(jQuery));
+</script>
+
+<script>
+    $(".input-number").keyup(function () {
+        if (this.value.match(/[^0-9 ]/g)) {
+            this.value = this.value.replace(/[^0-9 ]/g, '');
+        }
+    });
+</script>
+<!--Özel Script-->

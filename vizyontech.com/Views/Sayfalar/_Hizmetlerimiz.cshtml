@@ -1,0 +1,65 @@
+﻿@model IEnumerable<SayfalarTranslate>
+@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfalar = _helperServis.GetSayfalar(SayfaTipleri.Hizmetlerimiz, 1, 500);
+    var parentsayfa = _helperServis.GetParentSayfa(SayfaTipleri.Hizmetlerimiz).Result;
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var urlId = _helperServis.GetUrl(url);
+
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+<section class="page-title" style="background: #0f2c49 !important; ">
+    <div class="auto-container">
+        <div class="title-outer">
+            <h1 class="title">Hizmetlerimiz</h1>
+        </div>
+    </div>
+</section>
+
+
+<section class="service-section-two pb-90 mt-90">
+    <div class="auto-container">
+        <div class="row">
+
+            @foreach (var item in Model)
+            {
+                var sayfaResim = _helperServis.GetSayfaResim(item.SayfaId).Result;
+                var seoUrl = _helperServis.GetSeoUrl(item.SayfaId, SeoUrlTipleri.Hizmetlerimiz).Result.Url;
+
+                <div class="col-sm-6 col-lg-4 col-xl-4">
+                    <div class="project-block wow fadeInUp">
+                        <div class="inner-box">
+                            <div class="image-box">
+                                <figure class="image">
+                                    <a class="w-100 lightbox-image" href="@item.Resim"><img src="@item.Resim" alt="" loading="lazy"></a>
+                                </figure>
+                                <div class="info-box">
+                                    <h5 class="title font-size-20 mt-0"><a href="@seoUrl">@item.SayfaAdi</a></h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </div>
+</section>
+
+
+@using (Html.BeginScripts())
+{
+
+}

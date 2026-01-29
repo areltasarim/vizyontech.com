@@ -1,0 +1,24 @@
+﻿@model int
+@{
+
+}
+<form>
+    <div class="modal-body">
+        <div class="mb-3">
+            <input name="UrunSecenekTipleri" id="UrunSecenekTipleri" value="@Model" type="text" />
+            <label for="input-modal-option-value" class="form-label">Seçenek</label>
+            <select class="form-control" name="Secenek" asp-items="@ViewData["UrunSecenekDegerleri"] as IEnumerable<SelectListItem>">
+            </select>
+            @*<select class="form-select" name="Secenek">
+                    <option value="40">Mavi</option>
+                    <option value="41">Kırmızı</option>
+                    <option value="39">Siyah</option>
+                    <option value="42">Yeşil</option>
+                </select>*@
+        </div>
+        <div class="mb-3">
+            <label for="input-modal-quantity" class="form-label">Adet</label>
+            <input type="text" value="1" name="Adet" placeholder="Adet" class="form-control">
+        </div>
+    </div>
+</form>

@@ -1,0 +1,72 @@
+﻿@model IEnumerable<Videolar>
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs nav-tabs-custom mb-4">
+                        <li class="nav-item me-2">
+                            <button type="submit" class="btn btn-danger waves-effect text-white remove" value="SeciliKayitlariSil" id="selectedpagecheck">
+                                <i class="fa fa-check"></i>  Seçili Kayıtları Sil
+                            </button>
+                        </li>
+                        <li class="nav-item mb-2">
+                            <a asp-area="Admin" asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-VideoKategoriId="@Context.Request.Query["VideoKategoriId"]" class="btn btn-success text-white mb-2 float-right"><i class="mdi mdi-plus mr-2"></i> @ViewData["AltBaslik"]</a>
+                        </li>
+                    </ul>                    
+                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Video Adı</th>
+                                <th>Video Linki</th>
+                                <th>Sıra</th>
+                                <th style="width: 120px;">Kontrol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            @foreach (var item in Model)
+                            {
+                                ViewData["pageName"] = item.VideolarTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.VideoAdi;
+
+                                <tr>
+                                    <partial name="_SayfaAltCheckbox" for="@item" />
+                                    <td>
+                                        @item.VideolarTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR").VideoAdi
+                                    </td>
+                                    <td>@item.VideolarTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR").VideoLinki</td>
+                                    <td>@item.Sira</td>
+                                    <td>
+                                        <a asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-id="@item.Id" asp-route-VideoKategoriId="@Context.Request.Query["VideoKategoriId"]" class="mr-3 text-primary" data-toggle="tooltip" data-placement="top" title="Düzenle" data-original-title="Düzenle"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                        <a asp-controller="@controllerValue" asp-action="Delete" asp-route-id="@item.Id" data-name="@ViewData["pageName"]" class="text-danger remove" data-toggle="tooltip" data-placement="top" title="Sil" data-original-title="Sil"><i class="mdi mdi-trash-can font-size-18"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+
+    <partial name="_CustomScriptsPartial" />
+
+}

@@ -1,0 +1,248 @@
+﻿@model Sayfalar
+
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+    var formBasliklari = _context.FormBasliklari.ToList().Where(p => p.SayfaId == Model.Id).Where(p => p.Durum == SayfaDurumlari.Aktif).OrderBy(p => p.Sira);
+}
+
+<form asp-action="Detay" asp-controller="Formlar"
+      enctype="multipart/form-data"
+      data-ajax="true" data-ajax-loading="#spinner"
+      data-ajax-method="post"
+      data-ajax-complete="OnComplete"
+      data-ajax-success="OnSuccess"
+      data-ajax-failure="OnFailure"
+      class="ccontact-validation-active">
+
+    <input type="hidden" name="SayfaId" value="@Model.Id" />
+    @foreach (var formbaslik in formBasliklari)
+    {
+
+
+
+
+
+
+        var formlar = _context.Formlar.Where(p => p.FormBaslikId == formbaslik.Id).Where(p => p.Durum == SayfaDurumlari.Aktif).ToList().OrderBy(p => p.Sira);
+
+        foreach (var form in formlar)
+        {
+            <input type="hidden" name="Form" value="@form.Id" />
+
+            //DROPDOWNLİST
+            if (form.Zorunlumu == FormDurumlari.Evet && form.Durum == SayfaDurumlari.Aktif)
+            {
+                <script>
+                                        $(document).on("click", "#btnEkle", function () {
+
+                                            if ($(".DropDownListCevap-@(form.Id)").val() == "Seçiniz") {
+                                                alert("Lütfen Zorunlu Alanları Doldurunuz");
+                                                return false;
+                                            }
+                                        });
+                </script>
+            }
+
+            if (form.FormTuru == FormTurleri.DropDownList)
+            {
+                <input type="hidden" name="FormTuru" value="@FormTurleri.DropDownList" />
+                <div class="form-group half-col">
+
+                    <select class="DropDownListCevap-@(form.Id) form-control" name="DropDownListCevap-@(form.Id)">
+
+                        <option value="Seçiniz">@(form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.FormAdi)</option>
+
+                        @foreach (var item in _context.FormDegerleri.ToList().Where(p => p.FormId == form.Id))
+                        {
+                            <option value="@(item.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.DegerAdi)">@(item.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.DegerAdi)</option>
+                        }
+                    </select>
+                </div>
+            }
+            //DROPDOWNLİST
+            //RADİO BUTTON
+            @if (form.FormTuru == FormTurleri.RadioButon)
+            {
+                <input type="hidden" name="FormTuru" value="@FormTurleri.RadioButon" />
+                string required = "";
+
+                if (form.Zorunlumu == FormDurumlari.Evet && form.Durum == SayfaDurumlari.Aktif)
+                {
+                    required = "required";
+                }
+                <div class="form-group half-col">
+                    @foreach (var item in _context.FormDegerleri.ToList().Where(p => p.FormId == form.Id))
+                    {
+                        <input type="radio" value="@(item.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.DegerAdi)" name="RadioButonCevap-@(form.Id)" @required>
+                        <label for="RadioButonCevap-@(form.Id)">@(item.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.DegerAdi)</label>
+                    }
+                </div>
+
+
+                <!--Material Radio-->
+            }
+
+            //RADİO BUTTON
+            //CheckBox
+            @if (form.FormTuru == FormTurleri.CheckBox)
+            {
+
+                @if (form.Zorunlumu == FormDurumlari.Evet & form.FormTuru == FormTurleri.CheckBox && form.Durum == SayfaDurumlari.Aktif)
+                {
+                    <script>
+                        $(document).on("click", "#btnEkle", function () {
+
+                            var numberOfChecked = $('input:checkbox:checked').length;
+                            var totalCheckboxes = $('input:checkbox').length;
+                            var numberNotChecked = $('input:checkbox:not(":checked")').length;
+
+
+                            if (numberOfChecked == 0) {
+                                alert("Lütfen Zorunlu Alanları Doldurunuz");
+                                return false;
+                            }
+
+                        });
+                    </script>
+                }
+
+
+                <input type="hidden" name="FormTuru" value="@FormTurleri.CheckBox" />
+
+                <div class="form-group half-col">
+                    @foreach (var item in _context.FormDegerleri.ToList().Where(p => p.FormId == form.Id))
+                    {
+                        <input id="checkbox-group-@(item.Id)" type="checkbox" value="@(item.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.DegerAdi)" name="CheckboxCevap-@(form.Id)">
+                        <label for="CheckboxCevap-@(form.Id)"> @(item.FormDegerleriTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.DegerAdi)</label>
+                    }
+                </div>
+            }
+            //CheckBox
+            //TEXBOX
+            @if (form.FormTuru == FormTurleri.TexBox)
+            {
+                <input type="hidden" name="FormTuru" value="@FormTurleri.TexBox" />
+
+                string required = "";
+                string texboxtipi = "text";
+
+                if (form.Zorunlumu == FormDurumlari.Evet && form.Durum == SayfaDurumlari.Aktif)
+                {
+                    required = "required";
+                }
+                if (form.TexboxTipi != false)
+                {
+                    texboxtipi = "number";
+                }
+
+                int genislik = 0;
+                if (form.Genislik == FormGenislikleri.BirSutun)
+                {
+                    genislik = 12;
+                }
+                if (form.Genislik == FormGenislikleri.IkiSutun)
+                {
+                    genislik = 6;
+                }
+                if (form.Genislik == FormGenislikleri.UcSutun)
+                {
+                    genislik = 4;
+                }
+                <div class="form-group half-col">
+                    <input type="@texboxtipi" class="form-control" placeholder="@(form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.PlaceHolder)" name="TexboxCevap-@(form.Id)" @required>
+                </div>
+            }
+
+            //TEXBOX
+            //TexArea
+            @if (form.FormTuru == FormTurleri.TexArea)
+            {
+                <input type="hidden" name="FormTuru" value="@FormTurleri.TexArea" />
+
+                <br />
+                string required = "";
+
+                if (form.Zorunlumu == FormDurumlari.Evet && form.Durum == SayfaDurumlari.Aktif)
+                {
+                    required = "required";
+                }
+                <div class="form-group full-col">
+                    <textarea class="form-control" name="TexAreaCevap-@(form.Id)" placeholder="@(form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.PlaceHolder)" @required></textarea>
+                </div>
+            }
+            //TexArea
+
+            //Dosya
+            @if (form.FormTuru == FormTurleri.Dosya)
+            {
+
+                <input type="hidden" name="FormTuru" value="@FormTurleri.Dosya" />
+
+                string required = "";
+
+                if (form.Zorunlumu == FormDurumlari.Evet && form.Durum == SayfaDurumlari.Aktif)
+                {
+                    required = "required";
+                }
+                <div class="input-group mb-3 formdosyasi" style="margin-bottom:20px">
+
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"> @(form.FormlarTranslate.SingleOrDefault(p=> p.Diller.DilKodlari.DilKodu == dil)?.FormAdi)</span>
+                    </div>
+                    <div class="custom-file">
+
+                        <input type="file" id="files-@form.Id" class="custom-file-input files" data-preview="@form.Id" accept="application/pdf,.doc,.docx,.png,.jpg" name="FormDosyasi-@form.Id" @required>
+                        <label class="custom-file-label">Dosya Seç (Pdf, Word, jpg veya Png Formatında Yüklenebilir)</label>
+                    </div>
+
+                </div>
+                <div class="preview-@form.Id">
+                </div>
+            }
+            //Dosya
+        }
+
+        <div class="form-group full-col">
+            <label>
+                <input type="checkbox" name="" required="">
+                <span>
+                    Kişisel Verilerin Korunması ve Veri Gizlilik Bildirimini incelediğimi ve Fil Hazar Çözüm Merkezi ile paylaştığım tüm kişisel verilerimin doğru,
+                    güncel ve tam olduğunu beyan ve taahhüt ediyor ve işbu formdaki kişisel verilerimin Fil Hazar Çözüm Merkezi tarafından işlenmesine ve aktarılmasına
+                    rıza gösteriyorum.
+                </span>
+            </label>
+        </div>
+
+        <div class="form-group full-col">
+            <button class="btn theme-btn" type="submit">Gönder</button>
+        </div>
+
+        <div id="FormMessage" style="display:none">
+            <div id="Display" class="alert">
+                <div class="alert_icon">
+                    <i class="icon-check"></i>
+                </div>
+                <div id="Message" class="alert Status"></div>
+            </div>
+        </div>
+        <style>
+            .buttonload {
+                background-color: #04AA6D; /* Green background */
+                border: none; /* Remove borders */
+                color: white; /* White text */
+                padding: 12px 16px; /* Some padding */
+                font-size: 16px /* Set a font size */
+            }
+        </style>
+        <button class="buttonload" id="spinner" style="display:none;">
+            <i class="fa fa-spinner fa-spin"></i>Lütfen Bekleyin
+        </button>
+    }
+
+</form>

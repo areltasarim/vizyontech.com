@@ -1,0 +1,503 @@
+﻿@inject HelperServis _helperServis
+@model SiparisViewModel
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+
+    var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var uye = _context.Users.Where(p => p.Id == Convert.ToInt32(userId)).FirstOrDefault();
+
+    var sepet = _sepetServis.GetCart().Result;
+
+    var sepetBilgi = _sepetServis.GetSepetBilgi().Result;
+
+    var aktifKargo = _helperServis.GetAktifKargo((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat));
+
+    //var adresListesi = _context.Adresler.Where(p => p.UyeId == Convert.ToInt32(uye.Id)).ToList();
+
+    var odemeMetodlari = _context.OdemeMetodlari.ToList();
+
+    var action = HttpContextAccessor.HttpContext.Request.RouteValues["action"].ToString();
+
+}
+
+
+
+
+<div class="row mb-5">
+    <div class="col-lg-5 order-lg-2 mb-7 mb-lg-0">
+        <div class="pl-lg-3 ">
+            <div class="bg-gray-1 rounded-lg">
+                <!-- Order Summary -->
+                <div class="p-4 mb-4 checkout-table">
+                    <!-- Title -->
+                    <div class="border-bottom border-color-1 mb-5">
+                        <h3 class="section-title mb-0 pb-2 font-size-25">@Localize("Genel.SiparisBilgileri")</h3>
+                    </div>
+                    <!-- End Title -->
+                    <!-- Product Content -->
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th class="product-name">@Localize("Genel.Urun")</th>
+                                <th class="product-total">@Localize("Genel.Toplam")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in sepet)
+                            {
+                                var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
+                                var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == dil);
+                                var urunResim = _helperServis.GetUrunResim(Convert.ToInt32(item.UrunId)).Result;
+                                var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
+
+                                <tr class="cart_item">
+                                    <td>@urun.UrunAdi&nbsp;<strong class="product-quantity">× @item.Adet</strong></td>
+                                    <td>
+                                        @_helperServis.FormatCurrency(urunFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot id="sepetGenelToplamTekSayfaOdeme">
+                            <tr>
+                                <th>@Localize("Genel.AraToplamListeFiyat")</th>
+                                <td>@((string)_sepetServis.SepetAraToplam(FiyatTipleri.BayiFiyat, true))</td>
+                            </tr>
+                            @*@if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
+                            {
+                                <tr>
+                                    <th>@Localize("Genel.Kupon")</th>
+                                    <td>- @(_sepetServis.KuponHesapla().Result.kuponIndirimTL)</td>
+                                </tr>
+                            }*@
+                            <tr>
+                                <th>@Localize("Genel.Kargo")</th>
+                                <td>@(_helperServis.GetKargoFiyat((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat)))</td>
+                            </tr>
+                            <tr>
+                                <th>@Localize("Genel.GenelToplam")</th>
+                                <td><strong>@((string)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat,true))</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <!-- End Product Content -->
+                    <div class="border-top border-width-3 border-color-1 pt-3 mb-3">
+                        <!-- Basics Accordion -->
+                        <div id="basicsAccordion1">
+                            @foreach (var item in _helperServis.GetOdemeMetodlari())
+                            {
+                                var sayfacollapse = item == _helperServis.GetOdemeMetodlari().FirstOrDefault() ? "collapse" : "";
+                                var sayfashow = item == _helperServis.GetOdemeMetodlari().FirstOrDefault() ? "show" : "";
+                                bool sayfachecked = item == _helperServis.GetOdemeMetodlari().FirstOrDefault();
+
+                                <!-- Card -->
+                                <div class="border-bottom border-color-1 border-dotted-bottom">
+                                    <div class="p-3" id="basicsHeading@(item.OdemeMetodId)">
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" class="custom-control-input" id="radio@(item.OdemeMetodId)" name="odemeYontemi" data-odemeid="@item.OdemeMetodId" @(sayfachecked ? "checked" : "") />
+                                            <label class="custom-control-label form-label" for="radio@(item.OdemeMetodId)"
+                                                   data-toggle="collapse"
+                                                   data-target="#basicsCollapse@(item.OdemeMetodId)"
+                                                   aria-expanded="@sayfachecked.ToString().ToLower()"
+                                                   aria-controls="basicsCollapse@(item.OdemeMetodId)">
+                                                @item.OdemeAdi
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @*<div id="basicsCollapse@(item.Id)" class="collapse @sayfashow border-top border-color-1 border-dotted-top bg-dark-lighter"
+                                             aria-labelledby="basicsHeading@(item.Id)"
+                                             data-parent="#basicsAccordion1">
+                                            <div class="p-4">
+                                                @item.Aciklama
+                                            </div>
+                                        </div>*@
+                                </div>
+                                <!-- End Card -->
+                            }
+                        </div>
+
+                        <!-- End Basics Accordion -->
+                    </div>
+                    <div class="form-group d-flex align-items-center justify-content-between px-3 mb-5">
+                        <div class="">
+                            <input class="form-check-input" type="checkbox" asp-for="KasaSiparis.GizlilikIlkeleri">
+                            <label style="padding-inline-start: 10px; padding-top: 3px; cursor:pointer " class="form-check-label" asp-for="KasaSiparis.GizlilikIlkeleri">
+                                <a class="text-blue" data-toggle="modal" data-target="#gizlilikilkeleri">@Localize("Genel.Gizlilikilkeleri")</a>  @Localize("Genel.KabulEdiyorumveOnayliyorum")
+                                <span class="text-danger">*</span>
+                            </label>
+                            <span asp-validation-for="KasaSiparis.GizlilikIlkeleri" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="ps-shopping__checkout d-none d-md-block">
+                        <button type="submit" class="ps-btn ps-btn--warning">@Localize("Genel.OdemeYap")</button>
+                    </div>
+                </div>
+                <!-- End Order Summary -->
+            </div>
+        </div>
+    </div>
+    <!-- Modal -->
+
+    <div class="col-lg-7 order-lg-1">
+        <div class="pb-7 ">
+            <!-- Title -->
+            <div class="border-bottom border-color-1 mb-5">
+                <h3 class="section-title mb-0 pb-2 font-size-25">@Localize("Genel.TeslimatBilgileri")</h3>
+            </div>
+            <!-- End Title -->
+            <!-- Billing Form -->
+            <div class="row">
+                <div class="col-md-6">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.Ad")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" asp-for="KasaSiparis.TeslimatAd" placeholder="@Localize("Genel.Ad")">
+                        <span asp-validation-for="KasaSiparis.TeslimatAd" class="text-danger"></span>
+                    </div>
+                    <!-- End Input -->
+                </div>
+
+                <div class="col-md-6">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.Soyad")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" asp-for="KasaSiparis.TeslimatSoyad" placeholder="@Localize("Genel.Soyad")">
+                        <span asp-validation-for="KasaSiparis.TeslimatSoyad" class="text-danger"></span>
+
+                    </div>
+                    <!-- End Input -->
+                </div>
+                <div class="col-md-6">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.Email")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" asp-for="KasaSiparis.TeslimatEmail" placeholder="@Localize("Genel.Email")">
+                        <span asp-validation-for="KasaSiparis.TeslimatEmail" class="text-danger"></span>
+
+                    </div>
+                    <!-- End Input -->
+                </div>
+                <div class="col-md-6">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.Telefon")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" asp-for="KasaSiparis.TeslimatTelefon" placeholder="@Localize("Genel.Telefon")">
+                        <span asp-validation-for="KasaSiparis.TeslimatTelefon" class="text-danger"></span>
+
+                    </div>
+                    <!-- End Input -->
+                </div>
+                <div class="w-100"></div>
+
+                <div class="col-md-4">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.Ulke")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control dropdown-select adres_ulke" asp-for="KasaSiparis.TeslimatUlkeId" data-il="KasaSiparis_TeslimatIlId" asp-items="@ViewData["Ulkeler"] as IEnumerable<SelectListItem>" data-live-search="true">
+                            <option value="0">@Localize("Genel.Seciniz")</option>
+                        </select>
+                        <span asp-validation-for="KasaSiparis.TeslimatUlkeId" class="text-danger"></span>
+
+                    </div>
+                    <!-- End Input -->
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.il")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control adres_il" asp-for="KasaSiparis.TeslimatIlId" data-ilce="KasaSiparis_TeslimatIlceId" asp-items="@ViewData["Iller"] as IEnumerable<SelectListItem>" data-live-search="true">
+                            <option value="0">@Localize("Genel.Seciniz")</option>
+                        </select>
+                        <span asp-validation-for="KasaSiparis.TeslimatIlId" class="text-danger"></span>
+
+                    </div>
+                    <!-- End Input -->
+                </div>
+                <div class="col-md-4">
+                    <!-- Input -->
+                    <div class="js-form-message mb-6">
+                        <label class="form-label">
+                            @Localize("Genel.ilce")
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-control" asp-for="KasaSiparis.TeslimatIlceId" asp-items="@ViewData["Ilceler"] as IEnumerable<SelectListItem>" data-live-search="true">
+                            <option value="0">@Localize("Genel.Seciniz")</option>
+                        </select>
+                        <span asp-validation-for="KasaSiparis.TeslimatIlceId" class="text-danger"></span>
+
+                    </div>
+                    <!-- End Input -->
+                </div>
+
+                <div class="js-form-message col-md-12 mb-5">
+                    <label class="form-label">
+                        @Localize("Genel.Adres")
+                    </label>
+
+                    <div class="input-group">
+                        <textarea class="form-control p-5" rows="2" asp-for="KasaSiparis.TeslimatAdres" placeholder="@Localize("Genel.Adres")"></textarea>
+                        <span asp-validation-for="KasaSiparis.TeslimatAdres" class="text-danger"></span>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div id="uye_olmak_istiyorumAccordion" class="accordion rounded mb-6">
+                <div class="card border-0">
+                    <div class="custom-control custom-checkbox d-flex align-items-center">
+                        <input type="checkbox" class="custom-control-input" id="uye_olmak_istiyorum_input">
+                        <label class="custom-control-label form-label" for="uye_olmak_istiyorum_input" data-toggle="collapse" data-target="#uye_olmak_istiyorum" aria-expanded="false" aria-controls="uye_olmak_istiyorum">
+                            @Localize("Genel.UyeOlmakistiyorum")
+                        </label>
+                    </div>
+                    <div id="uye_olmak_istiyorum" class="collapse" aria-labelledby="uye_olmak_istiyorum" data-parent="#uye_olmak_istiyorumAccordion" style="">
+                        <!-- Form Group -->
+                        <div class="js-form-message form-group py-5">
+                            <label class="form-label" for="signinSrPasswordExample1">
+                                @Localize("Genel.Sifre")
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="password" class="form-control" asp-for="KasaSiparis.Sifre">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Title -->
+            <div class="border-bottom border-color-1 mb-5">
+                <h3 class="section-title mb-0 pb-2 font-size-25">@Localize("Genel.Fatura")</h3>
+            </div>
+            <!-- End Title -->
+            <!-- Accordion -->
+            <div id="fatara_teslimat_adresi_ayni_Accordion" class="accordion rounded mb-5">
+                <!-- Card -->
+                <div class="card border-0">
+                    <div id="fatara_teslimat_adresi_ayni" class="custom-control custom-checkbox d-flex align-items-center">
+                        <input type="checkbox" class="custom-control-input" id="fatara_teslimat_adresi_ayni_input">
+                        <label class="custom-control-label form-label" for="fatara_teslimat_adresi_ayni_input" data-toggle="collapse" data-target="#fatara_teslimat_adresi" aria-expanded="false" aria-controls="fatara_teslimat_adresi">
+                            @Localize("Genel.FaturaveTeslimatAdresiAyni")
+                        </label>
+                    </div>
+                    <div id="fatara_teslimat_adresi" class="collapse mt-5" aria-labelledby="fatara_teslimat_adresi_ayni" data-parent="#fatara_teslimat_adresi_ayni_Accordion" style="">
+                        <!-- Shipping Form -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Ad")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.FaturaAd" placeholder="@Localize("Genel.Ad")">
+                                    <span asp-validation-for="KasaSiparis.FaturaAd" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Soyad")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.FaturaSoyad" placeholder="@Localize("Genel.Soyad")">
+                                    <span asp-validation-for="KasaSiparis.FaturaSoyad" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Email")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.FaturaEmail" placeholder="@Localize("Genel.Email")">
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Telefon")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.FaturaTelefon" placeholder="@Localize("Genel.Telefon")">
+                                    <span asp-validation-for="KasaSiparis.FaturaTelefon" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="col-md-12">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.FirmaAdi")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.FaturaFirmaAdi" placeholder="@Localize("Genel.FirmaAdi")">
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.VergiDairesi")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.VergiDairesi" placeholder="@Localize("Genel.VergiDairesi")">
+                                    <span asp-validation-for="KasaSiparis.VergiDairesi" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-6">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.VergiNo")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" asp-for="KasaSiparis.VergiNumarasi" placeholder="@Localize("Genel.VergiNo")">
+                                    <span asp-validation-for="KasaSiparis.VergiNumarasi" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="w-100"></div>
+
+                            <div class="col-md-4">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.Ulke")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control adres_ulke" asp-for="KasaSiparis.FaturaUlkeId" data-il="KasaSiparis_FaturaIlId" asp-items="@ViewData["Ulkeler"] as IEnumerable<SelectListItem>" data-live-search="true">
+                                        <option value="0">@Localize("Genel.Seciniz")</option>
+                                    </select>
+                                    <span asp-validation-for="KasaSiparis.FaturaUlkeId" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.il")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control adres_il" asp-for="KasaSiparis.FaturaIlId" data-ilce="KasaSiparis_FaturaIlceId" asp-items="@ViewData["Iller"] as IEnumerable<SelectListItem>" data-live-search="true">
+                                        <option value="0">@Localize("Genel.Seciniz")</option>
+                                    </select>
+                                    <span asp-validation-for="KasaSiparis.FaturaIlId" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+                            <div class="col-md-4">
+                                <!-- Input -->
+                                <div class="js-form-message mb-6">
+                                    <label class="form-label">
+                                        @Localize("Genel.ilce")
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-control" asp-for="KasaSiparis.FaturaIlceId" asp-items="@ViewData["Ilceler"] as IEnumerable<SelectListItem>" data-live-search="true">
+                                        <option value="0">@Localize("Genel.Seciniz")</option>
+                                    </select>
+                                    <span asp-validation-for="KasaSiparis.FaturaIlceId" class="text-danger"></span>
+
+                                </div>
+                                <!-- End Input -->
+                            </div>
+
+                            <div class="js-form-message col-md-12 mb-5">
+                                <label class="form-label">
+                                    @Localize("Genel.Adres")
+                                </label>
+
+                                <div class="input-group">
+                                    <textarea class="form-control p-5" rows="2" asp-for="KasaSiparis.FaturaAdres" placeholder="@Localize("Genel.Adres")"></textarea>
+                                    <span asp-validation-for="KasaSiparis.FaturaAdres" class="text-danger"></span>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- End Shipping Form -->
+                    </div>
+                </div>
+                <!-- End Card -->
+            </div>
+            <!-- End Accordion -->
+
+        </div>
+        <!-- Input -->
+        <div class="js-form-message mb-6">
+            <label class="form-label">
+                @Localize("Genel.SiparisNotu")
+            </label>
+
+            <div class="input-group">
+                <textarea class="form-control p-5" rows="4" asp-for="KasaSiparis.SiparisNotu" placeholder=""></textarea>
+            </div>
+        </div>
+
+
+        <div id="kupon">
+            <div class="ps-shopping">
+                <div class="ps-shopping__content">
+                    <div class="ps-shopping__content">
+                        <div class="ps-shopping__footer">
+                            <div class="ps-shopping__coupon">
+                                <input class="form-control ps-input" type="text" name="KuponKodu" placeholder="@Localize("Genel.KuponKodu")">
+                                <button class="ps-btn ps-btn--primary" type="button" id="btnKupon">@Localize("Genel.KuponKullan")</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="ps-shopping__checkout mt-4 d-block d-md-none">
+            <button type="submit" class="ps-btn ps-btn--warning">@Localize("Genel.OdemeYap")</button>
+        </div>
+        <!-- End Input -->
+    </div>
+</div>

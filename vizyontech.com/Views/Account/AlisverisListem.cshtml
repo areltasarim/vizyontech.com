@@ -1,0 +1,135 @@
+﻿@inject HelperServis _helperServis
+@model IEnumerable<AlisverisListem>
+@{
+}
+
+
+
+<div class="ps-wishlist">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.AnaSayfa")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.AlisverisListem")</li>
+        </ul>
+   
+        <div class="ps-wishlist__content">
+            <ul class="ps-wishlist__list">
+                @foreach (var item in Model)
+                {
+                    var seoUrl = _helperServis.GetSeoUrl(item.UrunId, SeoUrlTipleri.Urun).Result.Url;
+                    var urun = _helperServis.GetUrun(item.UrunId).Result;
+                    var urunResimFirst = _helperServis.GetUrunResimFirst(item.UrunId, UrunResimKategorileri.UrunResim).Resim;
+                    var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
+                    var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, 1);
+                    var kurCeviri = _helperServis.GetKurTLCeviri(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+                    <li>
+                        <div class="ps-product ps-product--wishlist">
+                            <div class="ps-product__remove"><a href="javascript:;" onclick="AlisverisListemUrunSil(@item.UrunId)"><i class="icon-cross"></i></a></div>
+                            <div class="ps-product__thumbnail">
+                                <a class="ps-product__image" href="/@seoUrl">
+                                    <figure>
+                                        <img src="@urunResimFirst" alt="alt" loading="lazy" /><img src="@urunResimFirst" alt="" loading="lazy" />
+                                    </figure>
+                                </a>
+                            </div>
+                            <div class="ps-product__content">
+                                <h5 class="ps-product__title"><a href="/@seoUrl">@urun.UrunAdi</a></h5>
+                                <div class="ps-product__row">
+                                    <div class="ps-product__label">@Localize("Genel.Fiyat"):</div>
+                                    <div class="ps-product__value">
+                                        <span class="ps-product__price sale">@_helperServis.FormatCurrency(urun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</span><span class="ps-product__del"> @_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</span>
+                                    </div>
+                                </div>
+                                @if (urun.Urunler.Stok >= 0)
+                                {
+                                    <div class="ps-product__row ps-product__stock">
+                                        <div class="ps-product__label">@Localize("Genel.Stok"):</div>
+                                        <div class="ps-product__value">
+                                            <span class="ps-product__out-stock">
+                                                @if (urun.Urunler.Stok >= 10)
+                                                {
+                                                    <text>10+</text>
+                                                }
+                                                else if (urun.Urunler.Stok >= 0)
+                                                {
+                                                    <text>@urun.Urunler.Stok</text>
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="ps-product__cart">
+                                    <button class="ps-btn">@Localize("Genel.SepeteEkle")</button>
+                                </div>
+                                <div class="ps-product__row ps-product__quantity">
+                                    <div class="ps-product__label">@Localize("Genel.Adet"):</div>
+                                    <div class="ps-product__value">1</div>
+                                </div>
+                                <div class="ps-product__row ps-product__subtotal">
+                                    <div class="ps-product__label">@Localize("Genel.AraToplamListeFiyat"):</div>
+                                    <div class="ps-product__value">@_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+            <div class="ps-wishlist__table">
+                <table class="table ps-table ps-table--product">
+                    <thead>
+                        <tr>
+                            <th class="ps-product__remove"></th>
+                            <th class="ps-product__thumbnail"></th>
+                            <th class="ps-product__name">@Localize("Genel.Urun")</th>
+                            <th class="ps-product__meta">@Localize("Genel.Fiyat")</th>
+                            <th class="ps-product__status">@Localize("Genel.StokDurumu")</th>
+                            <th class="ps-product__cart"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var seoUrl = _helperServis.GetSeoUrl(item.UrunId, SeoUrlTipleri.Urun).Result.Url;
+                            var urun = _helperServis.GetUrun(item.UrunId).Result;
+                            var urunResimFirst = _helperServis.GetUrunResimFirst(item.UrunId, UrunResimKategorileri.UrunResim).Resim;
+
+                            <tr id="alisverislistem-@(item.UrunId)">
+                                <td class="ps-product__remove"> <a href="javascript:;" onclick="AlisverisListemUrunSil(@item.UrunId)"><i class="icon-cross"></i></a></td>
+                                <td class="ps-product__thumbnail">
+                                    <a class="ps-product__image" href="/@seoUrl">
+                                        <figure><img src="@urunResimFirst" loading="lazy"></figure>
+                                    </a>
+                                </td>
+                                <td class="ps-product__name"> <a href="/@seoUrl">@urun.UrunAdi</a></td>
+                                <td class="ps-product__meta">
+                                    <span class="ps-product__price sale">@_helperServis.FormatCurrency(urun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</span><span class="ps-product__del">@_helperServis.FormatCurrency(urun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</span>
+                                </td>
+                                <td class="ps-product__status">
+                                    @if (urun.Urunler.Stok >= 0)
+                                    {
+                                        <span>
+                                            @if (urun.Urunler.Stok >= 10)
+                                            {
+                                                <text>10+</text>
+                                            }
+                                            else if (urun.Urunler.Stok >= 0)
+                                            {
+                                                <text>@urun.Urunler.Stok</text>
+                                            }
+                                        </span>
+                                    }
+                                </td>
+                                <td class="ps-product__cart">
+                                    <a class="ps-btn" href="javascript:;" onclick="SepeteEkle('@item.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)">@Localize("Genel.SepeteEkle")</a>
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>

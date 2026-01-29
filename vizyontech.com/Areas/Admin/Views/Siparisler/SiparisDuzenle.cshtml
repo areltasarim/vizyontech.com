@@ -1,0 +1,162 @@
+﻿@model SiparisViewModel
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm">
+            <input type="hidden" asp-for="Id" value="@ViewContext.RouteData.Values["Id"]" />
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="card border rounded active shipping-address">
+                                <h5 class="card-header">
+                                    Teslimat Bilgileri
+                                </h5>
+                                <div class="card-body">
+                                    <h5 class="font-size-14">Ad : @Model.Siparis.TeslimatAd</h5>
+                                    <h5 class="font-size-14">Soyad : @Model.Siparis.TeslimatSoyad</h5>
+                                    <h5 class="font-size-14">Telefon : @Model.Siparis.Telefon</h5>
+                                    <h5 class="font-size-14">Email : @Model.Siparis.Email</h5>
+                                    <h5 class="font-size-14">Adres : @Model.Siparis.TeslimatAdres @Model.Siparis.TeslimatIlce @Model.Siparis.TeslimatIl</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card border rounded active shipping-address">
+                                <h5 class="card-header">
+                                    Fatura Bilgileri
+                                </h5>
+                                <div class="card-body">
+                                    <h5 class="font-size-14">Ad : @Model.Siparis.FaturaAd</h5>
+                                    <h5 class="font-size-14">Soyad : @Model.Siparis.FaturaSoyad</h5>
+                                    <h5 class="font-size-14">Telefon : @Model.Siparis.Telefon</h5>
+                                    <h5 class="font-size-14">Email : @Model.Siparis.Email</h5>
+                                    <h5 class="font-size-14">Adres : @Model.Siparis.FaturaAdres @Model.Siparis.FaturaIlce @Model.Siparis.FaturaIl</h5>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                                        <thead>
+                                            <tr>
+                                                <partial name="_SayfaUstCheckbox" />
+                                                <th>Ürün</th>
+                                                <th>Ürün Kodu</th>
+                                                <th>Birim Fiyatı</th>
+                                                <th>Adet</th>
+                                                <th>Toplam Fiyat</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tablolist">
+                                            @{
+                                                decimal araToplam = 0;
+                                                decimal kdvToplam = 0;
+                                            }
+                                            @foreach (var item in Model.Siparis.SiparisUrunleri.ToList())
+                                            {
+                                                araToplam += item.Fiyat * item.Adet;
+                                                kdvToplam += item.Kdv;
+
+                                                ViewData["pageName"] = item.SiparisId;
+                                                <tr>
+                                                    <partial name="_SayfaAltCheckbox" for="@item" />
+                                                    <td>
+                                                        @item.UrunAdi
+                                                    </td>
+                                                    <td>
+                                                        @item.UrunKodu
+                                                    </td>
+                                                    <td>
+                                                        @*<input class="form-control" asp-for="FiyatArray" type="text" value="@($"{item.Fiyat}")">
+                                                        <input class="form-control" asp-for="SiparisUrunId" type="hidden" value="@($"{item.Id}")">*@
+                                                    </td>
+                                                    <td>
+                                                        @item.Adet
+                                                    </td>
+                                                    <td>
+                                                        @item.Toplam.ToString("c2")
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot class="bg-light text-end">
+                                            <tr>
+                                                <td colspan="5"></td>
+                                                <td class="text-right"><b>Ara Toplam</b></td>
+                                                <td class="text-right">@araToplam.ToString("C2")</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="5"></td>
+                                                <td class="text-right"><b>KDV</b></td>
+                                                <td class="text-right">@kdvToplam.ToString("C2")</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="5"></td>
+                                                <td class="text-right"><b>Kargo Fiyatı</b></td>
+                                                <td class="text-right">@Model.Siparis.KargoUcreti</td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="5"></td>
+                                                <td class="text-right"><b>Toplam</b></td>
+                                                <td class="text-right">@Model.Siparis.ToplamFiyat.ToString("C2")</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+
+                                    <div class="col-md-12 mb-2 mt-4 center-block">
+                                        <div class="text-center">
+                                            <div class="form-group mb-0">
+                                                <div>
+                                                    <div class="button-items">
+                                                        <button type="submit" value="Kaydet" name="submit" class="btn btn-success waves-effect waves-light mr-1 btnEkle">
+                                                            <i class="fa fa-check"></i> Onayla
+                                                        </button>
+                                                        <button type="submit" value="Kaydet" name="submit" class="btn btn-danger waves-effect waves-light mr-1 btnEkle">
+                                                            <i class="fa fa-reply"></i> İptal
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<partial name="_RemoveModal" />
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+
+    <partial name="_CustomScriptsPartial" />
+
+<script>
+    function setTeklifOnayDurumu(durum) {
+        document.getElementById('Siparis_TeklifOnayDurumu').value = durum;
+        return false;
+    }
+</script>
+
+}

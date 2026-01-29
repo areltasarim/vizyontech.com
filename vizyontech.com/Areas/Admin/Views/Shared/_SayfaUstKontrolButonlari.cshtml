@@ -1,0 +1,10 @@
+﻿@{
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+}
+<th>Sıra</th>
+<th>Durum</th>
+@if (controllerValue.ToString() == "Sayfalar" | controllerValue.ToString() == "Kategoriler")
+{
+    <th>Vitrin</th>
+}
+<th style="width: 120px;">Kontrol</th>

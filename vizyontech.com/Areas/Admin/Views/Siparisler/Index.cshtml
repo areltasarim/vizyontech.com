@@ -1,0 +1,99 @@
+﻿@model IEnumerable<Siparisler>
+@inject HelperServis _helperServis
+@inject SepetServis _sepetServis
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <div class="card">
+                <div class="card-body">
+                    <partial name="_SayfaHeaderButonlari" />
+                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Sipariş No</th>
+                                <th>Müşteri</th>
+                                <th>Kargo Durumu</th>
+                                <th>Genel Toplam</th>
+                                <th>Sipariş Tarihi</th>
+                                <th>Sipariş Durumunu Değiştir</th>
+                                <th>Takip Kodu</th>
+                                <th>Detay</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            @foreach (var item in Model.OrderByDescending(x => x.Id))
+                            {
+                                ViewData["pageName"] = item.Id;
+
+                                var siparisGecmisi = _context.SiparisGecmisleri.Where(x => x.SiparisId == item.Id).OrderBy(x => x.Id).LastOrDefault();
+
+                                var bayi = _context.Users.Find(item.UyeId);
+                                var fiyatTipi = bayi.IskontoOrani > 0 ? FiyatTipleri.BayiFiyat : FiyatTipleri.ListeFiyat;
+                                var genelToplam = _helperServis.GetKurTLCeviri(item.ToplamFiyat, fiyatTipi, ParaBirimi.USD).Result.ToString("C2");
+
+                                <tr>
+                                    <partial name="_SayfaAltCheckbox" for="@item" />
+                                    <td>
+                                        #@item.Id
+                                    </td>
+                                    <td>
+                                        @item.TeslimatAd @item.TeslimatSoyad
+                                    </td>
+                                    <td>
+                                        @item.KargoMetodu
+                                    </td>
+                                    <td>
+                                        @genelToplam
+                                    </td>
+                                    <td>
+                                        @item.SiparisTarihi
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-light btn-rounded admin-modal-ac" data-toggle="modal" data-target="@Url.Action("_SiparisDurumuGuncelle", "Siparisler", new { Id = item.Id})" data-urlpost="/Admin/Siparisler/SiparisDurumuGuncelle" data-formid="frmSiparisDurumu" data-modalbaslik="Sipariş Durumunu Güncelle" data-sayfayenile="false">Güncelle (@siparisGecmisi.SiparisDurumlari.SiparisDurumlariTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.SiparisDurumu)<i class="mdi mdi-cart ms-2"></i></a>
+                                    </td>
+                                    <td>
+                                        <a style="color:dodgerblue" href="http://service.mngkargo.com.tr/iactive/popup/kargotakip.asp?k=@item.KargoUrl" target="_blank">@item.KargoKodu</a>
+                                    </td>
+                                    <th>
+                                        <a asp-controller="Siparisler" asp-action="SiparisDetay" asp-route-id="@item.Id" class="btn btn-sm btn-info">Sipariş Detayı</a>
+                                    </th>
+                                    <th>
+                                        <a asp-controller="Siparisler" asp-action="Delete" asp-route-id="@item.Id" data-name="@ViewData["pageName"]" class="btn btn-sm btn-danger remove"><i class="mdi mdi-trash-can font-size-20"></i></a>
+                                    </th>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<partial name="_RemoveModal" />
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+
+    <partial name="_CustomScriptsPartial" />
+    <script src="~/Admin/Content/Theme/ozel/Custom.js"></script>
+
+    <script src="~/Admin/Content/Theme/ozel/button-inline-loader.js"></script>
+}

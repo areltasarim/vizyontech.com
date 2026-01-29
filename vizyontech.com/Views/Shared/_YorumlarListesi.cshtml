@@ -1,0 +1,18 @@
+﻿@model Yorumlar
+
+<div class="row-fluid">
+    <div class="comm-info">
+
+        <div class="comm-info-txt">
+
+            <br>
+            <h5>@Model.AdSoyad</h5>
+            <p style="color:#666;width:200px;">“</p><p style="color:#000;">@Model.Yorum</p>”<p></p>
+            <strong>@Model.Sehir </strong>
+            @if (Model.Resim != "/Content/Upload/Images/resimyok.png")
+            {
+                <p><img src="@Model.Resim" class="comment-img-new" loading="lazy"></p>
+            }
+        </div>
+    </div>
+</div>

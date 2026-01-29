@@ -1,0 +1,64 @@
+﻿@model IEnumerable<Markalar>
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <div class="card">
+                <div class="card-body">
+                    <partial name="_SayfaHeaderButonlari" />
+                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Marka Adı</th>
+                                <partial name="_SayfaUstKontrolButonlari" />
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            @foreach (var item in Model)
+                            {
+                                ViewData["pageName"] = item.MarkaAdi;
+                                <tr>
+                                    <partial name="_SayfaAltCheckbox" for="@item" />
+                                    <td>
+                                        @item.MarkaAdi
+                                    </td>
+                                    <td>@item.Sira</td>
+                                    <td>
+                                        <div class="badge badge-soft-@(item.Durum == SayfaDurumlari.Aktif ? "success" : "danger") font-size-12">@(item.Durum == SayfaDurumlari.Aktif ? "Aktif" : "Pasif")</div>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-id="@item.EncrypedId" asp-route-SayfaTipi="@Context.Request.Query["SayfaTipi"]" class="mr-3 text-primary" data-toggle="tooltip" data-placement="top" title="Düzenle" data-original-title="Düzenle"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                        <a asp-controller="@controllerValue" asp-action="Delete" asp-route-id="@item.EncrypedId" class="text-danger remove" data-bs-toggle="modal" data-bs-target="#staticBackdrop" data-placement="top" title="Sil" data-original-title="Sil"><i class="mdi mdi-trash-can font-size-18"></i></a>
+                                    </td>
+                                    @*<partial name="_SayfaAltKontrolButonlari" for="@item" />*@
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<partial name="_RemoveModal" />
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+
+    <partial name="_CustomScriptsPartial" />
+
+}

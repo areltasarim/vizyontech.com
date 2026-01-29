@@ -1,0 +1,33 @@
+﻿@model string
+<button class="btn btn-primary mb-2" id="spinner@(Model)" style="display:none">
+    <i class="fa fa-spinner fa-spin"></i> Lütfen Bekleyin
+</button>
+<div id="Form@(Model)" style="display:block">
+    <div class="Durum@(Model)">
+        <div id="Mesaj@(Model)">
+           
+        </div>
+    </div>
+    <a href="#" class="close"><i class="icon-cancel"></i></a>
+</div>
+
+
+
+@using (Html.BeginScripts())
+{
+
+    <script type="text/javascript">
+        function OnSuccess(result) {
+            if (result.IsSuccess = true) {
+                $("form")[0].reset();
+            }
+
+        
+
+            $("#Form@(Model)").css("display", result.Display);
+            $("#Mesaj@(Model)").html(result.Mesaj);
+            $(".Durum@(Model)").addClass(result.MesajDurumu);
+        }
+    </script>
+}
+

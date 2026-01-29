@@ -1,0 +1,551 @@
+﻿@namespace Microsoft.Exchange.WebServices.Data
+@model SiteAyarlari
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+}
+
+@section styles
+{
+    <link href="assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#firma" role="tab">
+                                <span class="">Firma Bilgileri</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#sosyalmedya" role="tab">
+                                <span class="">Sosyal Medya</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#logo" role="tab">
+                                <span class="">Logo</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#headeraciklama" role="tab">
+                                <span class="">Header Açıklama</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#footeraciklama" role="tab">
+                                <span class="">Footer Açıklama</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#bodykod" role="tab">
+                                <span class="">Body Kod</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#headerkod" role="tab">
+                                <span class="">Header Kod</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#footerkod" role="tab">
+                                <span class="">Footer Kod</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#popup" role="tab">
+                                <span class="">Popup</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#mailayarlari" role="tab">
+                                <span class="">Mail Ayarları</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#ayarlar" role="tab">
+                                <span class="">Ayarlar</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dil-@(dil.DilKoduId)" role="tabpanel">
+
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Meta Başlık</label>
+                                            <div class="col-md-9">
+                                                <input class="form-control" name="MetaBaslikCeviri" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.SiteAyarlariTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.MetaBaslik)">
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Meta Anahtar</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="MetaAciklamaCeviri" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.SiteAyarlariTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.MetaAnahtar)</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Meta Açıklama</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="MetaAnahtarCeviri" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.SiteAyarlariTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.MetaAciklama)</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="firma" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Firma Adı</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="FirmaAdi" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.FirmaAdi)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label class="col-md-1 col-form-label">Site Dili</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="AktifDilId">
+                                        @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                        {
+                                            <option value="@dil.Id">@dil.DilAdi</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label class="col-md-1 col-form-label">Para Birimi</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="ParaBirimId">
+                                        @foreach (var paraBirimi in ViewBag.ParaBirimleri as IEnumerable<ParaBirimleri>)
+                                        {
+                                            <option value="@paraBirimi.Id">@paraBirimi.ParaBirimAdi</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="sosyalmedya" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Facebook</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Facebook" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Facebook)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Instagram</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Instagram" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Instagram)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Twitter</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Twitter" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Twitter)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Linkedin</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Linkedin" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Linkedin)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Pinterest</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Pinterest" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Pinterest)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Google Plus</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="GooglePlus" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.GooglePlus)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Youtube</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Youtube" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Youtube)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Whatsapp</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Whatsapp" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Whatsapp)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="logo" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.UstLogo)" width="200" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Üst Logo</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="UstLogoResim" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.MobilLogo)" width="200" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Mobil Logo</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="MobilLogoResim" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.FooterLogo)" width="200" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Footer Logo</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="FooterLogoResim" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.Favicon)" width="200" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Favicon</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="FaviconResim" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.MailLogo)" width="200" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Mail Logo</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="MailLogoResim" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="headeraciklama" role="tabpanel">
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#headeraciklama-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="headeraciklama-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Header Açıklama</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="HeaderAciklamaCeviri" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.SiteAyarlariTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.HeaderAciklama)</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="footeraciklama" role="tabpanel">
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#footeraciklama-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="footeraciklama-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Footer Açıklama</label>
+                                            <div class="col-md-9">
+                                                <textarea class="form-control" name="FooterAciklamaCeviri" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.SiteAyarlariTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.FooterAciklama)</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="bodykod" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Body Kod</label>
+                                <div class="col-md-9">
+                                    <textarea class="form-control" asp-for="BodyKod" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.BodyKod)</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="headerkod" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Header Kod</label>
+                                <div class="col-md-9">
+                                    <textarea class="form-control" asp-for="HeaderKod" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.HeaderKod)</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="footerkod" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Footer Kod</label>
+                                <div class="col-md-9">
+                                    <textarea class="form-control" asp-for="FooterKod" rows="3">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.FooterKod)</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="popup" role="tabpanel">
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#popup-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                            <div class="tab-content p-3 text-muted">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="popup-@(dil.DilKoduId)" role="tabpanel">
+                                        <div class="row mb-3">
+                                            <label for="example-text-input" class="col-md-1 col-form-label">Popup</label>
+                                            <div class="col-md-9">
+                                                <textarea id="elm_@Guid.NewGuid().ToString()"
+                                                          class="editortinycme"
+                                                          name="PopupCeviri">@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.SiteAyarlariTranslate.SingleOrDefault(p=> p.Diller.DilKoduId == dil.DilKoduId)?.Popup)
+                                                    </textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Popup Durum</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="PopupDurum" asp-items="Html.GetEnumSelectList<SayfaDurumlari>()">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="mailayarlari" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Mail Tipi</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="MailTipi" asp-items="Html.GetEnumSelectList<MailTipleri>()">
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="mailExchangeversiyon" style="display:none">
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Exchange Versiyon</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="ExchangeVersiyon" asp-items="Html.GetEnumSelectList<ExchangeVersion>()">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Email Host</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="EmailHost" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.EmailHost)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Email Adresi</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="EmailAdresi" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.EmailAdresi)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Email Şifresi</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="EmailSifre" type="text" autocomplete="new-password">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Email Port</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="EmailPort" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.EmailPort)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Email SSL</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="EmailSSL">
+                                        <option value="True">Aktif</option>
+                                        <option value="False">Pasif</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Mail Başlık</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="MailBaslik" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.MailBaslik)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Mail Konu</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="MailKonu" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.MailKonu)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Mail Gönderildi Mesajı</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="MailGonderildiMesaji" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.MailGonderildiMesaji)">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Gönderilecek Email Adresi</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="GonderilecekMail" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.GonderilecekMail)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="ayarlar" role="tabpanel">
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Sınırsız Kategori Durumu</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="SinirsiKategoriDurum" asp-items="Html.GetEnumSelectList<SayfaDurumlari>()">
+                                    </select>
+                                    <span class="text-danger">Eğer bu seçenek aktifse Bir kategorinin alt kategorisi varsa onlar listenir. Pasifse o kategoriye ait tüm ürünler listelenir.</span>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="col-md-12 mb-2 mt-4 center-block">
+                            <div class="text-center">
+                                <div class="form-group mb-0">
+                                    <div>
+                                        <partial name="_SayfaButonlari" />
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+        </div>
+</form>
+
+
+
+
+
+
+@section scripts
+{
+    <script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script>
+        $(() => {
+            $("#pictureFile").on('change', (e) => {
+
+                var reader = new FileReader();
+                reader.onloadend = (evt) => {
+                    $('#picturePreview').attr('src', reader.result);
+
+                };
+                reader.readAsDataURL(document.getElementById('pictureFile').files[0]);
+            });
+        });
+
+
+
+        $(function () {
+            var mailTipi = $('select[name=MailTipi]').val();
+            if (mailTipi == 1) {
+                $('#mailExchangeversiyon').css("display", "block");
+            }
+            else {
+                $('#mailExchangeversiyon').css("display", "none");
+            }
+
+            $('#MailTipi').on('change', function () {
+                if (this.value == 1) {
+                    $('#mailExchangeversiyon').css("display", "block");
+                }
+                else {
+                    $('#mailExchangeversiyon').css("display", "none");
+                }
+            });
+        });
+
+
+    </script>
+
+} 

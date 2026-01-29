@@ -1,0 +1,47 @@
+﻿@model IEnumerable<FotografGaleriResimleri>
+
+@{
+    Layout = null;
+}
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div>
+                    <form method="post" class="dropzone" asp-area="Admin" asp-controller="FotografGalerileri" asp-action="PageImages" asp-route-TopluResim="@Context.Request.Query["TopluResim"]"  asp-route-GaleriSayfaTipi="@Context.Request.Query["GaleriSayfaTipi"]" enctype="multipart/form-data">
+                        <div class="fallback">
+                            <input name="file" type="file" multiple="multiple">
+                        </div>
+                        <div class="dz-message needsclick">
+                            <div class="mb-3">
+                                <i class="display-4 text-muted ri-upload-cloud-2-line"></i>
+                            </div>
+                            <h6>Yüklemek istediginiz dosyalari surukleyip burakabilirsiniz. veya buraya tiklayarak bilgisayarinizdan secim yapabilirsiniz.</h6>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> <!-- end col -->
+    <div class="col-xl-12">
+        <div class="card">
+            <div class="card-body">
+                <ul class="fileinput-new  Liste" style="clear: both; display: block;">
+                    @foreach (var item in Model.OrderBy(x => x.Sira))
+                    {
+                        <li class="Liste_@item.Id" id="sira_@item.Id">
+                            <div class="fa-border" style="height:120px;">
+                                <img src="@item.Resim?width=120" class="img-thumbnail" style="background:none !important" alt="" />
+                            </div>
+                            <a href="javascript: void()" class="btn btn-danger btn-sm waves-effect waves-light" onclick="Sil(@item.Id,'FotografGalerileri','PhotoGalleryImagesDelete')" style="margin-top:50px">Listeden Kaldır</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<partial name="_DropzoneCssScriptsPartial" />

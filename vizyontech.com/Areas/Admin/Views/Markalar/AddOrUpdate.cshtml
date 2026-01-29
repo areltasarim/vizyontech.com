@@ -1,0 +1,133 @@
+﻿@model Markalar
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+    AppDbContext _context = new AppDbContext();
+
+}
+
+@section styles
+{
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Tab panes-->
+                            @*<div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Menü Yerleri</label>
+                                <div class="col-md-9">
+                                    <div class="form-check-container">
+                                        @foreach (var menu in Enum.GetValues(typeof(MenuYerleri)))
+                                        {
+                                            var secili = _context.Menuler
+                                                .Where(x => x.EntityId == Model.Id && x.MenuYeri == (MenuYerleri)menu && x.SeoUrlTipi == SeoUrlTipleri.Marka)
+                                                .Select(x => x.EntityId)
+                                                .Any();
+
+                                            <div class="form-check">
+                                                <input value="@menu"
+                                                       name="MenuYerleri"
+                                                       class="form-check-input"
+                                                       type="checkbox"
+                                                       @(secili ? "checked" : "")>
+                                                <label class="form-check-label" for="formCheck@(menu)">
+                                                    @(EnumExtensions.GetDisplayName((MenuYerleri)menu))
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>*@
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Marka Adı</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="MarkaAdi" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.MarkaAdi)">
+                                    <span asp-validation-for="MarkaAdi" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                <div class="col-md-9">
+                                    <img id="picturePreview" src="@(ViewContext.RouteData.Values["Id"] == null ? "/Content/Upload/Images/resimyok.png" : Model.Resim)" width="200" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Resim</label>
+                                <div class="col-md-9">
+                                    <div class="custom-file">
+                                        <input type="file" class="form-control" id="pictureFile" name="SayfaResmi" lang="tr">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" asp-for="Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Sıra</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Sira" type="text" value="@(ViewContext.RouteData.Values["Id"] == null ? "" : Model.Sira)">
+                                </div>
+                            </div>
+                            <!--  Tab panes-->
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(() => {
+            $("#pictureFile").on('change', (e) => {
+
+                var reader = new FileReader();
+                reader.onloadend = (evt) => {
+                    $('#picturePreview').attr('src', reader.result);
+
+                };
+                reader.readAsDataURL(document.getElementById('pictureFile').files[0]);
+            });
+        });
+    </script>
+
+} 

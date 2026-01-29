@@ -1,0 +1,87 @@
+﻿@model IEnumerable<AdresBilgileri>
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <div class="card">
+                <div class="card-body">
+                    <div>
+                        <a asp-area="Admin" asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-SiteAyarId="@Context.Request.Query["SiteAyarId"]" class="btn btn-success mb-2 float-right"><i class="mdi mdi-plus mr-2"></i> @ViewData["AltBaslik"]</a>
+                    </div>
+                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Adres Başlığı</th>
+                                <th>Telefon</th>
+                                <th>Ek Telefonlar</th>
+                                <th>Faks</th>
+                                <th>Gsm</th>
+                                <th>Email</th>
+                                <th>Adres</th>
+                                <th>Kontrol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            @foreach (var item in Model)
+                            {
+                                ViewData["pageName"] = item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.AdresBasligi;
+
+                                <tr>
+                                    <partial name="_SayfaAltCheckbox" for="@item" />
+
+                                    <td>
+                                        @item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.AdresBasligi
+                                    </td>
+                                    <td>
+                                        @item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.Telefon
+                                    </td>
+                                    <td>
+                                        <a asp-controller="AdresBilgileriTelefonlar" asp-action="Index" asp-route-AdresBilgiId="@item.Id" class="mr-3 text-primary" data-toggle="tooltip" data-placement="top" title="Listele" data-original-title="Listele"><i class="mdi mdi-view-list font-size-18"></i> Ek Telefonları Listele</a>
+                                    </td>
+                                    <td>
+                                        @item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.Faks
+                                    </td>
+                                    <td>
+                                        @item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.Gsm
+                                    </td>
+                                    <td>
+                                        @item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.Email
+                                    </td>
+                                    <td>
+                                        @item.AdresBilgileriTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == "tr-TR")?.Adres
+                                    </td>
+                                    <td>
+                                        <a asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-id="@item.Id" asp-route-SiteAyarId="@Context.Request.Query["SiteAyarId"]" class="mr-3 text-primary" data-toggle="tooltip" data-placement="top" title="Düzenle" data-original-title="Düzenle"><i class="mdi mdi-pencil font-size-18"></i></a>
+                                        <a asp-controller="@controllerValue" asp-action="Delete" asp-route-id="@item.Id" asp-route-SiteAyarId="@Context.Request.Query["SiteAyarId"]"  data-name="@ViewData["pageName"]" class="text-danger remove" data-toggle="tooltip" data-placement="top" title="Sil" data-original-title="Sil"><i class="mdi mdi-trash-can font-size-18"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+    <partial name="_CustomScriptsPartial" />
+
+}

@@ -1,0 +1,14 @@
+﻿@inject HelperServis _helperServis
+@model IEnumerable<Markalar>
+@{
+}
+@foreach (var item in Model)
+{
+    <li value="23">
+        <a href="#">
+            @item.MarkaAdi <span style="display: inline-block;background-color: #f5c100;width: 24px;height: 24px;line-height: 24px;text-align: center;border-radius: 20px;margin-left: 5px;font-size: 12px;color: #253d4e;">
+                @_helperServis.GetMarkaSayisi(item.Id)
+            </span>
+        </a>
+    </li>
+}

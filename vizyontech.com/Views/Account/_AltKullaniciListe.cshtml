@@ -1,0 +1,46 @@
+﻿@model IEnumerable<AppUser>
+@{
+    AppDbContext _context = new AppDbContext();
+}
+
+<table class="dtTable " style="width:100%">
+    <thead>
+        <tr>
+            <th>
+                <div class="form-checkbox custom-checkbox">
+                    <input type="checkbox" class="form-check-input pagecheck">
+                    <label class="form-check-label mb-0" for="pagecheck">&nbsp;</label>
+                </div>
+            </th>
+            <th>Kullancı ID</th>
+            <th>Email</th>
+            <th>Ad Soyad</th>
+            <th>Düzenle</th>
+            <th>Sil</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <th>
+                    <div class="form-checkbox custom-checkbox">
+                        <input type="checkbox" class="form-check-input pagecheck">
+                        <label class="form-check-label mb-0" for="pagecheck">&nbsp;</label>
+                    </div>
+                </th>
+                <th>@item.Id</th>
+                <th>@item.Email</th>
+                <th>@item.Ad @item.Soyad </th>
+                <th><a class="btn-small d-block modal-ac" data-toggle="modal" data-target="@Url.Action("_AltKullaniciEkle", "Account", new { Id = item.Id })" data-urlpost="/Account/AltKullaniciEkle?UyeId=@item.Id" data-formid="frmUye" data-modalbaslik="Üye Düzenle" data-sayfayenile="false" ><i class="fi-rs-refresh "></i> Düzenle</a></th>
+                <th><a href="teklif-duzenle.html" class="btn-small d-block"><i class="fi-rs-trash   "></i> Sil</a></th>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+<script>
+    ModalAc();
+    tablo();
+</script>

@@ -1,0 +1,33 @@
+﻿@model IEnumerable<FotografGaleriResimleri>
+@{
+    Layout = "";
+}
+
+<link rel="stylesheet" type="text/css" href="~/Content/edergi/assets/css/style.css">
+<link rel="stylesheet" type="text/css" href="~/Content/edergi/min_version/ipages.min.css">
+
+
+<div id="content" class="site-content ">
+    <div class="container">
+        <div class="row justify-content-center site-content-row">
+            <div id="primary" class="col-lg-8 content-area">
+                <main id="main" class="site-main">
+                    <div class="ipgs-flipbook" style="height:100%;">
+                        @foreach (var item in Model.ToList().OrderBy(p=> p.Sira))
+                        {
+                            <div data-image="@item.Resim"></div>
+                        }
+                    </div>
+                </main><!-- #main -->
+            </div><!-- #primary -->
+            <!-- #secondary -->
+        </div><!-- row -->
+    </div><!-- .container -->
+</div>
+
+
+
+<script type="text/javascript" src="~/Content/edergi/assets/js/jquery.min.js"></script>
+<script type="text/javascript" src="~/Content/edergi/min_version/pdf.min.js"></script>
+<script type="text/javascript" src="~/Content/edergi/min_version/jquery.ipages.min.js"></script>
+

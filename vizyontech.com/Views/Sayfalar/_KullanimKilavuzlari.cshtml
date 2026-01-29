@@ -1,0 +1,74 @@
+﻿@model Sayfalar
+@inject HelperServis _helperServis
+@{
+    var aktifDil = _helperServis.GetAktifDil().Result;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfa = _helperServis.GetSayfa(Model.Id).Result;
+    var parentSayfa = _helperServis.GetParentSayfa(SayfaTipleri.Hakkimizda).Result;
+    var sayfaResim = _helperServis.GetSayfaResim(Model.Id).Result;
+    var sayfaResim2 = _helperServis.GetAnaSayfaResim(Model.Id).Result;
+    var sayfaResimleri = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri1, aktifDil.Id);
+    var sayfaResimleri2 = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri2, aktifDil.Id);
+
+    var altSayfalar = _helperServis.GetAltSayfalar(Model.Id);
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+<!--Page Title-->
+<section class="page-title">
+    <div class="auto-container">
+        <div class="title-outer">
+            <h1>Kullanım Kılavuzları</h1>
+            <ul class="page-breadcrumb">
+                <li><a href="/">Teknik Destek</a></li>
+                <li>Kullanım Kılavuzları</li>
+            </ul>
+        </div>
+    </div>
+</section>
+<!--End Page Title-->
+<!-- Contact Section -->
+<section class="contact-section">
+    <div class="auto-container">
+        <table class="table table-bordered table-striped" id="kullanim_kilavuzlari_table">
+            <thead>
+                <tr>
+                    <th scope="col">Ürün Adı</th>
+                    <th scope="col">İndirme</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in altSayfalar)
+                {
+                    var sayfaDosya = _helperServis.GetSayfaDosya(item.SayfaId).Result;
+
+                    <tr>
+                        <td>
+                            @item.SayfaAdi
+                        </td>
+                        <td>
+                            <a href="@sayfaDosya" download><i class="fa fa-download"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+</section>
+<!-- Contact Section -->
+
+@using (Html.BeginScripts())
+{
+
+}

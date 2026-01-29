@@ -1,0 +1,72 @@
+﻿@model OdemeMetodTiplieri
+@inject HelperServis _helperServis
+@{
+    var _context = new AppDbContext();
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    ViewBag.MetaTitle = "Ödeme Yap";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+@section Style
+{
+}
+
+<div class="container">
+    <ul class="ps-breadcrumb">
+        <li class="ps-breadcrumb__item"><a href="#">@Localize("Genel.Sepet")</a></li>
+        <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.Odeme")</li>
+    </ul>
+    <div>
+        @switch (Model)
+        {
+            case OdemeMetodTiplieri.BankaHavalesi:
+                <partial name="~/Views/Sepet/_BankaHavalesi.cshtml" />
+                break;
+            case OdemeMetodTiplieri.Paytr:
+                <partial name="~/Views/Sepet/_Paytr.cshtml" />
+                break;
+            case OdemeMetodTiplieri.ZiraatPay:
+                <partial name="~/Views/Sepet/_ZiraatPay.cshtml" />
+                break;
+            case OdemeMetodTiplieri.CariHesabimaYaz:
+                <partial name="~/Views/Sepet/_CariHesapOdeme.cshtml" />
+                break;
+            default:
+                <p></p>
+                break;
+        }
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="https://www.paytr.com/js/iframeResizer.min.js"></script>
+
+    <script>iFrameResize({}, '#paytriframe');</script>
+
+    <script>
+      
+        // Kart numarası girerken her 4 hanede bir boşluk ekle
+        document.getElementById('pan').addEventListener('input', function (e) {
+            let value = this.value.replace(/\D/g, '').substring(0, 16); // sadece rakam, 16 hane
+            value = value.replace(/(.{4})/g, '$1 ').trim(); // her 4 hanede boşluk
+            this.value = value;
+        });
+
+        // CVV, Ay, Yıl alanlarında sadece rakam ve sınırlama
+        ['expiryMonth', 'expiryYear', 'cvv'].forEach(function (id) {
+            document.getElementById(id).addEventListener('input', function (e) {
+                this.value = this.value.replace(/\D/g, '').slice(0, this.maxLength);
+            });
+        });
+        document.getElementById('payment-form').addEventListener('submit', function () {
+            const panInput = document.getElementById('pan');
+            panInput.value = panInput.value.replace(/\s+/g, ''); // boşlukları kaldır
+        });
+    </script>
+
+}

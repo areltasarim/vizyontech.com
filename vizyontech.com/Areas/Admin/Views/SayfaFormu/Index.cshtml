@@ -1,0 +1,93 @@
+﻿@model IEnumerable<SayfaFormu>
+@inject EticaretWebCoreService.HelperServis _helperServis
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+    var sayfaFormtipi = (SayfaFormTipleri)Enum.Parse(typeof(SayfaFormTipleri), Context.Request.Query["SayfaFormTipi"].ToString());
+
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs nav-tabs-custom mb-4">
+                        <li class="nav-item me-2">
+                            <button type="submit" class="btn btn-danger waves-effect text-white remove" value="SeciliKayitlariSil" id="selectedpagecheck">
+                                <i class="fa fa-check"></i>  Seçili Kayıtları Sil
+                            </button>
+                        </li>
+                    </ul>
+                    <table id="alternative-page-datatable" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Tarih</th>
+                                <th>Ad Soyad</th>
+                                @*<th>Soyad</th>*@
+                                <th>Email</th>
+                                <th>Telefon</th>
+                                <th>Mesaj</th>
+                                <th>Kontrol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            @foreach (var item in Model.Where(x=> x.SayfaFormTipi == sayfaFormtipi))
+                            {
+                                ViewData["pageName"] = item.Ad + " " + item.Soyad;
+                                var sayfaAdi = "";
+
+                                if (item.SayfaFormTipi == SayfaFormTipleri.Urun)
+                                {
+                                    sayfaAdi =  _helperServis.GetUrun(Convert.ToInt32(item.EntityId)).Result.UrunAdi;
+                                }
+                                <tr>
+                                    <partial name="_SayfaAltCheckbox" for="@item" />
+                                    <td>
+                                        @item.Tarih
+                                    </td>
+                                    <td>
+                                        @item.Ad
+                                    </td>
+                                    @*<td>
+            @item.Soyad
+        </td>*@
+                                    <td>
+                                        @item.Email
+                                    </td>
+                                    <td>
+                                        @item.Telefon
+                                    </td>
+                                    <td>
+                                        @item.Mesaj
+                                    </td>
+                                    <td>
+                                        <a asp-controller="@controllerValue" asp-action="Delete" asp-route-id="@item.Id" asp-route-SayfaFormTipi="@item.SayfaFormTipi" data-name="@ViewData["pageName"]" class="text-danger remove" data-toggle="tooltip" data-placement="top" title="Sil" data-original-title="Sil"><i class="mdi mdi-trash-can font-size-18"></i></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<partial name="_RemoveModal" />
+@section scripts
+{
+    <partial name="_DataTableScriptsPartial" />
+
+    <partial name="_CustomScriptsPartial" />
+
+}

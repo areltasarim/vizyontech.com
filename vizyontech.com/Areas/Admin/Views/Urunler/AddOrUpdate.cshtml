@@ -1,0 +1,746 @@
+﻿@inject HelperServis _helperServis
+
+@model UrunViewModel
+@{
+    var _context = new AppDbContext();
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+    var Id = ViewContext.RouteData.Values["Id"];
+
+}
+
+@section styles
+{
+    <link href="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Admin/Content/Theme/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css" rel="stylesheet">
+    <link href="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.css" rel="stylesheet" />
+
+    <link href="~/lib/jqueryui/themes/base/jquery-ui.min.css" rel="stylesheet" />
+
+    <link href="~/Admin/Content/Theme/ozelcss/custom.css" rel="stylesheet" type="text/css" />
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                        @*<li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#urun-ozellikleri" role="tab">
+                                    <span class="">Ürün Özellikleri</span>
+                                </a>
+                            </li>*@
+                        @*<li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#urun-secenekleri" role="tab">
+                                    <span class="">Ürün Seçenekleri</span>
+                                </a>
+                            </li>*@
+                        @*<li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#urun-ss" role="tab">
+                                    <span class="">Ürün Seçenekleri</span>
+                                </a>
+                            </li>*@
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#urun-autocomplete" role="tab">
+                                <span class="">Auto Complete</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+
+
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Menü Yerleri</label>
+                                    <div class="col-md-9">
+                                        <div class="form-check-container">
+                                            @foreach (var menu in Enum.GetValues(typeof(MenuYerleri)))
+                                            {
+                                                var secili = _context.Menuler
+                                                    .Where(x => x.EntityId == Model.Urun.Id && x.MenuYeri == (MenuYerleri)menu && x.SeoUrlTipi == SeoUrlTipleri.Urun)
+                                                    .Select(x => x.EntityId)
+                                                    .Any();
+
+                                                <div class="form-check readonly-checkbox">
+                                                    <input value="@menu"
+                                                           name="MenuYerleri"
+                                                           class="form-check-input" onchange="this.checked = @(secili.ToString().ToLower());"
+                                                           type="checkbox"
+                                                           @(secili ? "checked" : "")>
+                                                    <label class="form-check-label" for="formCheck@(menu)">
+                                                        @(EnumExtensions.GetDisplayName((MenuYerleri)menu))
+                                                    </label>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                @Html.EditorFor(x => Model.Urun.UrunlerTranslate)
+
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Ürün Kodu</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" readonly asp-for="Urun.UrunKodu" type="text">
+                                    </div>
+                                </div>
+                                @*<div class="row mb-3">
+            <label class="col-md-1 col-form-label">Stok Tipi</label>
+            <div class="col-md-9">
+                <select class="form-control" asp-for="Urun.StokTipi" asp-items="Html.GetEnumSelectList<StokTipleri>()">
+                </select>
+            </div>
+        </div>
+                                *@
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Stok</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Urun.Stok" readonly type="text">
+                                    </div>
+                                </div>
+                                @*<div class="row mb-3">
+            <label class="col-md-1 col-form-label">Fiyat</label>
+            <div class="col-md-9">
+                <input class="form-control" asp-for="Urun.Fiyat" type="number">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-md-1 col-form-label">İndirimli Fiyat</label>
+            <div class="col-md-9">
+                <input class="form-control" asp-for="Urun.IndirimliFiyat" type="number">
+            </div>
+        </div>*@
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Markalar</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Urun.MarkaId" asp-items="@ViewData["Markalar"] as IEnumerable<SelectListItem>">
+                                            <option>Seçiniz</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">Kategoriler</label>
+                                    <div class="col-md-9">
+                                        <select class="select2 form-control select2-multiple" asp-for="SeciliKategoriler" asp-items="@ViewData["Kategoriler"] as IEnumerable<SelectListItem>" multiple="multiple" data-placeholder="Seçiniz...">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label class="col-md-1 col-form-label">DataSheet</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Urun.DataSheetId" asp-items="@ViewData["DataSheet"] as IEnumerable<SelectListItem>">
+                                            <option value="">Seçiniz</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                    <div class="col-md-9">
+                                        <select id="durumSelect" class="form-control" asp-for="Urun.Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue: SayfaDurumlari.Aktif)">
+                                        </select>
+                                    </div>
+                                </div>
+                                @*<div class="row mb-3">
+            <label for="example-text-input" class="col-md-1 col-form-label">Vitrin</label>
+            <div class="col-md-9">
+                <select class="form-control" asp-for="Urun.Vitrin" asp-items="Html.GetEnumSelectList<SayfaDurumlari>()">
+                </select>
+            </div>
+        </div>*@
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Sira</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Urun.Sira" type="text">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="tab-pane" id="urun-secenekleri" role="tabpanel">
+                            <h4 class="card-title">Seçenek Ekle</h4>
+                            <hr />
+                            <div class="row mb-3">
+                                <label class="col-md-1 col-form-label">Seceçek Tipi</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="SecenekAutocomplete" type="text" placeholder="Seçenek">
+                                    <span>Otomatik Tamamlama</span>
+                                </div>
+                            </div>
+                            <div id="urunSecenekPartialView">
+
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="urun-ss" role="tabpanel">
+
+                            @foreach (var urunsecenek in _context.UrunSecenekleriTranslate.Where(x => x.Diller.DilKodlari.DilKodu == "tr-TR").ToList())
+                            {
+                                <input type="hidden" name="UrunSecenekId" value="@urunsecenek.UrunSecenekId">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">@urunsecenek.SecenekAdi</h4>
+                                        @foreach (var urunsecenekdeger in _context.UrunSecenekDegerleriTranslate.Where(x => x.UrunSecenekDegerleri.UrunSecenekId == urunsecenek.UrunSecenekId && x.Diller.DilKodlari.DilKodu == "tr-TR").ToList())
+                                        {
+                                            var urunToUrunSecenek = _context.UrunToUrunSecenek.ToList().Any(x => x.UrunSecenekId == urunsecenek.UrunSecenekId && x.UrunId == Convert.ToInt32(Id));
+
+                                            <div>
+                                                <div class="form-check mb-3">
+                                                    @{
+                                                        var isChecked = _context.UrunToUrunSecenekToUrunDeger.ToList().Any(x => x.UrunSecenekId == urunsecenekdeger.UrunSecenekDegerleri.UrunSecenekId && x.UrunSecenekDegerId == urunsecenekdeger.UrunSecenekDegerId && x.UrunId == Convert.ToInt32(Id));
+                                                    }
+                                                    <input class="form-check-input" @(isChecked ? "checked" : "") type="checkbox" name="UrunSecenekDegerId" value="@urunsecenekdeger.Id" id="formCheck@(urunsecenekdeger.Id)">
+                                                    <label class="form-check-label" for="formCheck@(urunsecenekdeger.UrunSecenekDegerId)">
+                                                        @urunsecenekdeger.DegerAdi
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                        <div class="tab-pane" id="urun-ozellikleri" role="tabpanel">
+
+                        </div>
+                        <div class="tab-pane" id="urun-autocomplete" role="tabpanel">
+                            <div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Benzer Ürünler</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="BenzerUrunAutocomplete" type="text" placeholder="Ürünler">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                    <div class="col-md-9">
+                                        <div id="SeciliBenzerUrunAutocomplete" class="well well-sm" style="height: 200px; overflow: auto;">
+                                            <section class="panel">
+                                                <div class="panel-body">
+                                                    <div class="sortable">
+                                                        <ol class="sortable ui-sortable">
+                                                            @foreach (var benzerUrun in _context.UrunToBenzerUrun.Where(x => x.UrunId == Convert.ToInt32(ViewContext.RouteData.Values["Id"])).ToList())
+                                                            {
+                                                                var urun = benzerUrun.Urun.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+
+                                                                <li id="SeciliBenzerUrunAutocomplete@(benzerUrun.Id)">
+                                                                    <div>
+                                                                        <i class="fa fa-plus"></i>  @urun.UrunAdi
+                                                                        <p style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;">
+                                                                            <a style="cursor:pointer" class="uruntobenzerurunid" data-uruntobenzerurunid="@(benzerUrun.Id)"><i class="fa fa-trash"></i> Kaldır</a>
+                                                                        </p>
+                                                                        <input type="hidden" name="SeciliBenzerUrunAutocomplete" value="@benzerUrun.BenzerUrunId">
+                                                                    </div>
+                                                                </li>
+                                                            }
+                                                        </ol>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Tamamlayıcı Ürünler</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="TamamlayiciUrunAutocomplete" type="text" placeholder="Ürünler">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label"></label>
+                                    <div class="col-md-9">
+                                        <div id="SeciliTamamlayiciUrunAutocomplete" class="well well-sm" style="height: 200px; overflow: auto;">
+                                            <section class="panel">
+                                                <div class="panel-body">
+                                                    <div class="sortable">
+                                                        <ol class="sortable ui-sortable">
+                                                            @foreach (var tamamlayiciUrun in _context.UrunToTamamlayiciUrun.Where(x => x.UrunId == Convert.ToInt32(ViewContext.RouteData.Values["Id"])).ToList())
+                                                            {
+                                                                var urun = tamamlayiciUrun.Urun.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+
+                                                                <li id="SeciliTamamlayiciUrunAutocomplete@(tamamlayiciUrun.Id)">
+                                                                    <div>
+                                                                        <i class="fa fa-plus"></i>  @urun.UrunAdi
+                                                                        <p style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;">
+                                                                            <a style="cursor:pointer" class="uruntotamamlayiciurunid" data-uruntotamamlayiciurunid="@(tamamlayiciUrun.Id)"><i class="fa fa-trash"></i> Kaldır</a>
+                                                                        </p>
+                                                                        <input type="hidden" name="SeciliTamamlayiciUrunAutocomplete" value="@tamamlayiciUrun.TamamlayiciUrunId">
+                                                                    </div>
+                                                                </li>
+                                                            }
+                                                        </ol>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div>
+                                    <partial name="_SayfaButonlari" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section scripts
+{
+
+    <script src="~/Admin/Content/Theme/assets/libs/summernote/summernote-bs4.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/tinymce/tinymce.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/libs/select2/js/select2.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-advanced.init.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-touchspin/jquery.bootstrap-touchspin.min.js"></script>
+    <script src="~/Admin/Content/Theme/assets/libs/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        //Datepicker Tarih Türkçeleştirme
+        $(function ($) {
+
+
+            $.fn.datepicker.dates['tr'] =
+            {
+                days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"],
+                daysShort: ["Pz", "Pzt", "Sal", "Çrş", "Prş", "Cu", "Cts", "Pz"],
+                daysMin: ["Pz", "Pzt", "Sa", "Çr", "Pr", "Cu", "Ct", "Pz"],
+                months: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"],
+                monthsShort: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
+                today: "Bugün",
+                suffix: [],
+                meridiem: []
+            };
+        });
+
+        $(function ($) {
+            $(".Tarih").datepicker(
+                {
+                    language: "tr",
+                    format: "dd-mm-yy"
+                });
+        });
+        //Datepicker Tarih Türkçeleştirme
+
+        //Ürün Resimleri
+
+
+        $(".resimdosyasi").change(function () {
+
+
+            var dosyaad = $(this).val();
+            var hedefdata = $(this).data("hedef");
+            var hedef = $(hedefdata);
+            var dil = hedef.data("dil");
+            var ifade = dil + '|' + dosyaad;
+            hedef.val(ifade);
+
+            //Resim Önizleme
+            var oFReader = new FileReader();
+            oFReader.readAsDataURL(document.getElementById("uploadImage_" + dil).files[0]);
+            oFReader.onload = function (oFREvent) {
+                document.getElementById("uploadPreview_" + dil).src = oFREvent.target.result;
+            };
+            //Resim Önizleme
+        });
+
+
+        $(".youtuberesim").change(function () {
+            var dosyaad = $(this).val();
+            var hedefdata = $(this).data("hedef");
+            var hedef = $(hedefdata);
+            var dil = hedef.data("dil");
+            var ifade = dil + '|' + dosyaad;
+            hedef.val(ifade);
+
+            //Resim Önizleme
+            var oFReader = new FileReader();
+            oFReader.readAsDataURL(document.getElementById("youtubeuploadImage_" + dil).files[0]);
+            oFReader.onload = function (oFREvent) {
+                document.getElementById("youtubeuploadPreview_" + dil).src = oFREvent.target.result;
+            };
+            //Resim Önizleme
+        });
+
+        //$(".resimSec").click(function (dilkodu) {
+        //    var dilkodu = $(this).attr("data-dil");
+        //    $(".kapak_resim_" + dilkodu).click();
+        //});
+        //$(".img-clear").click(function () {
+        //    var datadil = $(this).attr("data-dil");
+        //    var datadilkodu = $(this).attr("data-dilkodu");
+        //});
+
+
+        //Ürün Resimleri
+
+        //Ürün Dosyaları
+        $(document).on('change', '.urundosyasi', function () {
+            var dosyaad = $(this).val();
+            console.log(dosyaad);
+            var hedefdata = $(this).data("dosyahedef");
+            var hedef = $(hedefdata);
+            var dil = hedef.data("dil");
+            var ifade = "";
+            ifade = dil + '|' + dosyaad;
+            hedef.val(ifade);
+        });
+        //Ürün Dosyaları
+
+
+        //Ürün Dosyaları 2
+        $(document).on('change', '.urundosyasi2', function () {
+            var dosyaad = $(this).val();
+            var hedefdata = $(this).data("dosya2hedef");
+            var hedef = $(hedefdata);
+            var dil = hedef.data("dil");
+            var ifade = "";
+            ifade = dil + '|' + dosyaad;
+            hedef.val(ifade);
+        });
+        //Ürün Dosyaları
+    </script>
+    <script>
+                var indx = @Model.UrunOzellikListesi.Count();
+                function dosyaEkleRow()
+                {
+                    var dt={
+                        Index: indx
+                    };
+                    $.ajax({
+                        url: "/Admin/Urunler/YeniUrunOzellikListesiEkle",
+                        type: "POST",
+                        data:dt,
+                        success: function (data, textStatus, jqXHR) {
+                            $('#urunOzellikListesi tbody').append(data);
+                            indx = indx + 1;
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+
+                        }
+                    });
+            }
+
+    </script>
+
+    <script type="text/javascript">
+        function generateUUID() { // Public Domain/MIT
+            var d = new Date().getTime();//Timestamp
+            var d2 = ((typeof performance !== 'undefined') && performance.now && (performance.now() * 1000)) || 0;//Time in microseconds since page-load or 0 if unsupported
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16;//random number between 0 and 16
+                if (d > 0) {//Use timestamp until depleted
+                    r = (d + r) % 16 | 0;
+                    d = Math.floor(d / 16);
+                } else {//Use microseconds since page-load if supported
+                    r = (d2 + r) % 16 | 0;
+                    d2 = Math.floor(d2 / 16);
+                }
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        }
+
+
+       var DilKoduIdListesi = $.parseJSON('@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject((ViewBag.Diller as IEnumerable<Diller>).Select(x=>new {
+                                           Id = x.DilKoduId,
+                                           Kodu = x.DilKodlari.DilKodu
+                                           })))');
+
+        var tr_row = 1;
+
+        function addtrRow() {
+            $(DilKoduIdListesi).each(function (index, element) {
+                var key = generateUUID();
+                 html = '<tr id="table-tr-row' + key + '">';
+                 html += ' <td class="text-left">';
+                 html += '<div class="input-group-prepend">';
+                html += '<input type="hidden" data-dil="' + element.Kodu + '" id="OzellikListesi_' + element.Kodu + '_' + key + '" name="OzellikListesi" value="' + element.Kodu + '|0" />';
+                 html += '<input type="text" class="form-control" name="Sutun1Ceviri" value="" placeholder="Sütun 1" />';
+                 html += ' </div>';
+                 html += ' </td>';
+
+                html += ' <td class="text-left">';
+                html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun2Ceviri" value="" placeholder="Sütun 2" />';
+                html += '<textarea class="form-control" rows="5" name="Sutun2Ceviri" value="" placeholder="Sütun 2"></textarea>';
+                html += ' </div>';
+                html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun3Ceviri" value="" placeholder="Sütun 3" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun4Ceviri" value="" placeholder="Sütun 4" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun5Ceviri" value="" placeholder="Sütun 5" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun6Ceviri" value="" placeholder="Sütun 6" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun7Ceviri" value="" placeholder="Sütun 7" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun8Ceviri" value="" placeholder="Sütun 8" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun9Ceviri" value="" placeholder="Sütun 9" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                //html += ' <td class="text-left">';
+                //html += '<div class="input-group-prepend">';
+                //html += '<input type="text" class="form-control" name="Sutun10Ceviri" value="" placeholder="Sütun 10" />';
+                //html += ' </div>';
+                //html += ' </td>';
+
+                html += ' <td class="text-right">';
+                html += '  <button type="button" data-bs-toggle="tooltip" title="Kaldır" class="btn btn-danger deleteRow" onclick="$(\'#table-tr-row' + tr_row + '\').remove();"><i class="fa fa-minus-circle"></i></button>';
+                html += ' </td>';
+
+
+
+                var tablekey = "urunozelliklistesi_" + element.Id;
+                $('#' + tablekey + ' tbody').append(html);
+
+             });
+
+            tr_row++;
+
+            deleteRow();
+        }
+
+        function deleteRow() {
+         //Row Delete
+        $(".deleteRow").click(function () {
+                var SilIndex = $(this).parents('tr').index();
+                $(DilKoduIdListesi).each(function (index, element) {
+                    var tablekey = "urunozelliklistesi_" + element.Id;
+                    $('#' + tablekey + ' > tbody  > tr').each(function (index, tr) {
+                        if (SilIndex == index) {
+                            $(tr).remove();
+                            return false;
+                        }
+                    });
+                });
+            });
+        }
+        deleteRow();
+       //Row Delete
+
+
+    </script>
+    <!--Sayfa Search Filter -->
+    <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
+    <!--Sayfa Search Filter -->
+    <script>
+        var UrunSecenekListesiYukle = function (secenekTipi, secenekId) {
+            //$('#urunSecenekPartialView').load('/Admin/Urunler/UrunSecenekGetPartialView?secenekTipi=' + secenekTipi);
+            $.ajax({
+                url: "/Admin/Urunler/UrunSecenekGetPartialView?secenekTipi=" + secenekTipi + "&SecenekId=" + secenekId,
+                type: "GET",
+                success: function (partialView) {
+                    var $partial = $(partialView);
+                    $partial.attr("id", secenekTipi);
+                    $("#urunSecenekPartialView").empty();
+                    $("#urunSecenekPartialView").append($partial);
+                    $("input[name='SecenekAutocomplete']").val('');
+                }
+            });
+        }
+
+        $(function () {
+
+            $("input[name='SecenekAutocomplete']").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/Admin/Urunler/UrunSecenekAutoComplete",
+                        type: "GET",
+                        data: { searchTerm: request.term },
+                        success: function (data) {
+                            response(data);
+                        }
+                    });
+                },
+
+                select: function (event, ui) {
+
+                    var selectedSecenekId = ui.item.id;
+                    var selectedSecenekTipi = ui.item.secenektipi;
+
+                    UrunSecenekListesiYukle(selectedSecenekTipi, selectedSecenekId);
+                    //$.ajax({
+                    //    url: "/Admin/Urunler/UrunSecenekGetPartialView",
+                    //    type: "GET",
+                    //    data: { secenekTipi: selectedSecenekTipi },
+                    //    success: function (partialView) {
+                    //        var $partial = $(partialView);
+                    //        $partial.attr("id", selectedSecenekTipi);
+                    //        $("#urunSecenekPartialView").append($partial);
+                    //        $("input[name='SecenekAutocomplete']").val('');
+                    //    }
+                    //});
+                }
+            });
+
+
+
+        });
+
+    </script>
+
+
+
+    <!--Ürün Search Filter -->
+    <script src="~/lib/jqueryui/jquery-ui.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $('input[name=\'BenzerUrunAutocomplete\']').autocomplete({
+                source: "/Admin/Urunler/BenzerUrunAutoComplete",
+                minLength: 1,
+                select: function (event, ui) {
+                    $('#SeciliBenzerUrunAutocomplete' + ui.item['id']).remove();
+                    $('#SeciliBenzerUrunAutocomplete .ui-sortable').append('<li id="SeciliBenzerUrunAutocomplete' + ui.item['id'] + '"><div><i class="fa fa-plus"></i>  ' + ui.item['label'] + '<p style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;"><a style="cursor:pointer" class="uruntobenzerurunid"  data-uruntobenzerurunid="' + ui.item['id'] + '"><i class="fa fa-trash"></i> Kaldır</a></p><input type="hidden" name="SeciliBenzerUrunAutocomplete" value="' + ui.item['id'] + '"></div></li>');
+                    ui.item.value = "";
+                    BenzerUrunAutoComleteSil();
+                }
+
+            });
+        });
+
+        function BenzerUrunAutoComleteSil() {
+            $(".uruntobenzerurunid").click(function () {
+                var uruntobenzerurunid = $(this).attr("data-uruntobenzerurunid");
+                $("#SeciliBenzerUrunAutocomplete" + uruntobenzerurunid).remove();
+            });
+        }
+        BenzerUrunAutoComleteSil();
+
+
+
+        $(function () {
+            $('input[name=\'TamamlayiciUrunAutocomplete\']').autocomplete({
+                source: "/Admin/Urunler/TamamlayiciUrunAutoComplete",
+                minLength: 1,
+                select: function (event, ui) {
+                    $('#SeciliTamamlayiciUrunAutocomplete' + ui.item['id']).remove();
+                    $('#SeciliTamamlayiciUrunAutocomplete .ui-sortable').append('<li id="SeciliTamamlayiciUrunAutocomplete' + ui.item['id'] + '"><div><i class="fa fa-plus"></i>  ' + ui.item['label'] + '<p style="z-index: 2;float: right;padding-right: 10px;margin-top: 0px;font-size: 12px;font-family: Arial;"><a style="cursor:pointer" class="uruntotamamlayiciurunid"  data-uruntotamamlayiciurunid="' + ui.item['id'] + '"><i class="fa fa-trash"></i> Kaldır</a></p><input type="hidden" name="SeciliTamamlayiciUrunAutocomplete" value="' + ui.item['id'] + '"></div></li>');
+                    ui.item.value = "";
+                    TamamlayiciUrunAutoComleteSil();
+                }
+
+            });
+        });
+
+        function TamamlayiciUrunAutoComleteSil() {
+            $(".uruntotamamlayiciurunid").click(function () {
+                var uruntotamamlayiciurunid = $(this).attr("data-uruntotamamlayiciurunid");
+                $("#SeciliTamamlayiciUrunAutocomplete" + uruntotamamlayiciurunid).remove();
+            });
+        }
+        TamamlayiciUrunAutoComleteSil();
+
+    </script>
+    <!--Ürün Search Filter -->
+    <!-- Sürükle Bırak Menü-->
+    <script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+    <script src="~/Admin/Content/Theme/ozel/menu-sortable/jquery.mjs.nestedSortable.js"></script>
+    <!-- Sürükle Bırak Menü-->
+    <script>
+        //Sayfa Sıralama
+        $(document).ready(function () {
+            $('ol.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                handle: 'div',
+                helper: 'clone',
+                items: 'li',
+                opacity: .6,
+                placeholder: 'placeholder',
+                revert: 250,
+                tabSize: 25,
+                tolerance: 'pointer',
+                toleranceElement: '> div',
+                maxLevels: 10,
+                isTree: true,
+                expandOnHover: 700,
+                startCollapsed: true,
+                stop: function () {
+                }
+            });
+        });
+        //Sayfa Sıralama
+
+    </script>
+} 

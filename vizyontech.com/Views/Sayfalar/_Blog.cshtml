@@ -1,0 +1,80 @@
+﻿@model IEnumerable<SayfalarTranslate>
+
+@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var sayfalar = _helperServis.GetSayfalar(SayfaTipleri.Blog, 1, 24);
+    var parentsayfa = await _helperServis.GetParentSayfa(SayfaTipleri.Blog);
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = siteAyariHelper?.MetaBaslik ?? "";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+
+
+<div class="ps-blog ps-blog--masonry">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href=/">Ana Sayfa</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@parentsayfa.SayfaAdi</li>
+        </ul>
+        <h1 class="ps-blog__title">@parentsayfa.SayfaAdi</h1>
+        <div class="ps-blog__content">
+            <div class="row">
+                @foreach (var item in sayfalar.Where(x => x.Sayfalar.ParentSayfaId != 18))
+                {
+                    var sayfaResim = _helperServis.GetSayfaResim(item.SayfaId).Result;
+
+                    var parentSayfa = _helperServis.GetParentSayfa2(item.Sayfalar.ParentSayfaId).Result;
+                    var seourl = _helperServis.GetSeoUrl(item.SayfaId, SeoUrlTipleri.Blog).Result.Url;
+
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="ps-blog--latset">
+                            <div class="ps-blog__thumbnail">
+                                <a href="@seourl"><img src="@($"{sayfaResim}?width=400&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" /></a>
+
+                            </div>
+                            <div class="ps-blog__content">
+                                <div class="ps-blog__meta">
+                                    <span class="ps-blog__date">@item.Sayfalar.Tarih.ToShortDateString()</span>
+                                </div>
+                                <a class="ps-blog__title" href="@seourl">@item.SayfaAdi</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            @*<div class="ps-blog__button"> <a class="ps-btn ps-btn--primary" href="#">Load more</a></div>*@
+        </div>
+    </div>
+</div>
+
+@using (Html.BeginScripts())
+{
+    <script>
+        var page = 2;
+        var pageSize = 6
+
+        $("#dahaFazlaGoster").click(function () {
+            $.ajax({
+                url: "/Sayfalar/BlogDahaFazlaGoster?page=" + page + "&pageSize=" + pageSize,
+                success: function (data) {
+                    $("#BlogListe").append(data);
+                    page++;
+
+                    if ($.trim(data) == '') {
+                        $("#dahaFazlaGoster span").html("Gösterilecek Öğe Yok");
+                    }
+                }
+            });
+        });
+    </script>
+}

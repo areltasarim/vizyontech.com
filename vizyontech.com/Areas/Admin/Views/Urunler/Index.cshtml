@@ -1,0 +1,220 @@
+﻿@model IEnumerable<Urunler>
+
+@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["controller"];
+
+    var pageUrl = Url.Action("UrunleriListele", "Urunler");
+
+}
+@section styles
+{
+    <link href="~/Admin/Content/Theme/ozelcss/custom.css" rel="stylesheet" />
+}
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<div class="row">
+    <div class="col-lg-12">
+        <form method="post" id="pageForm" asp-area="Admin" asp-controller="@controllerValue" asp-action="DeleteAll">
+            <input type="hidden" id="PageUrl" value="@pageUrl" />
+
+            <div class="card">
+                <div class="card-body">
+                    @*<partial name="_SayfaHeaderButonlari" />*@
+                    <ul class="nav nav-tabs nav-tabs-custom mb-4">
+                        <li class="nav-item me-2">
+                            <button type="submit" class="btn btn-danger waves-effect text-white remove" value="SeciliKayitlariSil" id="selectedpagecheck">
+                                <i class="fa fa-check"></i>  Seçili Kayıtları Sil
+                            </button>
+                        </li>
+                        <li class="nav-item mb-2 me-2">
+                            <a asp-area="Admin" asp-controller="@controllerValue" asp-action="AddOrUpdate" asp-route-SayfaTipi="@Context.Request.Query["SayfaTipi"]" class="btn btn-success  text-white"><i class="mdi mdi-plus mr-2"></i> @ViewData["AltBaslik"]</a>
+                        </li>
+                        <li>
+                            <a type="button" class="btn btn-dark text-white me-2" asp-controller="Urunler" asp-action="UrunleriSirala">Ürünleri Sırala</a>
+                        </li>
+                        <li>
+                            <button type="button" class="btn btn-primary" onclick="runJob('JobIslemUrunler')" data-toggle="tooltip" data-placement="top" title="Ürünleri Çek">Ürünleri Opaktan Çek</button>
+                        </li>
+
+                    </ul>
+                    <table id="tablolist" data-pattern="priority-columns" class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                                <partial name="_SayfaUstCheckbox" />
+                                <th>Ürün Adı</th>
+                                <th>Ürün Kodu</th>
+                                <th>Kategori</th>
+                                <th>URL Git</th>
+                                <th>Stok</th>
+                                @*<th>Ürün İkonları 1</th>
+                                    <th>Teknik Özellikler</th>
+                                    <th>Ürün Tabları</th>*@
+                                <th>Resimler</th>
+                                <th>Kullanım Kılavuzu</th>
+                                <th>Şartname</th>
+                                <th>Belge</th>
+                                <partial name="_SayfaUstKontrolButonlari" />
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<partial name="_RemoveModal" />
+
+
+@section scripts
+{
+    <partial name="_DataTableServerSideScriptsPartial" model='
+                 new DataTableViewModel()
+                 {
+                 TableId="#tablolist",
+                 Url=pageUrl,
+                 Type="post",
+                 DataType="json" ,
+                 Columns=new List<DataTableViewColumn>() {
+              new DataTableViewColumn(){Id="Id",Name=""},
+              new DataTableViewColumn(){Id="Id",Name="Id"},
+              new DataTableViewColumn(){Id="UrunAdi",Name="UrunAdi"},
+              new DataTableViewColumn(){Id="UrunKodu",Name="UrunKodu"},
+              new DataTableViewColumn(){Id="UrunToKategori",Name="UrunToKategori"},
+              new DataTableViewColumn(){Id="UrlGit",Name="UrlGit"},
+              new DataTableViewColumn(){Id="Stok",Name="Stok"},
+              //new DataTableViewColumn(){Id="Ozelllik1",Name=""},
+              //new DataTableViewColumn(){Id="Ozelllik2",Name=""},
+              //new DataTableViewColumn(){Id="Ozelllik3",Name=""},
+              new DataTableViewColumn(){Id="Resimler",Name="Resimler"},
+              new DataTableViewColumn(){Id="KullanimKilavuzu",Name="KullanimKilavuzu"},
+              new DataTableViewColumn(){Id="Sartname",Name="Sartname"},
+              new DataTableViewColumn(){Id="Belge",Name="Belge"},
+              new DataTableViewColumn(){Id="Sira",Name="Sira"},
+              new DataTableViewColumn(){Id="Durum",Name="Durum"},
+              //new DataTableViewColumn(){Id="Vitrin",Name="Vitrin"},
+              new DataTableViewColumn(){Id="Buttons",Name=""},
+          },
+         Order=new DataTableViewOrder()
+         {
+             Id=0,
+             Asc="asc"
+         },
+         Filter=true,
+         Searchable=true,
+         Processing=true,
+         Orderable=true,
+         OrderMulti=false,
+         ServerSide=true,
+         StateSave=true,
+     }' />
+    <partial name="_CustomScriptsPartial" />
+
+    <script>
+
+        $(document).ready(function () {
+
+            $('.fancybox').fancybox();
+
+            $.fn.fancybox.close = function () {
+                //$('#sub_cont').hide(250, function() {
+                //    $('#IDsearchform input').val('');
+                //});
+                alert("?");
+            };
+            $(".fancybox-effects-a").fancybox({
+                helpers: {
+                    title: {
+                        type: 'outside'
+                    },
+                    overlay: {
+                        speedOut: 0
+                    }
+                }
+            });
+        });
+
+
+        $(document).ready(function () {
+            $('.fancybox').fancybox();
+
+            $.fn.fancybox.close = function () {
+                //$('#sub_cont').hide(250, function() {
+                //    $('#IDsearchform input').val('');
+                //});
+                alert("?");
+            };
+            $(".fancybox-effects-a").fancybox({
+                helpers: {
+                    title: {
+                        type: 'outside'
+                    },
+                    overlay: {
+                        speedOut: 0
+                    }
+                }
+            });
+        });
+
+
+        function GaleriResimleri(id, urunresimkategoriid) {
+            $.fancybox.open({
+                href: '/Admin/Urunler/PageImages/' + id + '?UrunResimKategoriId=' + urunresimkategoriid + '',
+                type: 'iframe',
+                width: 1000,
+                minHeight: 600,
+                padding: 5,
+                //closeClick: false,
+                onClosed: function () {
+                    //  Raporla();
+                    jQuery.fancybox.close();
+                },
+                afterClose: function () {
+                    //  Raporla();
+                    jQuery.fancybox.close();
+                },
+                mouseWheel: false
+
+            });
+        }
+
+        function UrunDosyalari(id) {
+            $.fancybox.open({
+                href: '/Admin/Urunler/PageFiles/' + id + '',
+                type: 'iframe',
+                width: 1000,
+                minHeight: 600,
+                padding: 5,
+                //closeClick: false,
+                onClosed: function () {
+                    //  Raporla();
+                    jQuery.fancybox.close();
+                },
+                afterClose: function () {
+                    //  Raporla();
+                    jQuery.fancybox.close();
+                },
+                mouseWheel: false
+
+            });
+        }
+
+        function runJob(jobName) {
+
+            fetch('/Admin/Task/TaskCalistir', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ JobName: jobName }) // JSON formatında gönderiyoruz
+            }).then(response => response.text())
+                .then(data => alert(data))
+                .catch(error => console.error('Error:', error));
+        }
+
+    </script>
+}

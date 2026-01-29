@@ -1,0 +1,158 @@
+﻿@model AdresViewModel
+@{
+    AppDbContext _context = new AppDbContext();
+}
+
+<style>
+    .mb-15{
+        margin-bottom:15px;
+    }
+</style>
+
+<form>
+    <input type="hidden" asp-for="AdresKayitTipi" value="@AdresKayitTipleri.Modal" />
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-row row" style="margin-top:20px;">
+
+        <div class="col-md-12 mb-15">
+            <!-- Input -->
+            <div class="js-form-message">
+                <input type="text" class="form-control" asp-for="AdresEkle.AdresAdi" placeholder="@Localize("Genel.AdresAdi")">
+                <span asp-validation-for="AdresEkle.Ad" class="text-danger"></span>
+
+            </div>
+            <!-- End Input -->
+        </div>
+        <div class="col-md-12 mb-15">
+            <!-- Input -->
+            <div class="js-form-message">
+                <input type="text" class="form-control" asp-for="AdresEkle.Ad" placeholder="@Localize("Genel.Ad")">
+                <span asp-validation-for="AdresEkle.Ad" class="text-danger"></span>
+
+            </div>
+            <!-- End Input -->
+        </div>
+        <div class="col-md-12 mb-15">
+            <!-- Input -->
+            <div class="js-form-message">
+                <input type="text" class="form-control" asp-for="AdresEkle.Soyad" placeholder="@Localize("Genel.Soyad")">
+                <span asp-validation-for="AdresEkle.Soyad" class="text-danger"></span>
+
+            </div>
+            <!-- End Input -->
+        </div>
+        <div class="col-md-12 mb-15">
+            <!-- Input -->
+            <div class="js-form-message">
+                <input type="text" class="form-control" asp-for="AdresEkle.Telefon" placeholder="@Localize("Genel.Telefon")">
+                <span asp-validation-for="AdresEkle.Telefon" class="text-danger"></span>
+
+            </div>
+            <!-- End Input -->
+        </div>
+        <div class="js-form-message col-md-12 mb-15">
+            <div class="input-group">
+                <textarea class="form-control" rows="2" asp-for="AdresEkle.Adres" placeholder="@Localize("Genel.Adres")"></textarea>
+            </div>
+            <span asp-validation-for="AdresEkle.Adres" class="text-danger"></span>
+
+        </div>
+
+        <div class="col-md-4">
+            <!-- Input -->
+            <div class="js-form-message">
+                <select class="form-control adres_ulke" asp-for="UlkeId" data-il="IlId" asp-items="@ViewData["Ulkeler"] as IEnumerable<SelectListItem>">
+                    <option value="0">@Localize("Genel.UlkeSeciniz")</option>
+                </select>
+            </div>
+            <!-- End Input -->
+        </div>
+
+        <div class="col-md-4">
+            <!-- Input -->
+            <div class="js-form-message">
+                <select class="form-control adres_il" asp-for="IlId"  data-ilce="AdresEkle_IlceId" asp-items="@ViewData["Iller"] as IEnumerable<SelectListItem>">
+                    <option value="0">@Localize("Genel.ilSeciniz")</option>
+                </select>
+            </div>
+            <!-- End Input -->
+        </div>
+        <div class="col-md-4  mb-15">
+            <!-- Input -->
+            <div class="js-form-message">
+                <select class="form-control" asp-for="AdresEkle.IlceId"  asp-items="@ViewData["Ilceler"] as IEnumerable<SelectListItem>">
+                    <option value="0">@Localize("Genel.ilceSeciniz")</option>
+                </select>
+            </div>
+            <!-- End Input -->
+        </div>
+
+        <div class="container ">
+
+            <!-- Butonlar yan yana -->
+            <div class="d-flex">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="type" id="bireyselBtn" value="bireysel">
+                    <label class="form-check-label" for="bireyselBtn">@Localize("Genel.Bireysel")</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="type" id="kurumsalBtn" value="kurumsal">
+                    <label class="form-check-label" for="kurumsalBtn">@Localize("Genel.Kurumsal")</label>
+                </div>
+            </div>
+
+            <!-- Bireysel Form Alanı -->
+            <div id="bireyselForm" class="mt-3" style="display:none;">
+                <div class="mb-3">
+                    <label for="tcNo" class="form-label">@Localize("Genel.TcKimlikNumarasi")</label>
+                    <input type="text" class="form-control" asp-for="AdresEkle.VergiNumarasi" placeholder="TC Kimlik Numarası">
+                </div>
+            </div>
+
+            <!-- Kurumsal Form Alanı -->
+            <div id="kurumsalForm" class="mt-3" style="display:none;">
+                <div class="mb-3">
+                    <label for="vergiDairesi" class="form-label">@Localize("Genel.FirmaAdi")</label>
+                    <input type="text" class="form-control" asp-for="AdresEkle.FirmaAdi" placeholder="@Localize("Genel.FirmaAdi")">
+                </div>
+                <div class="mb-3">
+                    <label for="vergiDairesi" class="form-label">@Localize("Genel.Adres")</label>
+                    <textarea class="form-control"  asp-for="AdresEkle.FaturaAdres" placeholder="@Localize("Genel.Adres")"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="vergiDairesi" class="form-label">@Localize("Genel.VergiDairesi")</label>
+                    <input type="text" class="form-control" asp-for="AdresEkle.VergiDairesi" placeholder="@Localize("Genel.VergiDairesi")">
+                </div>
+                <div class="mb-3">
+                    <label for="vergiNo" class="form-label">@Localize("Genel.VergiNumarasi")</label>
+                    <input type="text" class="form-control" asp-for="AdresEkle.VergiNumarasi" placeholder="@Localize("Genel.VergiNumarasi")">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+
+@await Html.PartialAsync("_ValidationScriptsPartial")
+
+
+<script>
+    $(document).ready(function () {
+        // Bireysel butonuna tıklandığında
+        $('#bireyselBtn').click(function () {
+            $('#bireyselForm').show(); // Bireysel form alanını göster
+            $('#kurumsalForm').hide(); // Kurumsal form alanını gizle
+        });
+
+        // Kurumsal butonuna tıklandığında
+        $('#kurumsalBtn').click(function () {
+            $('#kurumsalForm').show(); // Kurumsal form alanını göster
+            $('#bireyselForm').hide(); // Bireysel form alanını gizle
+        });
+    });
+</script>

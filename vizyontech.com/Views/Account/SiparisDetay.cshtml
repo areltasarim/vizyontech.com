@@ -1,0 +1,182 @@
+﻿@inject HelperServis _helperServis
+@model Siparisler
+@{
+    var siparisgecmisi = _helperServis.GetSiparisDurumu(Model.Id).Result;
+    var uye = _helperServis.GetUye().Result;
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var kurCeviri = _helperServis.GetKurTLCeviri(Model.ToplamFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+    ViewBag.MetaTitle = "Sipariş Detayı";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+@section Style
+{
+
+}
+<!--asdasd asd asd-->
+
+<div class="ps-wishlist">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.AnaSayfa")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.SiparisDetay")</li>
+        </ul>
+        <h3 class="ps-wishlist__title">@Localize("Genel.Siparisler")</h3>
+        <div class="ps-wishlist__content">
+            <div class="row row-reverse">
+                <div class="col-12 col-md-9">
+
+                    <!-- sipariş bilgileri -->
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">@Localize("Genel.SiparisNumarasi")</th>
+                                <th scope="col">@Localize("Genel.SiparisTarihi")</th>
+                                <th scope="col">@Localize("Genel.OdemeDurumu")</th>
+                                <th scope="col">@Localize("Genel.SiparisDurumu")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">#@Model.Id</th>
+                                <td>@Model.SiparisTarihi</td>
+                                <td>@Model.OdemeMetodu</td>
+                                <td>@siparisgecmisi</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- teslimat bilgileri -->
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">@Localize("Genel.TeslimatAdresi")</th>
+                                <th scope="col">@Localize("Genel.FaturaAdresi")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row">
+                                    @Model.TeslimatAd @Model.TeslimatSoyad<br />
+                                    @Model.TeslimatAdres @Model.TeslimatIlce @Model.TeslimatIl
+                                </td>
+                                <td>
+                                    @Model.FaturaAd @Model.FaturaSoyad<br />
+                                    @if (!string.IsNullOrEmpty(Model.FaturaFirmaAdi))
+                                    {
+                                        @Model.FaturaFirmaAdi<br />
+                                    }
+                                    @Model.FaturaAdres @Model.FaturaIlce @Model.FaturaIl
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">@Localize("Genel.Resim")</th>
+                                <th scope="col">@Localize("Genel.UrunAdi")</th>
+                                <th scope="col">@Localize("Genel.UrunKodu")</th>
+                                <th scope="col">@Localize("Genel.BirimFiyati")</th>
+                                <th scope="col">@Localize("Genel.Adet")</th>
+                                <th scope="col">@Localize("Genel.Toplam")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.SiparisUrunleri)
+                            {
+                                var urunresim = _helperServis.GetUrunResim(Convert.ToInt32(item.UrunId)).Result;
+                                var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
+                                var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
+
+                                <tr>
+                                    <td scope="row">
+                                        <img width="50" src="@urunresim" class="img-fluid" loading="lazy" />
+                                    </td>
+                                    <td scope="row">@item.UrunAdi</td>
+                                    <td>@item.UrunKodu</td>
+                                    <td>@_helperServis.FormatCurrency(urunFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</td>
+                                    <td>@item.Adet</td>
+                                    <td> @_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td scope="row"></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>@Localize("Genel.Toplam")</td>
+                                <td>@_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</td>
+                            </tr>
+                            <tr>
+                                <td scope="row"></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>@Localize("Genel.GenelToplam")</td>
+                                <td> @_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(Model.SiparisNotu))
+                    {
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <td class="text-left">@Localize("Genel.SiparişAciklama")</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-left">@Model.SiparisNotu</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    }
+
+                <div class="mt-5">
+                    <h3>Sipariş Geçmişi</h3>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <td class="text-left">@Localize("Genel.Tarih")</td>
+                                <td class="text-left">@Localize("Genel.Durumu")</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.SiparisGecmisleri.ToList())
+                            {
+                                var siparisDurumu = _helperServis.GetSiparisDurumu(item.SiparisId).Result;
+                                <tr>
+                                    <td class="text-left">@item.EklenmeTarihi</td>
+                                    <td class="text-left">@siparisDurumu</td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+                </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="ps-widget ps-widget--product">
+                        <div class="ps-widget__block">
+                            <div class="ps-widget__category">
+                                <partial name="_SagMenu" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

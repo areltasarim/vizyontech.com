@@ -1,0 +1,88 @@
+﻿@inject HelperServis _helperServis
+@model MenuYerleri
+@{
+
+    var _context = new AppDbContext();
+
+    var anamenu = _helperServis.GetMenu(Model).Result;
+
+    var aktifDil = _helperServis.GetCurrentCulture();
+    var controller = HttpContextAccessor.HttpContext.Request.RouteValues["controller"].ToString();
+    var action = HttpContextAccessor.HttpContext.Request.RouteValues["action"].ToString();
+
+    string anamenulicss = "";
+    string altmenulicss = "";
+
+    string anamenuacss = "";
+    string altmenuacss = "";
+
+    string anamenuulcss = "";
+
+
+    var url = "";
+    string active = "active";
+
+    string sekmeDurumu = "";
+    string altsekmeDurumu = "";
+
+    url = ViewContext.RouteData.Values["url"]?.ToString();
+
+    void AnaMenu(IEnumerable<HelperServis.MenulerDTO> anamenu)
+    {
+
+
+        foreach (HelperServis.MenulerDTO item in anamenu)
+        {
+            var menuhosturl = _helperServis.GetMenuUrl(item.Id, item.MenuTipi, item.MenuYeri);
+
+            switch (item.SekmeDurumu)
+            {
+                case MenuSekmeleri.AyniSekme:
+                    sekmeDurumu = "_self";
+                    break;
+                case MenuSekmeleri.YeniSekme:
+                    sekmeDurumu = "_blank";
+                    break;
+                default:
+                    break;
+            }
+
+
+            if (item.MenulerTranslate.SingleOrDefault(p => p.DilKodu == aktifDil)?.Url == url)
+            {
+                active = "active";
+            }
+            else
+            {
+                active = "";
+            }
+
+
+
+            if (item.AltMenuler.Count() > 0)
+            {
+
+                <li class="@altmenulicss">
+                    <a href="@menuhosturl" data-toggle="dropdown" class="@anamenuacss" target="@sekmeDurumu">
+                        @(item.MenulerTranslate.SingleOrDefault(p=> p.DilKodu == aktifDil)?.MenuAdi)
+                    </a>
+                </li>
+            }
+            else
+            {
+
+
+                <li class="@anamenulicss @active">
+                    <a class="@anamenuacss" href="@menuhosturl" target="@sekmeDurumu"> @(item.MenulerTranslate.SingleOrDefault(p=> p.DilKodu == aktifDil)?.MenuAdi)</a>
+                </li>
+            }
+        }
+
+    }
+}
+
+@{
+    AnaMenu(anamenu);
+}
+
+

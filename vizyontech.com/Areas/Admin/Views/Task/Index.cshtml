@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = ViewData["Baslik"].ToString();
+
+
+    var _context = new AppDbContext();
+
+    var controllerValue = HttpContextAccessor.HttpContext.Request.RouteValues["Controller"];
+
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+<div class="row">
+    <div class="col-lg-12">
+  
+            <div class="card">
+                <div class="card-body">
+                    <table id="alternative-page-datatable" data-pattern="priority-columns"
+                           class="table dt-responsive nowrap w-100">
+                        <thead>
+                            <tr>
+                            <th>Id</th>
+                            <th>Task</th>
+                                <th>Çalıştır</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablolist">
+                            <tr>
+                                <td>1</td>
+                                <td>
+                                    Ürünler
+                                </td>
+                                <td>
+                                <button type="button" class="btn btn-primary" onclick="runJob('JobIslemUrunler')" data-toggle="tooltip" data-placement="top" title="Ürünleri Çek">Ürünleri Opaktan Çek</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+  
+    </div>
+</div>
+
+@section scripts
+{
+       <script>
+          function runJob(jobName) {
+       
+            fetch('/Admin/Task/TaskCalistir', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ JobName: jobName }) // JSON formatında gönderiyoruz
+            }).then(response => response.text())
+              .then(data => alert(data))
+              .catch(error => console.error('Error:', error));
+        }
+
+     </script>
+}

@@ -1,0 +1,73 @@
+﻿@inject HelperServis _helperServis
+@{
+    var adresler = _helperServis.GetUyeAdresler().Result;
+
+
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    ViewBag.MetaTitle = "Adresler";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+
+}
+
+@section Style
+{
+
+}
+<div class="ps-wishlist">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.Adreslerim")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@Localize("Genel.Adreslerim")</li>
+        </ul>
+        <h3 class="ps-wishlist__title">@Localize("Genel.Hesabim")</h3>
+        <div class="ps-wishlist__content">
+            <div class="row row-reverse">
+                <div class="col-12 col-md-9">
+                    <span class="fs-26 xs-fs-24 alt-font fw-600 text-dark-gray mb-20px d-block">@Localize("Genel.Adreslerim")</span>
+                    <a href="#" class="btn btn-info mb-10 pull-right modal-ac" data-toggle="modal" data-target="@Url.Action("_AdresEkle", "Account")" data-formid="frmAdresEkle" data-urlpost="/Account/AdresEkle" data-modalbaslik="@Localize("Genel.YeniAdresEkle")" title="@Localize("Genel.YeniAdresEkle")">
+                        <i class="fa fa-plus"></i>
+                        @Localize("Genel.YeniAdresEkle")
+                    </a>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">@Localize("Genel.AdresAdi")</th>
+                                <th scope="col">@Localize("Genel.Adres")</th>
+                                <th scope="col">@Localize("Genel.ilce")</th>
+                                <th scope="col">@Localize("Genel.il")</th>
+                                <th scope="col">@Localize("Genel.Kontrol")</th>
+                            </tr>
+                        </thead>
+                        <tbody class="AdresListe">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="ps-widget ps-widget--product">
+                        <div class="ps-widget__block">
+                            <div class="ps-widget__category">
+                                <partial name="_SagMenu" />
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<partial name="_RemoveModal" />
+
+@section Scripts
+{
+    <partial name="_CustomScriptsPartial" />
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+}

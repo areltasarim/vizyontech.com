@@ -1,0 +1,544 @@
+﻿@inject HelperServis _helperServis
+@{
+    var siteAyari = await _helperServis.GetSiteAyari();
+
+    var dil = _helperServis.GetCurrentCulture();
+    var kategoriler = await _helperServis.GetKategoriler();
+
+    var url = ViewContext.RouteData.Values["url"].ToString();
+    var urlId = _helperServis.GetUrl(url);
+    var kategoriBilgi = await _helperServis.GetUrunKategoriBilgi(urlId);
+
+    var altKategoriler = _helperServis.GetAltKategoriler(kategoriBilgi.KategoriId);
+
+    var kategoriBanner = _helperServis.GetKategoriBanner(kategoriBilgi.KategoriId);
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+
+
+    var urunler = ViewData["Urunler"] as IPagedList<vizyontech.com.com.Controllers.UrunlerController.UrunDTO>;
+
+    ViewBag.MetaTitle = kategoriBilgi?.MetaBaslik ?? kategoriBilgi?.KategoriAdi;
+    ViewBag.MetaAnahtar = kategoriBilgi?.MetaAnahtar ?? siteAyari?.MetaAnahtar;
+    ViewBag.MetaAciklama = kategoriBilgi?.MetaAciklama ?? siteAyari?.MetaAciklama;
+}
+@section Style
+{
+<style>
+    /* Kategoriler Filtre Butonu - Mobilde Görünür Yap */
+    .ps-categogy .ps-categogy__type.d-md-none {
+        display: block !important;
+        padding: 0;
+        margin-right: 10px;
+        border-right: none;
+    }
+    
+    @@media (min-width: 768px) {
+        .ps-categogy .ps-categogy__type.d-md-none {
+            display: none !important;
+        }
+    }
+    
+    /* Mobil Header Sticky */
+    @@media (max-width: 991px) {
+        .ps-header__middle {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #fff;
+        }
+    }
+    
+    /* Mobil Toolbar Kompakt Stiller */
+    @@media (max-width: 991px) {
+        .ps-categogy .ps-categogy__wrapper {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 8px;
+            padding: 10px 15px !important;
+            background: #fff;
+            position: sticky;
+            top: 65px;
+            z-index: 99;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin: 0 -15px;
+            width: calc(100% + 30px);
+        }
+        
+        .ps-categogy__sort,
+        .ps-categogy__show {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .ps-categogy__sort .form-select,
+        .ps-categogy__show .form-select {
+            font-size: 12px;
+            padding: 6px 24px 6px 8px;
+            min-width: auto;
+        }
+        
+        .ps-categogy__onsale {
+            display: none;
+        }
+    }
+    
+    @@media (max-width: 575px) {
+        .category-filter-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .category-filter-btn i.fa {
+            font-size: 12px;
+        }
+        
+        .ps-categogy__sort .form-select,
+        .ps-categogy__show .form-select {
+            font-size: 11px;
+            padding: 5px 20px 5px 6px;
+        }
+    }
+    
+    .category-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #0d6efd;
+        color: white !important;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+    }
+    
+    .category-filter-btn:hover {
+        background: #0b5ed7;
+        color: white !important;
+    }
+    
+    .category-filter-btn i.fa {
+        font-size: 14px;
+        color: white !important;
+        display: inline-block !important;
+    }
+    
+    /* Desktop Sidebar - Kategorileri Uzat */
+    .ps-categogy__content > .row.row-reverse {
+        display: flex;
+        align-items: stretch;
+    }
+    
+    .ps-categogy__content > .row.row-reverse > .col-12.col-md-3 {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .ps-widget.ps-widget--product {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .ps-widget.ps-widget--product .ps-widget__block {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+    }
+    
+    .ps-widget.ps-widget--product .ps-widget__content.ps-widget__category {
+        flex: 1;
+        overflow-y: auto;
+    }
+    
+    .ps-widget.ps-widget--product .ps-widget__content.ps-widget__category::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .ps-widget.ps-widget--product .ps-widget__content.ps-widget__category::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    .ps-widget.ps-widget--product .ps-widget__content.ps-widget__category::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .ps-widget.ps-widget--product .ps-widget__content.ps-widget__category::-webkit-scrollbar-thumb:hover {
+        background: #a1a1a1;
+    }
+</style>
+}
+
+
+<div class="ps-categogy">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            @foreach (var item in _helperServis.GetBreadcrumbKategori(kategoriBilgi.KategoriId))
+            {
+                var seoUrl = _helperServis.GetSeoUrl(item.KategoriId, SeoUrlTipleri.Kategori).Result.Url;
+                <li class="ps-breadcrumb__item">
+                    <a href="@seoUrl">
+                        @item.KategoriAdi
+                    </a>
+                </li>
+            }
+        </ul>
+        <div class="ps-categogy">
+            <div class="container">
+                <div class="ps-categogy__content">
+                    <div class="row row-reverse">
+                        <div class="col-12 col-md-9">
+                            <div class="ps-categogy__wrapper">
+                                <div class="ps-categogy__type d-md-none">
+                                    <a class="category-filter-btn" href="javascript:;" id="categoryFilterBtn">
+                                        <i class="fa fa-bars"></i> @Localize("Genel.Kategoriler")
+                                    </a>
+                                </div>
+                                <div class="ps-categogy__onsale">
+                                    <form>
+                                        <div class="custom-control custom-checkbox">
+                                            <input class="custom-control-input" type="checkbox" id="onSaleProduct">
+                                            <label class="custom-control-label" for="onSaleProduct">@Localize("Genel.StoktaOlanlar")</label>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="ps-categogy__sort">
+                                    <span class="d-none d-lg-inline">@Localize("Genel.Siralama")</span>
+                                    @{
+                                        var currentSiralama = ViewBag.Siralama as string ?? "son";
+                                    }
+                                    <select class="form-select" id="sortSelect">
+                                        <option value="son" selected="@(currentSiralama == "son")">@Localize("Genel.SonEklenenler")</option>
+                                        @if (User.Identity.IsAuthenticated && User.IsInRole("Bayi"))
+                                        {
+                                            <option value="fiyat-artan" selected="@(currentSiralama == "fiyat-artan")">@Localize("Genel.FiyatArtan")</option>
+                                            <option value="fiyat-azalan" selected="@(currentSiralama == "fiyat-azalan")">@Localize("Genel.FiyatAzalan")</option>
+                                        }
+                                    </select>
+                                </div>
+                                @* Göster - Infinite scroll kullanıldığı için kaldırıldı
+                                <div class="ps-categogy__show">
+                                    <form>
+                                        <span class="d-none d-lg-inline">@Localize("Genel.Goster")</span>
+                                        <select class="form-select">
+                                            <option selected>12</option>
+                                            <option value="24">24</option>
+                                            <option value="36">36</option>
+                                            <option value="48">48</option>
+                                        </select>
+                                    </form>
+                                </div>
+                                *@
+                            </div>
+                            <div class="ps-categogy--grid ps-categogy--detail">
+                                <div class="row m-0" id="productsContainer">
+                                    @foreach (var item in urunler)
+                                    {
+                                        var seoUrl = _helperServis.GetSeoUrl(item.Id, SeoUrlTipleri.Urun).Result.Url;
+                                        var urun = item;
+                                        var urunResimFirst = _helperServis.GetUrunResimFirst(item.Id, UrunResimKategorileri.UrunResim).Resim;
+                                        var kurCeviri = _helperServis.GetKurTLCeviri(item.Fiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+                                        var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(urun.Fiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                                        string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
+
+                                        var urunListeFiyatTl = await _helperServis.GetPriceAsync(urun.Fiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                                        string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+
+                                        <div class="col-6 col-lg-4 p-0">
+                                            <div class="ps-product ps-product--standard">
+                                                <div class="ps-product__thumbnail">
+                                                    <a class="ps-product__image" href="@seoUrl">
+                                                        <figure>
+                                                            <img src="@($"{urunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" />
+                                                        </figure>
+                                                    </a>
+                                                    <div class="ps-product__actions">
+                                                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.Id)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                                    </div>
+                                                    <div class="ps-product__badge">
+                                                    </div>
+                                                </div>
+                                                <div class="ps-product__content">
+                                                    <a class="ps-product__branch" href="#">@(item?.MarkaAdi)</a>
+                                                    <h5 class="ps-product__title">
+                                                        <a href="@seoUrl" class="text-decoration-none">@urun.MarkaAdi @urun.UrunKodu @urun.UrunAdi</a>
+                                                    </h5>
+                                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                                    {
+                                                        <div class="ps-product__meta">
+                                                            <span class="ps-product__price sale">@urunListeFiyatDecimaltxt</span>
+                                                            <span class="ps-product__del">@urunListeFiyatTlDecimaltxt</span>
+                                                        </div>
+                                                    }
+
+                                                    <div class="ps-product__desc d-none d-md-block">
+                                                        @{
+                                                            string ozellik = urun.Ozellik;
+                                                            var urunozellikleri = !string.IsNullOrWhiteSpace(ozellik)
+                                                                ? ozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                : new string[0];
+                                                        }
+                                                        <ul class="list-group list-group-flush">
+                                                            @foreach (var teknikozellik in urunozellikleri)
+                                                            {
+                                                                <li class="list-group-item border-0 px-0 py-1 small">@teknikozellik</li>
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator") && urun.Fiyat > 0)
+                                                    {
+                                                        <div class="ps-product__actions ps-product__group-mobile">
+                                                            <div class="ps-product__quantity">
+                                                                <div class="def-number-input number-input safari_only">
+                                                                    <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                                    <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                                    <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="ps-product__cart"> <a class="ps-btn ps-btn--warning" href="javascript:;" onclick="SepeteEkle('@urun.Id', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)">@Localize("Genel.SepeteEkle")</a></div>
+                                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.Id)"><i class="fa fa-heart-o"></i></a></div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                </div>
+                            </div>
+                            <div class="ps-pagination d-none">
+                                <partial name="_SayfalamaHelper" model="@urunler" />
+                            </div>
+                            <div id="loadingIndicator" class="text-center py-4" style="display: none;">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Yükleniyor...</span>
+                                </div>
+                                <p class="mt-2">Ürünler yükleniyor...</p>
+                            </div>
+                            <div id="noMoreProducts" class="text-center py-4" style="display: none;">
+                                <p>Tüm ürünler gösterildi.</p>
+                            </div>
+                        </div>
+                        <!-- Desktop Sidebar - Mobilde Gizli -->
+                        <div class="col-12 col-md-3 d-none d-md-block">
+                            <div class="ps-widget ps-widget--product">
+                                <div class="ps-widget__block">
+                                    <h4 class="ps-widget__title">@Localize("Genel.Kategoriler")</h4><a class="ps-block-control" href="#"><i class="fa fa-angle-down"></i></a>
+                                    <div class="ps-widget__content ps-widget__category">
+
+                                        <partial name="_KategoriAccordionMenu" />
+                                    </div>
+                                </div>
+
+
+                                @* Markalar - Geçici Olarak Gizlendi
+                                <div class="ps-widget__block">
+                                    <h4 class="ps-widget__title">@Localize("Genel.Markalar")</h4><a class="ps-block-control" href="#"><i class="fa fa-angle-down"></i></a>
+                                    <div class="ps-widget__content">
+                                        @foreach (var item in await _helperServis.GetMarkalar())
+                                        {
+                                            <div class="ps-widget__item">
+                                                    <label class="custom-control-label" for="@item.MarkaAdi">@item.MarkaAdi</label>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                *@
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Kategoriler butonu - Header'daki accordion menüyü aç
+            const categoryFilterBtn = document.getElementById('categoryFilterBtn');
+            const accordionOpenMenu = document.getElementById('accordion-open-menu');
+            
+            if (categoryFilterBtn && accordionOpenMenu) {
+                categoryFilterBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    accordionOpenMenu.click();
+                });
+            }
+            
+            // Sıralama değişince sayfa yenile
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', (e) => {
+                    const siralama = e.target.value;
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('siralama', siralama);
+                    window.location.href = currentUrl.toString();
+                });
+            }
+
+            // Accordion Toggle
+            const subToggles = document.querySelectorAll(".accordion-sub-toggle");
+
+            subToggles.forEach(toggle => {
+                const parentLi = toggle.closest("li");
+
+                if (parentLi.classList.contains("accordion-open")) {
+                    toggle.textContent = "-";
+                }
+
+                toggle.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    parentLi.classList.toggle("accordion-open");
+
+                    if (parentLi.classList.contains("accordion-open")) {
+                        toggle.textContent = "-";
+                    } else {
+                        toggle.textContent = "+";
+                    }
+                });
+            });
+
+            // Infinite Scroll
+            let currentPage = @urunler.PageNumber;
+            let hasMore = @urunler.HasNextPage.ToString().ToLower();
+            let isLoading = false;
+            const url = '@ViewContext.RouteData.Values["url"]';
+            const siralama = '@(ViewBag.Siralama ?? "son")';
+            const productsContainer = document.getElementById('productsContainer');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const noMoreProducts = document.getElementById('noMoreProducts');
+            const sepetAdetGuncellemeArttir = '@SepetAdetGuncellemeDurumlari.Arttir';
+            const sepetEkleText = '@Localize("Genel.SepeteEkle")';
+            const favoriEkleText = '@Localize("Genel.FavoriEkle")';
+            const hizliGoruntuleText = '@Localize("Genel.HizliGoruntule")';
+
+            async function loadMoreProducts() {
+                if (isLoading || !hasMore) return;
+
+                isLoading = true;
+                loadingIndicator.style.display = 'block';
+
+                try {
+                    const response = await fetch(`/Urunler/LoadMoreProducts?url=${encodeURIComponent(url)}&sayfa=${currentPage + 1}&siralama=${siralama}`);
+                    const data = await response.json();
+
+                    if (data.success && data.products && data.products.length > 0) {
+                        currentPage++;
+                        hasMore = data.hasMore;
+
+                        // Ürünleri ekle
+                        data.products.forEach(product => {
+                            const productHtml = createProductHtml(product);
+                            productsContainer.insertAdjacentHTML('beforeend', productHtml);
+                        });
+
+                        if (!hasMore) {
+                            noMoreProducts.style.display = 'block';
+                        }
+                    } else {
+                        hasMore = false;
+                        noMoreProducts.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Ürünler yüklenirken hata oluştu:', error);
+                } finally {
+                    isLoading = false;
+                    loadingIndicator.style.display = 'none';
+                }
+            }
+
+            function createProductHtml(product) {
+                const seoUrl = product.seoUrl || `/urun/${product.id}`;
+                const urunResimFirst = product.resimUrl || '';
+                const imageUrl = urunResimFirst ? `${urunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff` : '';
+                
+                let ozellikHtml = '';
+                if (product.ozellik) {
+                    const urunozellikleri = product.ozellik.split('\n').filter(o => o.trim());
+                    if (urunozellikleri.length > 0) {
+                        ozellikHtml = '<div class="ps-product__desc d-none d-md-block"><ul class="list-group list-group-flush">';
+                        urunozellikleri.forEach(ozellik => {
+                            ozellikHtml += `<li class="list-group-item border-0 px-0 py-1 small">${escapeHtml(ozellik)}</li>`;
+                        });
+                        ozellikHtml += '</ul></div>';
+                    }
+                }
+
+                const uyeLoginmi = @((uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator")).ToString().ToLower());
+                let priceHtml = '';
+                let actionsHtml = '';
+                
+                if (uyeLoginmi && product.fiyat > 0) {
+                    priceHtml = `<div class="ps-product__meta"><span class="ps-product__price sale">${product.fiyatFormatted || ''}</span><span class="ps-product__del">${product.fiyatTlFormatted || ''}</span></div>`;
+                    actionsHtml = `<div class="ps-product__actions ps-product__group-mobile">
+                        <div class="ps-product__quantity">
+                            <div class="def-number-input number-input safari_only">
+                                <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="ps-product__cart"><a class="ps-btn ps-btn--warning" href="javascript:;" onclick="SepeteEkle('${product.id}', 1,'${sepetAdetGuncellemeArttir}', false)">${sepetEkleText}</a></div>
+                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="${favoriEkleText}"><a href="javascript:;" onclick="AlisverisListemeEkle(${product.id})"><i class="fa fa-heart-o"></i></a></div>
+                    </div>`;
+                }
+
+                return `
+                    <div class="col-6 col-lg-4 p-0">
+                        <div class="ps-product ps-product--standard">
+                            <div class="ps-product__thumbnail">
+                                <a class="ps-product__image" href="${seoUrl}">
+                                    <figure>
+                                        <img src="${imageUrl}" alt="" loading="lazy" />
+                                    </figure>
+                                </a>
+                                <div class="ps-product__actions">
+                                    <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="${hizliGoruntuleText}"><a href="javascript:;" onclick="HizliGoruntuleModal(${product.id})" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                </div>
+                                <div class="ps-product__badge"></div>
+                            </div>
+                            <div class="ps-product__content">
+                                <a class="ps-product__branch" href="#">${escapeHtml(product.markaAdi || '')}</a>
+                                <h5 class="ps-product__title">
+                                    <a href="${seoUrl}" class="text-decoration-none">${escapeHtml(product.markaAdi || '')} ${escapeHtml(product.urunKodu || '')} ${escapeHtml(product.urunAdi || '')}</a>
+                                </h5>
+                                ${priceHtml}
+                                ${ozellikHtml}
+                                ${actionsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function escapeHtml(text) {
+                const map = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                };
+                return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
+            }
+
+            // Scroll event listener
+            window.addEventListener('scroll', () => {
+                if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+                    loadMoreProducts();
+                }
+            });
+        });
+    </script>
+}

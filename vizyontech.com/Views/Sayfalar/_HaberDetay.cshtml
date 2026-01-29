@@ -1,0 +1,90 @@
+﻿@model Sayfalar
+@{
+    var _context = new AppDbContext();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+    var siteAyari = _context.SiteAyarlariTranslate.Where(p => p.SiteAyarId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+    var resimDizini = ImageHelper.DosyaYolu(DosyaYoluTipleri.Resim).Remove(0, 7) + "Sayfalar/";
+
+    var sayfa = Model.SayfalarTranslate.ToList().SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var sayfaresim = sayfa?.Resim == "/Content/Upload/Images/resimyok.png" ? Model.SayfalarTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil)?.Resim : resimDizini + sayfa?.Resim;
+
+    var sayfalar = _context.Sayfalar.Where(p => p.Durum == SayfaDurumlari.Aktif).ToList().OrderBy(p => p.Sira);
+
+    var altSayfalar = _context.Sayfalar.Where(p => p.ParentSayfaId == Model.ParentSayfaId && p.Durum == SayfaDurumlari.Aktif && p.Id != 1).ToList();
+    var sayfaResimleri = _context.SayfaResimleri.Where(p => p.SayfaId == Model.Id).ToList();
+
+    var parentSayfa = _context.SayfalarTranslate.Where(p => p.SayfaId == Model.ParentSayfaId).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+
+
+
+    var kurumsal = _context.SayfalarTranslate.Where(p => p.Sayfalar.SayfaTipi == SayfaTipleri.Hakkimizda && p.Sayfalar.ParentSayfaId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var kurumsal_tr_dil = _context.SayfalarTranslate.Where(p => p.Sayfalar.SayfaTipi == SayfaTipleri.Hakkimizda && p.Sayfalar.ParentSayfaId == 1).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR");
+    var kurumsalresim = kurumsal?.Resim == "/Content/Upload/Images/resimyok.png" ? kurumsal_tr_dil?.Resim : resimDizini + kurumsal?.Resim;
+
+
+    var slogan = _context.SayfalarTranslate.Where(p => p.Sayfalar.SayfaTipi == SayfaTipleri.Slogan3).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+    var slogan_tr_dil = _context.SayfalarTranslate.Where(p => p.Sayfalar.SayfaTipi == SayfaTipleri.Slogan3).SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR");
+    var sloganresim = slogan?.Resim == "/Content/Upload/Images/resimyok.png" ? resimDizini + slogan_tr_dil?.Resim : resimDizini + slogan?.Resim;
+
+}
+
+
+<!-- breadcrumb -->
+<div class="breadcrumb-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <ol class="breadcrumb">
+                    <li>
+                        <i class="fa fa-home"></i>
+                        <a href="/">Ana Sayfa</a>
+                        <i class="fa fa-angle-right"></i>
+                    </li>
+                    <li><a href="#">@sayfa?.SayfaAdi</a></li>
+                </ol>
+            </div>
+        </div><!-- row end -->
+    </div><!-- container end -->
+</div>
+<!-- breadcrumb end -->
+
+<section class="main-content category-layout-1 pt-0">
+    <div class="container">
+        <div class="row ts-gutter-30">
+            <div class="col-lg-12">
+                <div class="single-post">
+                    <div class="post-header-area">
+                        <h2 class="post-title title-lg">@sayfa?.SayfaAdi</h2>
+                    </div><!-- post-header-area end -->
+                    <div class="post-content-area">
+                        <div class="post-media mb-20">
+                            <a href="@sayfaresim" class="gallery-popup cboxElement">
+                                <img src="@sayfaresim" class="img-fluid" alt="" loading="lazy">
+                            </a>
+                        </div>
+                    @Html.Raw(sayfa?.Aciklama)
+
+                    <div class="gallery-img clearfix">
+                        @foreach (var item in sayfaResimleri)
+                        {
+                            <a href="@item.Resim" class="gallery-popup">
+                                <img src="@item.Resim" alt="" loading="lazy">
+                            </a>
+                        }
+                    </div>
+                    </div><!-- post-content-area end -->
+                </div><!-- single-post end -->
+            </div><!-- col-lg-8 -->
+
+        </div><!-- row end -->
+    </div><!-- container end -->
+</section><!-- category-layout end -->
+
+
+@using (Html.BeginScripts())
+{
+
+}

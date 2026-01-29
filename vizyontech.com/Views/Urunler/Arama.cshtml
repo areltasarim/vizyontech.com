@@ -1,0 +1,105 @@
+﻿@inject HelperServis _helperServis
+@model IEnumerable<Urunler>
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+
+    var dil = _helperServis.GetCurrentCulture();
+    //var sabitMenu = await _helperServis.GetSabitMenu(SabitSayfaTipleri.Kategoriler);
+
+    var uyeLoginmi = _helperServis.GetUyeLoginMi().Result;
+
+    ViewBag.MetaTitle = "Arama Sonuçları";
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+@section Style
+{
+    <style>
+    </style>
+}
+
+
+
+<div class="ps-categogy ps-categogy--separate">
+    <div class="container">
+        <section class="ps-section--categories mt-5">
+            <h3 class="ps-section__title">@Localize("Genel.AramaSonuclari")</h3>
+        </section>
+    </div>
+    <div class="ps-categogy__main">
+        <div class="container">
+            <div class="ps-categogy--grid ps-categogy--detail">
+                <div class="row m-0">
+                    @foreach (var item in Model)
+                    {
+                        var seoUrl = _helperServis.GetSeoUrl(item.Id, SeoUrlTipleri.Urun).Result.Url;
+                        var urun = item.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == dil);
+                        var urunResimFirst = _helperServis.GetUrunResimFirst(item.Id, UrunResimKategorileri.UrunResim).Resim;
+                        var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.Id);
+                        var kurCeviri = _helperServis.GetKurTLCeviri(item.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+                        <div class="col-6 col-lg-4 col-xl-4 p-0">
+                            <div class="ps-product ps-product--standard">
+                                <div class="ps-product__thumbnail">
+                                    <a class="ps-product__image" href="/@seoUrl">
+                                        <figure>
+                                            <img src="@($"{urunResimFirst}?width=250&height=250&rmode=pad&bgcolor=ffffff")" alt="" loading="lazy" />
+                                        </figure>
+                                    </a>
+                                    <div class="ps-product__actions">
+                                        <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                    </div>
+                                    <div class="ps-product__badge">
+                                    </div>
+                                </div>
+                                <div class="ps-product__content">
+                                    <a class="ps-product__branch" href="#">@item?.Markalar?.MarkaAdi</a>
+                                    <h5 class="ps-product__title">
+                                        <a href="@seoUrl" class="text-decoration-none">@urun.Urunler.Markalar?.MarkaAdi @urun.Urunler.UrunKodu @urun.UrunAdi</a>
+                                    </h5>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                    {
+                                        <div class="ps-product__meta">
+                                            <span class="ps-product__price sale">@_helperServis.FormatCurrency(urunFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</span><span class="ps-product__del">@_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</span>
+                                        </div>
+                                    }
+                                    <div class="ps-product__desc d-none d-md-block">
+                                        @{
+                                            string ozellik = urun.Ozellik;
+                                            var urunozellikleri = !string.IsNullOrWhiteSpace(ozellik)
+                                                ? ozellik.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                                : new string[0];
+                                        }
+                                        <ul class="list-group list-group-flush">
+                                            @foreach (var teknikozellik in urunozellikleri)
+                                            {
+                                                <li class="list-group-item border-0 px-0 py-1 small">@teknikozellik</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                    @if (uyeLoginmi.User != null && uyeLoginmi.Roles.Any(role => role == "Bayi" || role == "Administrator"))
+                                    {
+                                        <div class="ps-product__actions ps-product__group-mobile">
+                                            <div class="ps-product__quantity">
+                                                <div class="def-number-input number-input safari_only">
+                                                    <button class="minus" onclick="this.parentNode.querySelector('input[type=number]').stepDown()"><i class="icon-minus"></i></button>
+                                                    <input class="quantity" min="0" name="quantity" value="1" type="number" />
+                                                    <button class="plus" onclick="this.parentNode.querySelector('input[type=number]').stepUp()"><i class="icon-plus"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.SepeteEkle")"><a href="javascript:;" onclick="SepeteEkle('@urun.UrunId', 1,'@SepetAdetGuncellemeDurumlari.Arttir', false)"><i class="fa fa-shopping-basket"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.FavoriEkle")"><a href="javascript:;" onclick="AlisverisListemeEkle(@urun.UrunId)"><i class="fa fa-heart-o"></i></a></div>
+                                            <div class="ps-product__item" data-toggle="tooltip" data-placement="left" title="@Localize("Genel.HizliGoruntule")"><a href="javascript:;" onclick="HizliGoruntuleModal(@urun.UrunId)" class="hizligoruntule_modal" data-toggle="modal" data-target="#hizligoruntule_modal"><i class="fa fa-search"></i></a></div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

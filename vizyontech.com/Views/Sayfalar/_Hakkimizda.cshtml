@@ -1,0 +1,145 @@
+﻿@model Sayfalar
+@inject HelperServis _helperServis
+@{
+    var siteAyariHelper = await _helperServis.GetSiteAyari();
+    var siteAyari = siteAyariHelper?.SiteAyarlari;
+    var adresBilgiHelper = await _helperServis.GetAdresBilgi();
+
+    var aktifDil = _helperServis.GetAktifDil().Result;
+
+    var sayfa = _helperServis.GetSayfa(Model.Id).Result;
+    var parentSayfa = _helperServis.GetParentSayfa(SayfaTipleri.Hakkimizda).Result;
+    var sayfaResim = _helperServis.GetSayfaResim(Model.Id).Result;
+    var sayfaResim2 = _helperServis.GetAnaSayfaResim(Model.Id).Result;
+    var sayfaDosya = _helperServis.GetSayfaDosya(Model.Id).Result;
+    var sayfaResimleri = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri1, aktifDil.Id);
+    var sayfaResimleri2 = _helperServis.GetSayfaResimleri(Model.Id, SayfaResimKategorileri.Galeri2, aktifDil.Id);
+
+    var altSayfalar = _helperServis.GetAltSayfalar(Model.Id);
+
+    var sayfaOzellikleri = _helperServis.GetSayfaOzellikleri(Model.Id);
+
+    var dil = _helperServis.GetCurrentCulture();
+
+    ViewBag.MetaTitle = sayfa.SayfaAdi;
+    ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
+    ViewBag.MetaAciklama = siteAyariHelper?.MetaAciklama ?? "";
+}
+
+@section Style
+{
+
+}
+@{
+    var slogan1 = _helperServis.GetSayfa(3).Result;
+    var slogan1Resim = _helperServis.GetSayfaResim(slogan1.SayfaId).Result;
+    var slogan1Resim2 = _helperServis.GetAnaSayfaResim(slogan1.SayfaId).Result;
+}
+<div class="ps-about">
+    <div class="container">
+        <ul class="ps-breadcrumb">
+            <li class="ps-breadcrumb__item"><a href="/">@Localize("Genel.AnaSayfa")</a></li>
+            <li class="ps-breadcrumb__item active" aria-current="page">@slogan1.SayfaAdi</li>
+        </ul>
+        <section class="ps-banner--round">
+            <div class="ps-banner">
+                <div class="ps-banner__block">
+                    <div class="ps-banner__content">
+                        <div class="ps-logo"><a href="#"> <img src="@slogan1Resim2" loading="lazy"></a></div>
+                        <h2 class="ps-banner__title">@slogan1.SayfaAdi</h2>
+                        <div class="ps-banner__btn-group">
+                            <div class="ps-banner__btn"><img src="@sayfaDosya" loading="lazy">@slogan1.ButonAdi</div>
+                            <div class="ps-banner__btn"><img src="@slogan1.Sayfalar.BreadcrumbResim" loading="lazy">@slogan1.ButonUrl</div>
+                        </div>
+                    </div>
+                    <div class="ps-banner__thumnail"><img class="ps-banner__round" src="~/Content/Theme/img/round5.png" loading="lazy"><img class="ps-banner__image" src="@slogan1Resim" loading="lazy"></div>
+                </div>
+            </div>
+        </section>
+
+        @{
+            var slogan2 = _helperServis.GetSayfa(4).Result;
+        }
+        <section class="ps-about--info">
+            <h2 class="ps-about__title">@slogan2.SayfaAdi</h2>
+            <p class="ps-about__subtitle">@Html.Raw(slogan2.KisaAciklama)</p>
+            <div class="ps-about__extent">
+                <div class="row m-0">
+                    @foreach (var item in _helperServis.GetAltSayfalar(4))
+                    {
+                        var slogan2Resim = _helperServis.GetSayfaResim(item.SayfaId).Result;
+
+                        <div class="col-12 col-md-4 p-0">
+                            <div class="ps-block--about">
+                                <div class="ps-block__icon"><img src="@slogan2Resim" alt="" loading="lazy"></div>
+                                <h4 class="ps-block__title">@item.SayfaAdi</h4>
+                                <div class="ps-block__subtitle">@item.SayfaAdiAltAciklama</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="ps-about__content">
+        @{
+            var slogan3 = _helperServis.GetSayfa(8).Result;
+            var sloganResim3 = _helperServis.GetSayfaResim(slogan3.SayfaId).Result;
+        }
+        <section class="ps-about__banner" data-background="@sloganResim3">
+            <div class="container">
+                <div class="ps-banner">
+                    <h2 class="ps-banner__title">@slogan3.SayfaAdi</h2>
+                    <div class="ps-banner__desc">
+                        @Html.Raw(slogan3.KisaAciklama)
+                    </div>
+                    <a class="ps-banner__shop" href="@slogan3.ButonUrl">@slogan3.ButonAdi</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="ps-about--video">
+            <div class="ps-banner">
+                <div class="container">
+                    <section class="ps-section--block-grid">
+                        <div class="ps-banner__thumnail">
+                            <div style="display:none;" id="video1">
+                                <video class="lg-video-object lg-html5" controls="" preload="none">
+                                    <source src="@sayfa.YoutubeVideoLink" type="video/mp4">Tarayıcınız HTML5 videoyu desteklemiyor.
+                                </video>
+                            </div>
+                            <img class="ps-banner__image" src="@sayfaResim" alt="" loading="lazy">
+                            <div id="ps-video-gallery">
+                                <div class="video" data-html="#video1" data-poster="@sayfaResim">
+                                    <a href="#">
+                                        <div class="ps-banner__video"><i class="fa fa-play"></i></div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ps-section__content">
+                            <h2 class="ps-about__title">@sayfa.SayfaAdi</h2>
+                            <div class="ps-section__subtitle">@sayfa.SayfaAdiAltAciklama</div>
+                            <div class="ps-section__desc">
+                                @Html.Raw(sayfa.KisaAciklama)
+
+                                <ul class="ps-section__list">
+                                    @Html.Raw(sayfa.Aciklama)
+                                </ul>
+                            </div>
+
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</div>
+
+@section Scripts
+{
+
+
+}

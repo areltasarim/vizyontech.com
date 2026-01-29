@@ -1,0 +1,66 @@
+﻿@inject HelperServis _helperServis
+@inject SepetServis _sepetServis
+@{
+    var _context = new AppDbContext();
+
+    var shoppingCart = ViewData["shoppingCart"] as SepetServis;
+
+    var sepetIdCookie = Context.Request.Cookies["SepetCookie"];
+
+    var sepet = _context.Sepet.Where(p => p.CookieId == sepetIdCookie).ToList();
+
+    var dil = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>().RequestCulture.Culture.Name;
+
+}
+
+
+
+@foreach (var item in sepet)
+{
+    var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
+    var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
+    var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
+
+
+    <li>
+        <div class="ps-product ps-product--wishlist">
+            <div class="ps-product__remove"><a href="javascript: void(0)" onclick="SepetUrunSil(@item.UrunId)"><i class="icon-cross"></i></a></div>
+            <div class="ps-product__content">
+                <div class="ps-product__info">
+                    <div class="ps-product__image-wrapper">
+                        <a href="/@seoUrl">
+                            <img src="@urunResimFirst" alt="@urun.UrunAdi" class="ps-product__image" loading="lazy" />
+                        </a>
+                    </div>
+                    <h5 class="ps-product__title"><a href="/@seoUrl">@urun.UrunAdi</a></h5>
+                </div>
+                <div class="ps-product__row">
+                    <div class="ps-product__label">@Localize("Genel.Fiyat"):</div>
+                    <div class="ps-product__value">
+                        <span class="ps-product__price">
+                            @(urun.Urunler.ListeFiyat.ToString("C2"))
+                        </span>
+                    </div>
+                </div>
+
+                <div class="ps-product__row">
+                    <div class="ps-product__label">@Localize("Genel.Adet"):</div>
+                    <div class="ps-product__value">@item.Adet</div>
+                </div>
+
+                <div class="ps-product__row">
+                    <div class="ps-product__label">@Localize("Genel.AraToplamListeFiyat"):</div>
+                    <div class="ps-product__value">
+                        @(((urun.Urunler.ListeFiyat) * item.Adet).ToString("C2"))
+                    </div>
+                </div>
+
+                <!-- Diğer içerikler burada devam eder -->
+            </div>
+        </div>
+    </li>
+}
+
+
+
+

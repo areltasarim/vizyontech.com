@@ -1,0 +1,324 @@
+﻿@model BannerViewModel
+@{
+    ViewData["Title"] = ViewData["AltBaslik"].ToString();
+    var _context = new AppDbContext();
+    var diller = _context.Diller.ToList() as IEnumerable<Diller>;
+
+    foreach (var item in diller as IEnumerable<Diller>)
+    {
+        var BannerTranslate = Model.Banner.BannerTranslate.FirstOrDefault(x => x.DilId == item.Id);
+        if (BannerTranslate == null)
+        {
+            BannerTranslate = new BannerTranslate()
+            {
+                DilId = item.Id,
+                Diller = new Diller() { Id = item.Id, DilAdi = item.DilAdi }
+            };
+            Model.Banner.BannerTranslate.Add(BannerTranslate);
+        }
+
+    }
+}
+
+<link href="~/Admin/Content/Theme/assets/libs/select2/css/select2.min.css" rel="stylesheet" type="text/css" />
+
+@section styles
+{
+    <style>
+        .sayfatipi {
+            display: none;
+        }
+
+        .select2 {
+            width: 100% !important;
+        }
+    </style>
+}
+
+<partial name="_SayfaBreadcrumb" />
+<partial name="_BilgiMesaji" />
+
+<form method="post" enctype="multipart/form-data" id="bannerViewModel">
+    <input type="hidden" asp-for="Id" value="@Model.Banner.Id" />
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+
+                    <h4 class="card-title">
+                        <i class="ri-edit-box-line"></i> @ViewData["AltBaslik"]
+                    </h4>
+
+                    <hr class="my-4">
+                    <!--   Nav tabs -->
+
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-bs-toggle="tab" href="#genel" role="tab">
+                                <span class="">Genel</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!--  Tab panes-->
+                    <div class="tab-content p-3 text-muted">
+                        <div class="tab-pane active" id="genel" role="tabpanel">
+                            <!--  Dil panes-->
+                            <ul class="nav nav-tabs" role="tablist">
+                                @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dil-@(dil.DilKoduId)" role="tab">
+                                            <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
+                                            <span class="d-none d-sm-block">@dil.DilAdi</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                            <!--  Tab panes-->
+                            <div class="tab-content p-3 text-muted">
+                                @Html.EditorFor(x => Model.Banner.BannerTranslate)
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Desktop Column</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Banner.ColumnDesktop" asp-items="Html.GetEnumSelectListWithDefaultValue<ColumnSayisi>(defaultValue:ColumnSayisi.Bir)">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Mobil Column</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Banner.ColumnMobil" asp-items="Html.GetEnumSelectListWithDefaultValue<ColumnSayisi>(defaultValue:ColumnSayisi.Bir)">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Durum</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" asp-for="Banner.Durum" asp-items="Html.GetEnumSelectListWithDefaultValue<SayfaDurumlari>(defaultValue:SayfaDurumlari.Aktif)">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <label for="example-text-input" class="col-md-1 col-form-label">Sıra</label>
+                                    <div class="col-md-9">
+                                        <input class="form-control" asp-for="Banner.Sira" type="text">
+                                    </div>
+                                </div>
+                                <ul class="nav nav-tabs" role="tablist">
+                                    @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                    {
+                                        <li class="nav-item">
+                                            <a class="nav-link @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" data-bs-toggle="tab" href="#dilbanner-@(dil.DilKoduId)" role="tab">
+                                                <span class="">@dil.DilAdi</span>
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                                <div class="tab-content p-3 text-muted">
+
+
+                                    @*<button type="button" onclick="bannerResimEkle();" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title="Banner Ekle">
+                <i class="fa fa-plus-circle"></i>
+            </button>*@
+
+                                    @foreach (var dil in ViewBag.Diller as IEnumerable<Diller>)
+                                    {
+                                        <div class="tab-pane @((dil.DilKodlari.DilKodu == "tr-TR")? "active":"")" id="dilbanner-@dil.DilKoduId" role="tabpanel">
+
+                                            <div>
+                                                <table class="table table-bordered table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <td class="text-left">Başlık</td>
+                                                            <td class="text-left">Menü Tipi</td>
+                                                            <td class="text-left">Url</td>
+                                                            <td class="text-left">Resim</td>
+                                                            <td class="text-left">Sıra</td>
+                                                            <td class="text-left"></td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="BannerResimListe-@dil.DilKoduId">
+                                                        @if (Model.Id == null)
+                                                        {
+                                                            @Html.EditorFor(x => Model.BannerResimListesi)
+                                                        }
+                                                        else
+                                                        {
+                                                            if (Model.BannerResimListesi.ContainsKey(dil.DilKoduId))
+                                                            {
+                                                                foreach (var resim in Model.BannerResimListesi[dil.DilKoduId])
+                                                                {
+                                                                    @Html.Partial("EditorTemplates/BannerResimTranslate", resim)
+                                                                }
+                                                            }
+                                                        }
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td class="text-right" rowspan="7">
+                                                                <button type="button" onclick="bannerResimEkle(this);" id="bannerResimAdd-@dil.DilKoduId" data-dilid="@dil.DilKoduId" data-toggle="tooltip" title="" class="btn btn-primary" data-original-title="Banner Ekle">
+                                                                    <i class="fa fa-plus-circle"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    }
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-2 mt-4 center-block">
+                        <div class="text-center">
+                            <div class="form-group mb-0">
+                                <div class="button-items">
+                                    <button type="button" value="Kaydet" onclick="bannerKaydet(this)" name="submit" class="btn btn-success waves-effect waves-light mr-1 btnEkle btn-progress">
+                                        <i class="fa fa-check"></i>  Kaydet
+                                    </button>
+                                    <button type="button" onclick="bannerKaydet(this)" value="KaydetGuncelle" name="submit" class="btn btn-primary waves-effect waves-light mr-1 btnEkle btnEkleGuncelle btn-progress">
+                                        <i class="fa fa-check"></i>  Kaydet ve Güncelle
+                                    </button>
+                                    <a class="btn btn-danger waves-effect text-white" href="/Admin/Banner/Index/@Context.Request.QueryString">
+                                        <i class="fa fa-reply"></i> İptal
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+@section scripts
+{
+    <script src="~/Admin/Content/Theme/assets/libs/select2/js/select2.min.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-advanced.init.js"></script>
+
+    <script src="~/Admin/Content/Theme/assets/js/pages/form-editor.init.js"></script>
+
+    <script src="~/js/banner.js"></script>
+
+    <script>
+
+
+
+        function bannerResimEkle(button) {
+            var dilId = button.getAttribute('data-dilid');
+            var serializedData = $('#bannerViewModel').serialize() + '&DilId=' + dilId;
+
+            $.ajax({
+                async: true,
+                data: serializedData,
+                type: "POST",
+                url: '/Admin/Banner/BannerResimEkle',
+                success: function (data) {
+                    var newRow = $(data);
+
+                    var newIndex = $('#BannerResimListe-' + dilId).find('tr').length;
+
+                    // Tüm input elemanlarının name değerlerini güncelle
+                    newRow.find('input[name^="BannerResimListesi"]').each(function () {
+                        var name = $(this).attr('name');
+                        var updatedName = name.replace(/\[\d+\]\[\d+\]/, `[${dilId}][${newIndex}]`);
+                        $(this).attr('name', updatedName);
+                    });
+
+                    // Tüm select elemanlarının name değerlerini güncelle
+                    newRow.find('select[name^="BannerResimListesi"]').each(function () {
+                        var name = $(this).attr('name');
+                        var updatedName = name.replace(/\[\d+\]\[\d+\]/, `[${dilId}][${newIndex}]`);
+                        $(this).attr('name', updatedName);
+                    });
+
+                    $('#BannerResimListe-' + dilId).append(newRow);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Hata oluştu:", error);
+                }
+            });
+        }
+
+        function bannerKaydet(button) {
+            var formElement = document.getElementById('bannerViewModel');
+
+            // Form verilerini al
+            var formData = new FormData(formElement);
+            // Butonun name ve value değerlerini ekle
+            var buttonName = button.getAttribute('name');
+            var buttonValue = button.getAttribute('value');
+
+            if (buttonName && buttonValue) {
+                formData.append(buttonName, buttonValue);
+            }
+
+            $.ajax({
+                async: true,
+                type: "POST",
+                url: '/Admin/Banner/AddOrUpdate', // POST URL
+                data: formData, // Form verisi
+                processData: false, // FormData için false
+                contentType: false, // FormData için false
+                success: function (response) {
+                    if (response.Basarilimi) {
+                        window.location.href = response.SayfaUrl;
+                    } else {
+                        alert("Kaydetme sırasında bir hata oluştu.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Hata oluştu:", error);
+                }
+            });
+        }
+
+
+        function bannerSil(sira, dilId) {
+            // Benzersiz ID ile satırı seç
+            var row = $('#banner-row-' + dilId + '-' + sira);
+
+            if (row.length > 0) {
+                // BannerResimId'yi al
+                var bannerResimId = row.find('input[name$="BannerResimId"]').val();
+
+                if (bannerResimId) {
+                    // İlgili dil için silinen kayıtları al
+                    var deletedRecordsField = $('#deletedRecords-' + dilId);
+                    var deletedRecords = deletedRecordsField.val();
+                    var deletedList = deletedRecords ? deletedRecords.split(',') : [];
+
+                    // Eğer ID zaten listede yoksa ekle
+                    if (!deletedList.includes(bannerResimId)) {
+                        deletedList.push(bannerResimId);
+                        deletedRecordsField.val(deletedList.join(','));
+                    }
+
+                    console.log("Deleted Records for DilId " + dilId + ": " + deletedRecordsField.val());
+                }
+
+                // Satırı DOM'dan kaldır
+                row.remove();
+            }
+        }
+
+    </script>
+
+
+
+}

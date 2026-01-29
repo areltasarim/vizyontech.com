@@ -1,0 +1,21 @@
+﻿@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer localizer
+@inject Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Builder.RequestLocalizationOptions> locOptions
+@{
+    var culture = Context.Features.Get<Microsoft.AspNetCore.Localization.IRequestCultureFeature>();
+
+    AppDbContext _context = new AppDbContext();
+    List<SelectListItem> cultureList = _context.DilKodlari.Select(x => new SelectListItem()
+    {
+        Text = x.DilKodu,
+        Value = x.DilKodu
+    }).ToList();
+
+    var returUrl = string.IsNullOrWhiteSpace(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}{Context.Request.QueryString}";
+
+    var aktifDil = _context.Diller.Where(p => p.DilKodlari.DilKodu == culture.RequestCulture.Culture.ToString()).FirstOrDefault();
+}
+
+@foreach (var item in _context.Diller.Where(p => p.Durum == SayfaDurumlari.Aktif && p.DilKodlari.DilKodu != culture.ToString()).ToList().OrderBy(p => p.Sira))
+{
+        <img src="@item.Resim" alt="@item.KisaDilAdi" loading="lazy"> <span>@item.DilAdi</span>
+}

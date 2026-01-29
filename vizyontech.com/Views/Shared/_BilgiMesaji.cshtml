@@ -1,0 +1,11 @@
+﻿@using EticaretWebCoreHelper
+@if (TempData["BilgiMesaji"] != null)
+{
+
+    var message = TempDataExtensions.Get<PageMessageModel>(TempData, "BilgiMesaji");
+    <div class="alert alert-@message.Type alert-dismissible" role="alert">
+        <i class="mdi mdi-check-all mr-2"></i>
+        @message.Text
+    </div>
+}
+
