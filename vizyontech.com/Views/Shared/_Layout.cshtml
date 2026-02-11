@@ -170,13 +170,11 @@
                         }
 
                         <div class="ps-header__search">
-
-
-
                             <form class="searchForm desktop-search" asp-controller="Urunler" asp-action="Arama" method="get">
-                                <div class="ps-search-table">
+                                <div class="ps-search-table ps-autocomplete-wrapper">
                                     <div class="input-group">
-                                        <input class="form-control searchInput desktop-input ps-input" type="text" name="keyword" placeholder="@Localize("Genel.UrunArama")">
+                                        <input class="form-control searchInput desktop-input ps-input ps-autocomplete-input" type="text" name="keyword" placeholder="@Localize("Genel.UrunArama")" autocomplete="off">
+                                        <ul class="ps-autocomplete-list"></ul>
                                         <div class="input-group-append">
                                             <a href="javascript:void(0);" onclick="submitSearchForm('desktop'); return false;">
                                                 <i class="fa fa-search"></i>
@@ -185,7 +183,6 @@
                                     </div>
                                 </div>
                             </form>
-
                         </div>
 
                         <div class="ps-header__menu">
@@ -402,9 +399,10 @@
             <a class="ps-search__close" asp-controller="Urunler" asp-action="Arama" id="close-search"><i class="icon-cross"></i></a>
             <h3>@Localize("Genel.Arama")</h3>
             <form class="searchForm mobile-search" asp-controller="Urunler" asp-action="Arama" method="post">
-                <div class="ps-search-table">
+                <div class="ps-search-table ps-autocomplete-wrapper">
                     <div class="input-group">
-                        <input class="form-control searchInput mobile-input ps-input" type="text" name="keyword" placeholder="@Localize("Genel.UrunArama")">
+                        <input class="form-control searchInput mobile-input ps-input ps-autocomplete-input" type="text" name="keyword" placeholder="@Localize("Genel.UrunArama")" autocomplete="off">
+                        <ul class="ps-autocomplete-list"></ul>
                         <div class="input-group-append"><a href="javascript:void(0);" onclick="submitSearchForm('mobile'); return false;"><i class="fa fa-search"></i></a></div>
                     </div>
                 </div>
@@ -487,6 +485,430 @@
         }
 
     </script>
+
+    <!-- Auto-Complete Arama CSS ve JavaScript -->
+    <style>
+        /* Autocomplete Container */
+        .ps-autocomplete-wrapper {
+            position: relative !important;
+            width: 100% !important;
+        }
+
+        .ps-search-table.ps-autocomplete-wrapper {
+            position: relative !important;
+        }
+
+        .input-group {
+            position: relative !important;
+        }
+
+        /* Autocomplete Dropdown List */
+        .ps-autocomplete-list {
+            position: absolute !important;
+            top: calc(100% + 2px) !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            background: #ffffff !important;
+            border: 1px solid #e1e1e1 !important;
+            border-top: 1px solid #e1e1e1 !important;
+            border-radius: 0 0 8px 8px !important;
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            z-index: 999999 !important;
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            transition: opacity 0.2s ease !important;
+        }
+
+        .ps-autocomplete-list.show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .ps-autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f5f5f5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ps-autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .ps-autocomplete-item:hover,
+        .ps-autocomplete-item.active {
+            background-color: #f8f9fa;
+        }
+
+        .ps-autocomplete-item-image {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .ps-autocomplete-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ps-autocomplete-item-title {
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ps-autocomplete-item-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .ps-autocomplete-item-code {
+            color: #666;
+        }
+
+        .ps-autocomplete-item-price {
+            color: #fc6539;
+            font-weight: 600;
+        }
+
+        .ps-autocomplete-loading {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .ps-autocomplete-no-results {
+            padding: 15px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .ps-autocomplete-input.searching {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 45px center;
+            background-size: 20px;
+        }
+
+        /* Mobil için özelleştirmeler */
+        @@media (max-width: 768px) {
+            .ps-autocomplete-list {
+                max-height: 300px;
+            }
+            
+            .ps-autocomplete-item {
+                padding: 10px;
+            }
+            
+            .ps-autocomplete-item-image {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Scroll bar tasarımı */
+        .ps-autocomplete-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ps-autocomplete-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .ps-autocomplete-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .ps-autocomplete-list::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+
+        /* Global Autocomplete List (Body'ye ekleniyor) */
+        .ps-autocomplete-list-global {
+            position: fixed !important;
+            background: #ffffff !important;
+            border: 1px solid #e1e1e1 !important;
+            border-radius: 0 0 8px 8px !important;
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            z-index: 999999 !important;
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            transition: opacity 0.2s ease !important;
+        }
+
+        .ps-autocomplete-list-global.show {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .ps-autocomplete-list-global::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ps-autocomplete-list-global::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .ps-autocomplete-list-global::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .ps-autocomplete-list-global::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+    </style>
+
+    <script>
+        (function() {
+            let searchTimeout = null;
+            let currentFocus = -1;
+            let activeInput = null;
+            let globalAutocompleteList = null;
+
+            // Global autocomplete list oluştur (body'ye eklenecek)
+            function createGlobalList() {
+                if (!globalAutocompleteList) {
+                    globalAutocompleteList = document.createElement('ul');
+                    globalAutocompleteList.className = 'ps-autocomplete-list-global';
+                    document.body.appendChild(globalAutocompleteList);
+                }
+                return globalAutocompleteList;
+            }
+
+            // Her arama input'u için autocomplete başlat
+            document.querySelectorAll('.ps-autocomplete-input').forEach(function(input) {
+                const list = createGlobalList();
+
+                // Input olayı
+                input.addEventListener('input', function() {
+                    const term = this.value.trim();
+                    activeInput = this;
+                    
+                    clearTimeout(searchTimeout);
+                    
+                    if (term.length < 2) {
+                        list.classList.remove('show');
+                        list.innerHTML = '';
+                        hideList();
+                        return;
+                    }
+
+                    input.classList.add('searching');
+                    
+                    searchTimeout = setTimeout(function() {
+                        fetch('/Urunler/AutoCompleteSearch?term=' + encodeURIComponent(term))
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Arama başarısız: ' + response.status);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                input.classList.remove('searching');
+                                console.log('Gelen sonuçlar:', data);
+                                displayResults(data, list, input);
+                            })
+                            .catch(error => {
+                                console.error('Arama hatası:', error);
+                                input.classList.remove('searching');
+                                hideList();
+                            });
+                    }, 300);
+                });
+
+                // Focus olayı - pozisyonu güncelle
+                input.addEventListener('focus', function() {
+                    activeInput = this;
+                    if (list.innerHTML) {
+                        updateListPosition();
+                    }
+                });
+
+                // Klavye navigasyonu
+                input.addEventListener('keydown', function(e) {
+                    const items = list.querySelectorAll('.ps-autocomplete-item');
+                    
+                    if (e.keyCode === 40) { // Aşağı ok
+                        e.preventDefault();
+                        currentFocus++;
+                        addActive(items);
+                    } else if (e.keyCode === 38) { // Yukarı ok
+                        e.preventDefault();
+                        currentFocus--;
+                        addActive(items);
+                    } else if (e.keyCode === 13) { // Enter
+                        if (currentFocus > -1 && items[currentFocus]) {
+                            e.preventDefault();
+                            items[currentFocus].click();
+                        }
+                    } else if (e.keyCode === 27) { // Escape
+                        hideList();
+                        currentFocus = -1;
+                    }
+                });
+            });
+
+            // Dışarı tıklandığında kapat
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.ps-autocomplete-input') && !e.target.closest('.ps-autocomplete-list-global')) {
+                    hideList();
+                    currentFocus = -1;
+                }
+            });
+
+            function hideList() {
+                if (globalAutocompleteList) {
+                    globalAutocompleteList.classList.remove('show');
+                }
+            }
+
+            function updateListPosition() {
+                if (!activeInput || !globalAutocompleteList) return;
+                
+                const rect = activeInput.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                
+                globalAutocompleteList.style.top = (rect.bottom + scrollTop + 2) + 'px';
+                globalAutocompleteList.style.left = (rect.left + scrollLeft) + 'px';
+                globalAutocompleteList.style.width = rect.width + 'px';
+            }
+
+            // Scroll ve resize'da pozisyonu güncelle
+            window.addEventListener('scroll', updateListPosition);
+            window.addEventListener('resize', updateListPosition);
+
+            function displayResults(data, list, input) {
+                console.log('displayResults çağrıldı, data:', data);
+                console.log('Liste elementi:', list);
+                
+                list.innerHTML = '';
+                currentFocus = -1;
+
+                if (data.length === 0) {
+                    list.innerHTML = '<li class="ps-autocomplete-no-results">Sonuç bulunamadı</li>';
+                    updateListPosition();
+                    list.classList.add('show');
+                    console.log('Liste show class eklendi (boş sonuç)');
+                    return;
+                }
+
+                data.forEach(function(item) {
+                    const li = document.createElement('li');
+                    li.className = 'ps-autocomplete-item';
+                    
+                    // Resim elementi oluştur
+                    const img = document.createElement('img');
+                    img.className = 'ps-autocomplete-item-image';
+                    img.alt = item.urunAdi;
+                    
+                    // Resim yükleme hatasını yönet (sonsuz döngüyü önle)
+                    img.onerror = function() {
+                        this.src = '/Content/Theme/img/no-image.png';
+                        this.onerror = null; // onerror'ı kaldır
+                    };
+                    
+                    // Resim URL'sini kontrol et ve ata
+                    if (item.resim && item.resim.length > 0 && !item.resim.includes('no-image')) {
+                        img.src = item.resim;
+                    } else {
+                        img.src = '/Content/Theme/img/no-image.png';
+                    }
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'ps-autocomplete-item-content';
+                    
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'ps-autocomplete-item-title';
+                    titleDiv.textContent = item.urunAdi;
+                    
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'ps-autocomplete-item-info';
+                    
+                    if (item.urunKodu) {
+                        const codeSpan = document.createElement('span');
+                        codeSpan.className = 'ps-autocomplete-item-code';
+                        codeSpan.textContent = 'Kod: ' + item.urunKodu;
+                        infoDiv.appendChild(codeSpan);
+                    }
+                    
+                    contentDiv.appendChild(titleDiv);
+                    contentDiv.appendChild(infoDiv);
+                    
+                    li.appendChild(img);
+                    li.appendChild(contentDiv);
+                    
+                    li.addEventListener('click', function() {
+                        window.location.href = '/' + item.url;
+                    });
+                    
+                    list.appendChild(li);
+                });
+
+                updateListPosition();
+                list.classList.add('show');
+                console.log('Liste show class eklendi, toplam item:', data.length);
+                console.log('Liste innerHTML:', list.innerHTML.substring(0, 200));
+                console.log('Liste pozisyonu:', list.style.top, list.style.left, list.style.width);
+            }
+
+            function addActive(items) {
+                if (!items) return false;
+                removeActive(items);
+                
+                if (currentFocus >= items.length) currentFocus = 0;
+                if (currentFocus < 0) currentFocus = items.length - 1;
+                
+                if (items[currentFocus]) {
+                    items[currentFocus].classList.add('active');
+                    items[currentFocus].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }
+
+            function removeActive(items) {
+                items.forEach(function(item) {
+                    item.classList.remove('active');
+                });
+            }
+
+            function formatPrice(price) {
+                return parseFloat(price).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+            }
+        })();
+    </script>
+
 
     <script>
         (function () {

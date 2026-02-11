@@ -381,6 +381,80 @@ namespace vizyontech.com.com.Controllers
 
             return PartialView("~/Views/Urunler/_HizliGoruntule.cshtml", model);
         }
+        // Auto-complete için API endpoint
+        public async Task<IActionResult> AutoCompleteSearch(string term)
+        {
+            if (string.IsNullOrEmpty(term) || term.Length < 2)
+            {
+                return Json(new List<object>());
+            }
+
+            var dil = HttpContext.Features.Get<IRequestCultureFeature>().RequestCulture.Culture.Name;
+            
+            // Arama teriminden özel karakterleri kaldır (tire, slash, boşluk vb.)
+            var normalizedTerm = System.Text.RegularExpressions.Regex.Replace(term.ToLower().Trim(), "[^a-z0-9]", "");
+            
+            var urunler = await _context.Urunler
+                .Include(u => u.UrunlerTranslate)
+                .ThenInclude(ut => ut.Diller)
+                .ThenInclude(d => d.DilKodlari)
+                .Include(u => u.UrunResimleri)
+                .Where(u => u.Durum == SayfaDurumlari.Aktif)
+                .ToListAsync();
+
+            var filteredUrunler = urunler
+                .Where(x => x.UrunlerTranslate.Any(p =>
+                    p.Diller != null &&
+                    p.Diller.DilKodlari != null &&
+                    p.Diller.DilKodlari.DilKodu == dil &&
+                    (
+                        // Ürün adında normal arama
+                        (p.UrunAdi != null && p.UrunAdi.ToLower().Contains(term.ToLower().Trim())) ||
+                        // Ürün kodunda normal arama
+                        (p.Urunler.UrunKodu != null && p.Urunler.UrunKodu.ToLower().Contains(term.ToLower().Trim())) ||
+                        // Ürün kodunda normalize edilmiş arama (özel karakterleri görmezden gelir)
+                        (p.Urunler.UrunKodu != null && System.Text.RegularExpressions.Regex.Replace(p.Urunler.UrunKodu.ToLower(), "[^a-z0-9]", "").Contains(normalizedTerm))
+                    )))
+                .Take(10)
+                .ToList();
+
+            var sonuclar = new List<object>();
+            
+            foreach (var urun in filteredUrunler)
+            {
+                var translate = urun.UrunlerTranslate.FirstOrDefault(t =>
+                    t.Diller?.DilKodlari?.DilKodu == dil);
+                
+                var seoUrl = await _context.SeoUrl
+                    .FirstOrDefaultAsync(s => s.EntityId == urun.Id && s.SeoTipi == SeoTipleri.Urun);
+                
+                // Resim URL'sini doğrula - boş veya geçersiz ise no-image kullan
+                var resim = urun.UrunResimleri?.FirstOrDefault()?.Resim;
+                if (string.IsNullOrWhiteSpace(resim))
+                {
+                    resim = "/Content/Theme/img/no-image.png";
+                }
+
+                // Fiyat bilgilerini al
+                var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(urun.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
+                var urunListeFiyatTl = await _helperServis.GetPriceAsync(urun.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
+                
+                sonuclar.Add(new
+                {
+                    id = urun.Id,
+                    urunAdi = translate?.UrunAdi ?? "",
+                    urunKodu = urun.UrunKodu ?? "",
+                    fiyat = urun.ListeFiyat,
+                    fiyatFormatted = urunListeFiyatDoviz?.Format(true) ?? "",
+                    fiyatTlFormatted = urunListeFiyatTl?.Format(true) ?? "",
+                    resim = resim,
+                    url = seoUrl?.Url ?? $"/urunler/detay/{urun.Id}"
+                });
+            }
+
+            return Json(sonuclar);
+        }
+
         [Route("aramasonucu")]
         public IActionResult Arama(string keyword)
         {
