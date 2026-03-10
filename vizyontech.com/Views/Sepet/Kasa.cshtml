@@ -93,6 +93,34 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
 
+        $(document).ready(function () {
+            // Teslimat alanları için custom validation
+            $.validator.addMethod("notZero", function (value, element) {
+                return value != "0" && value != 0;
+            }, "Bu alanı seçmelisiniz.");
+
+            $('#KasaSiparis_TeslimatUlkeId').rules('add', {
+                notZero: true,
+                messages: {
+                    notZero: "Ülke alanı boş bırakılamaz..!"
+                }
+            });
+
+            $('#KasaSiparis_TeslimatIlId').rules('add', {
+                notZero: true,
+                messages: {
+                    notZero: "İl alanı boş bırakılamaz..!"
+                }
+            });
+
+            $('#KasaSiparis_TeslimatIlceId').rules('add', {
+                notZero: true,
+                messages: {
+                    notZero: "İlçe alanı boş bırakılamaz..!"
+                }
+            });
+        });
+
         //$(document).ready(function () {
 
         //    $('#btnKupon').on('click', function (e) {
@@ -135,9 +163,31 @@
         $('#fatara_teslimat_adresi_ayni_input').on('change', function () {
             if ($(this).is(':checked')) {
                 $('#KasaSiparis_FaturaveTeslimatAdresiAynimi').val("true");
+                // Fatura alanlarına validation ekle
+                $('#KasaSiparis_FaturaUlkeId').rules('add', {
+                    notZero: true,
+                    messages: {
+                        notZero: "Ülke alanı boş bırakılamaz..!"
+                    }
+                });
+                $('#KasaSiparis_FaturaIlId').rules('add', {
+                    notZero: true,
+                    messages: {
+                        notZero: "İl alanı boş bırakılamaz..!"
+                    }
+                });
+                $('#KasaSiparis_FaturaIlceId').rules('add', {
+                    notZero: true,
+                    messages: {
+                        notZero: "İlçe alanı boş bırakılamaz..!"
+                    }
+                });
             } else {
                 $('#KasaSiparis_FaturaveTeslimatAdresiAynimi').val("false");
-
+                // Fatura alanlarından validation kaldır
+                $('#KasaSiparis_FaturaUlkeId').rules('remove');
+                $('#KasaSiparis_FaturaIlId').rules('remove');
+                $('#KasaSiparis_FaturaIlceId').rules('remove');
             }
         });
 
