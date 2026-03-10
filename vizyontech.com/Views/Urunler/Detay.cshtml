@@ -98,7 +98,29 @@
         /* Masaüstü için Tab Wrapper Gizle */
         @@media (min-width: 768px) {
             .ps-tab-wrapper {
+                display: flex;
+                justify-content: flex-start;
+                align-items: center;
+                margin-bottom: 20px;
+            }
+
+            .ps-tab-scroll-btn {
                 display: none;
+            }
+
+            .ps-tab-list {
+                overflow-x: visible;
+                max-width: 100%;
+            }
+
+            .ps-tab-list .nav-item {
+                flex: 0 0 auto;
+                margin-right: 5px;
+            }
+
+            .ps-tab-list .nav-link {
+                padding: 12px 18px !important;
+                font-size: 18px !important;
             }
         }
 
@@ -425,7 +447,7 @@
                                 </div>
                             }
                             <div class="ps-product__content">
-                                <div class="ps-tab-wrapper d-md-none">
+                                <div class="ps-tab-wrapper">
                                     <button class="ps-tab-scroll-btn ps-tab-scroll-left" id="tabScrollLeft" aria-label="Scroll Left">
                                         <i class="fa fa-chevron-left"></i>
                                     </button>

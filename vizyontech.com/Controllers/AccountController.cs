@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Presentation;
+﻿﻿using DocumentFormat.OpenXml.Presentation;
 using EticaretWebCoreEntity;
 using EticaretWebCoreEntity.Enums;
 using EticaretWebCoreHelper;
@@ -611,6 +611,20 @@ namespace vizyontech.com.Controllers
             ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() }).ToList().OrderBy(x => x.Text);
             ViewData["Ilceler"] = _context.Ilceler.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() }).ToList().OrderBy(x => x.Text);
         }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public JsonResult VergiNoDogrula(string vergiNo)
+        {
+            var sonuc = VergiNoHelper.VergiNoVeyaTcKimlikDogrula(vergiNo);
+
+            return Json(new
+            {
+                basarili = sonuc.IsValid,
+                mesaj = sonuc.Message
+            });
+        }
+
         [Route("cikisyap")]
         public async Task<IActionResult> CikisYap()
         {

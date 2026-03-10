@@ -77,7 +77,8 @@ namespace EticaretWebCoreViewModel
         public string VergiDairesi { get; set; }
 
         [Required(ErrorMessage = "{0} alanı boş bırakılamaz..!")]
-        public long? VergiNumarasi { get; set; }
+        [DataType(DataType.Text)]
+        public string VergiNumarasi { get; set; }
         public UyeTipleri Uyetipi { get; set; }
         public UyeDurumlari UyeDurumu { get; set; }
         public int? ParentId { get; set; }

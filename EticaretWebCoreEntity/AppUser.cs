@@ -27,7 +27,7 @@ namespace EticaretWebCoreEntity
 
         public string VergiDairesi { get; set; }
 
-        public long? VergiNumarasi { get; set; }
+        public string VergiNumarasi { get; set; }
 
         public string Adres { get; set; }
         public string B2bSifre { get; set; }

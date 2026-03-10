@@ -621,7 +621,7 @@ namespace vizyontech.com.Areas.Admin.Controllers
                 uye.Ad = Model.Ad;
                 uye.FirmaAdi = Model.FirmaAdi;
                 uye.VergiDairesi = Model.VergiDairesi;
-                uye.VergiNumarasi = Model.VergiNumarasi;
+                uye.VergiNumarasi =  Model.VergiNumarasi;
                 uye.Gsm = Model.Gsm;
                 uye.Adres = Model.Adres;
                 uye.IlceId = Model.IlceId;

@@ -64,8 +64,9 @@
                         </div>
                         <div class="ps-form__group">
                             <label class="ps-form__label">@Localize("Genel.VergiNo") *</label>
-                            <input class="form-control ps-form__input" type="text" asp-for="VergiNumarasi">
+                            <input class="form-control ps-form__input" type="text" asp-for="VergiNumarasi" id="vergiNumarasi">
                             <span asp-validation-for="VergiNumarasi" class="text-danger"></span>
+                            <span id="vergiNoMesaj" style="display:block; margin-top:5px;"></span>
                         </div>
                         @*<div class="ps-form__group">
                                 <label asp-for="VergiLevhasiDosya">@Localize("Genel.VergiLevhasi") *</label>
@@ -110,6 +111,37 @@
     let captchaReady = false;
 
     $(document).ready(function () {
+        // Vergi numarası doğrulama
+        $('#vergiNumarasi').on('blur', function () {
+            var vergiNo = $(this).val().trim();
+            var mesajSpan = $('#vergiNoMesaj');
+            
+            if (vergiNo === '') {
+                mesajSpan.html('').hide();
+                return;
+            }
+
+            // AJAX ile doğrulama
+            $.ajax({
+                url: '/Account/VergiNoDogrula',
+                type: 'POST',
+                data: { vergiNo: vergiNo },
+                success: function (response) {
+                    if (response.basarili) {
+                        mesajSpan.html('<span style="color: green;"><i class="fa fa-check"></i> ' + response.mesaj + '</span>').show();
+                        $('#vergiNumarasi').removeClass('is-invalid').addClass('is-valid');
+                    } else {
+                        mesajSpan.html('<span style="color: red;"><i class="fa fa-times"></i> ' + response.mesaj + '</span>').show();
+                        $('#vergiNumarasi').removeClass('is-valid').addClass('is-invalid');
+                    }
+                },
+                error: function () {
+                    mesajSpan.html('<span style="color: red;">Doğrulama sırasında hata oluştu</span>').show();
+                    $('#vergiNumarasi').removeClass('is-valid').addClass('is-invalid');
+                }
+            });
+        });
+
         $('#frmUyeOl').on('submit', function (e) {
 
             // Eğer token daha alınmadıysa engelle ve önce al

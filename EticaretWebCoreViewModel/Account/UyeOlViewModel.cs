@@ -83,7 +83,8 @@ namespace EticaretWebCoreViewModel
         [DataType(DataType.Text)]
         public string VergiDairesi { get; set; }
 
-        public long? VergiNumarasi { get; set; }
+        [DataType(DataType.Text)]
+        public string VergiNumarasi { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:F2}", ApplyFormatInEditMode = true)]
         public decimal IskontoOrani { get; set; }
