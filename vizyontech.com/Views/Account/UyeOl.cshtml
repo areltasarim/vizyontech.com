@@ -111,7 +111,7 @@
     let captchaReady = false;
 
     $(document).ready(function () {
-        // Vergi numarası doğrulama
+        // Vergi numarası doğrulama (blur event - sadece format kontrolü)
         $('#vergiNumarasi').on('blur', function () {
             var vergiNo = $(this).val().trim();
             var mesajSpan = $('#vergiNoMesaj');
@@ -121,7 +121,7 @@
                 return;
             }
 
-            // AJAX ile doğrulama
+            // AJAX ile format doğrulama
             $.ajax({
                 url: '/Account/VergiNoDogrula',
                 type: 'POST',
@@ -143,23 +143,64 @@
         });
 
         $('#frmUyeOl').on('submit', function (e) {
-
-            // Eğer token daha alınmadıysa engelle ve önce al
+            e.preventDefault(); // Her zaman önce engelle
+            
+            var form = $(this);
+            
+            // jQuery validation kontrolü
+            if (!form.valid()) {
+                return false; // Validation hatası varsa hiçbir şey yapma
+            }
+            
+            // Eğer token daha alınmadıysa önce al
             if (!captchaReady) {
-                e.preventDefault();
-
                 grecaptcha.ready(function () {
                     grecaptcha.execute('@Configuration["googleReCaptcha:SiteKey"]', { action: 'home' }).then(function (token) {
                         $('#Captcha').val(token);
                         captchaReady = true;
-                        $('#frmUyeOl').submit(); // Bu kez captchaReady true olduğu için validation çalışır
+                        
+                        // Captcha alındıktan sonra vergi no kontrolü yap
+                        checkVergiNoAndSubmit(form);
                     });
                 });
             } else {
-                // Submit işlemi bu sefer normal şekilde devam eder (validation çalışır)
-                captchaReady = false; // Form tekrar gönderilirse reCAPTCHA yeniden alınmalı
+                // Vergi numarası kullanılmış mı kontrol et
+                checkVergiNoAndSubmit(form);
             }
+            
+            return false;
         });
+        
+        function checkVergiNoAndSubmit(form) {
+            var vergiNo = $('#vergiNumarasi').val().trim();
+            var mesajSpan = $('#vergiNoMesaj');
+            
+            if (vergiNo === '') {
+                form[0].submit(); // Native submit kullan
+                return;
+            }
+            
+            // Veritabanında kullanılmış mı kontrol et
+            $.ajax({
+                url: '/Account/VergiNoKullanildaMi',
+                type: 'POST',
+                data: { vergiNo: vergiNo },
+                success: function (response) {
+                    if (response.kullanildi) {
+                        mesajSpan.html('<span style="color: red;"><i class="fa fa-times"></i> ' + response.mesaj + '</span>').show();
+                        $('#vergiNumarasi').removeClass('is-valid').addClass('is-invalid');
+                        captchaReady = false; // Form tekrar gönderilirse reCAPTCHA yeniden alınmalı
+                    } else {
+                        // Her şey tamam, formu gönder
+                        form[0].submit(); // Native submit kullan
+                    }
+                },
+                error: function () {
+                    // Hata olursa yine de formu gönder (sunucu tarafında da kontrol var)
+                    form[0].submit(); // Native submit kullan
+                }
+            });
+        }
     });
     </script>
 

@@ -13,7 +13,7 @@
 }
 <partial name="_SayfaBreadcrumb" />
 <partial name="_BilgiMesaji" />
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" autocomplete="off">
 
     <input type="hidden" asp-for="EmailConfirmed" value="@Model?.EmailConfirmed" />
 
@@ -164,13 +164,18 @@
                                     @if (ViewContext.RouteData.Values["Id"] == null)
                                     {
                                         <input asp-for="Password"
-                                               class="form-control" autocomplete="new-password" 
+                                               class="form-control" 
+                                               type="password"
+                                               autocomplete="new-password" 
                                                data-val="true"
                                                data-val-required="Şifre alanı boş bırakılamaz!" />
                                     }
                                     else
                                     {
-                                        <input asp-for="Password" class="form-control" />
+                                        <input asp-for="Password" 
+                                               class="form-control" 
+                                               type="password"
+                                               autocomplete="new-password" />
                                     }
 
                                     <span asp-validation-for="Password" class="text-danger"></span>

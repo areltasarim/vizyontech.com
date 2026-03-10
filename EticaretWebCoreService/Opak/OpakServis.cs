@@ -45,8 +45,22 @@ namespace EticaretWebCoreService.OpakOdeme
         {
             var result = new ResultViewModel();
 
-
             var uye = _context.Users.Find(UyeId);
+
+            // Önce vergi numarası ile kayıt var mı kontrol et
+            if (!string.IsNullOrEmpty(uye.VergiNumarasi))
+            {
+                bool vergiNoKayitliMi = await _opakDbContext.TBLCARISB
+                    .AnyAsync(c => c.VERGINO == uye.VergiNumarasi);
+                
+                if (vergiNoKayitliMi)
+                {
+                    result.Basarilimi = false;
+                    result.MesajDurumu = "warning";
+                    result.Mesaj = "Bu vergi numarası ile Opak'ta kayıtlı bir cari bulunmaktadır.";
+                    return result;
+                }
+            }
 
             bool cariKaydiVarMi = await _opakDbContext.TBLCARISB.AnyAsync(c => c.KOD == uye.CariKodu);
             if (!cariKaydiVarMi)
@@ -65,7 +79,7 @@ namespace EticaretWebCoreService.OpakOdeme
                     IL = uye.Ilceler.Iller.IlAdi,
                     ADRES = uye.Adres,
                     VERGI_DAIRESI = uye.VergiDairesi,
-                    VERGINO = uye.VergiNumarasi.ToString(),
+                    VERGINO = uye.VergiNumarasi,
                     KIMLIKNO = "11111111111",
                     TIPI = "Alıcı",
                     MUHASEBEID = 0,
@@ -194,6 +208,16 @@ namespace EticaretWebCoreService.OpakOdeme
 
                 await _opakDbContext.TBLCARISB.AddAsync(YENICARI);
                 await _opakDbContext.SaveChangesAsync();
+                
+                result.Basarilimi = true;
+                result.MesajDurumu = "success";
+                result.Mesaj = "Cari başarıyla Opak'a kaydedildi.";
+            }
+            else
+            {
+                result.Basarilimi = false;
+                result.MesajDurumu = "info";
+                result.Mesaj = "Bu cari kodu ile zaten Opak'ta kayıt bulunmaktadır.";
             }
 
             return result;

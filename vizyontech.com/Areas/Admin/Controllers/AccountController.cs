@@ -598,6 +598,25 @@ namespace vizyontech.com.Areas.Admin.Controllers
                     var hataMesaji = string.Join(", ", hataListesi.Select(e => e.Description));
 
                     TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "error", Text = hataMesaji });
+                    
+                    // Dropdown'ları yeniden doldur
+                    ViewData["Ulkeler"] = _context.Ulkeler.Select(x => new SelectListItem() { Text = x.UlkeAdi.ToString(), Value = x.Id.ToString() }).ToList();
+                    ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() });
+                    ViewData["Plasiyer"] = _context.Plasiyer.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.AdSoyad, Value = p.Id.ToString() });
+                    
+                    IQueryable<AppRole> roles = _roleManager.Roles;
+                    List<RoleAssignViewModel> roleAssignViewModel = new();
+                    foreach (var role in roles)
+                    {
+                        RoleAssignViewModel r = new();
+                        r.RoleId = role.Id.ToString();
+                        r.RoleName = role.Name;
+                        roleAssignViewModel.Add(r);
+                    }
+                    ViewData["Roller"] = roleAssignViewModel;
+                    Model.Roller = roleAssignViewModel;
+                    
+                    return View(Model);
                 }
 
 
@@ -722,6 +741,8 @@ namespace vizyontech.com.Areas.Admin.Controllers
                     else
                     {
                         hataListesi = result.Errors.ToList();
+                        var hataMesaji = string.Join(", ", hataListesi.Select(e => e.Description));
+                        TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = hataMesaji });
                     }
                 }
 
@@ -765,7 +786,16 @@ namespace vizyontech.com.Areas.Admin.Controllers
                         #region Üye Onaylanınca Opak Muhasebe Programına Üyeyi Kaydeder
                         if (!_env.IsDevelopment())
                         {
-                            await _opakServis.TblCariSbKayitEtAsync(Id);
+                            var opakSonuc = await _opakServis.TblCariSbKayitEtAsync(Id);
+
+                            if (!opakSonuc.Basarilimi)
+                            {
+                                TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel()
+                                {
+                                    Type = opakSonuc.MesajDurumu,
+                                    Text = $"Üye güncellendi ancak Opak kaydı yapılamadı: {opakSonuc.Mesaj}"
+                                });
+                            }
                         }
                         #endregion
 
@@ -788,8 +818,6 @@ namespace vizyontech.com.Areas.Admin.Controllers
                     //await _signInManager.SignOutAsync();
                     //await _signInManager.SignInAsync(user, true);
 
-
-
                     TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Üye Bilgileri Başarıyla Güncellendi." });
 
 
@@ -811,30 +839,44 @@ namespace vizyontech.com.Areas.Admin.Controllers
 
                     var hataMesaji = string.Join(", ", hataListesi.Select(e => e.Description));
 
-                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "error", Text = hataMesaji });
+                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = hataMesaji });
+                    
+                    // Dropdown'ları yeniden doldur
+                    var ilce = _context.Ilceler.Find(Model.IlceId);
+                    ViewData["Ulkeler"] = _context.Ulkeler.Select(x => new SelectListItem() { Text = x.UlkeAdi.ToString(), Value = x.Id.ToString() }).ToList();
+                    ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() });
+                    ViewData["Plasiyer"] = _context.Plasiyer.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.AdSoyad, Value = p.Id.ToString() });
+                    if (ilce != null)
+                    {
+                        ViewData["Ilceler"] = _context.Ilceler.Where(x => x.IlId == ilce.IlId).ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
+                    }
+                    else
+                    {
+                        ViewData["Ilceler"] = _context.Ilceler.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
+                    }
+                    
+                    IQueryable<AppRole> roles2 = _roleManager.Roles;
+                    List<RoleAssignViewModel> roleAssignViewModel2 = new();
+                    foreach (var role in roles2)
+                    {
+                        RoleAssignViewModel r = new RoleAssignViewModel
+                        {
+                            RoleId = role.Id.ToString(),
+                            RoleName = role.Name,
+                            Exist = Model.Roller?.FirstOrDefault(x => x.RoleName == role.Name)?.Exist ?? false
+                        };
+                        roleAssignViewModel2.Add(r);
+                    }
+                    Model.Roller = roleAssignViewModel2;
+                    
+                    return View(Model);
                 }
 
 
             }
-            IQueryable<AppRole> roles = _roleManager.Roles;
-
-            List<RoleAssignViewModel> roleAssignViewModel = new();
-
-            foreach (var role in roles)
-            {
-                RoleAssignViewModel r = new();
-                r.RoleId = role.Id.ToString();
-                r.RoleName = role.Name;
-
-                roleAssignViewModel.Add(r);
-
-            }
-
-            ViewData["Roller"] = roleAssignViewModel;
-
-
-
-            return View(Model);
+            
+            // Buraya hiç gelmemeli ama güvenlik için
+            return RedirectToAction("Uyeler", "Account");
         }
 
 

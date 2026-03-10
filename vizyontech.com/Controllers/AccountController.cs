@@ -625,6 +625,30 @@ namespace vizyontech.com.Controllers
             });
         }
 
+        [AllowAnonymous]
+        [HttpPost]
+        public JsonResult VergiNoKullanildaMi(string vergiNo)
+        {
+            if (string.IsNullOrWhiteSpace(vergiNo))
+            {
+                return Json(new { kullanildi = false, mesaj = "" });
+            }
+
+            // Veritabanında bu vergi numarası var mı kontrol et
+            var mevcutUye = _context.Users.FirstOrDefault(x => x.VergiNumarasi == vergiNo);
+
+            if (mevcutUye != null)
+            {
+                return Json(new
+                {
+                    kullanildi = true,
+                    mesaj = "Bu vergi/TC kimlik numarası ile daha önce kayıt yapılmış"
+                });
+            }
+
+            return Json(new { kullanildi = false, mesaj = "" });
+        }
+
         [Route("cikisyap")]
         public async Task<IActionResult> CikisYap()
         {
