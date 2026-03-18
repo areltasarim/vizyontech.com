@@ -295,6 +295,20 @@ function ModalAc() {
                 $(".modal-content .modal-footer #btnGonder").attr("btnformid", formid);
                 $(".modal-content .modal-footer #btnGonder").attr("btnsayfayenile", sayfayenile);
 
+                // Modal içeriği yüklendikten sonra validation'ı parse et
+                var form = $('.modal-icerik form');
+                if (form.length > 0) {
+                    $.validator.unobtrusive.parse(form);
+                }
+
+                // Select değiştiğinde hata mesajını kaldır
+                $('#UlkeId, #IlId, #AdresEkle_IlceId').on('change', function() {
+                    if ($(this).val() != "0" && $(this).val() != 0) {
+                        $(this).removeClass('input-validation-error');
+                        $(this).next('.field-validation-error').remove();
+                    }
+                });
+
                 Adres();
 
             })
@@ -312,6 +326,53 @@ function ModalAc() {
         var sayfayenile = $(this).data("btnsayfayenile");
 
         var formdata = new FormData($("#" + formid)[0]);
+
+        // Adres formları için özel kontrol
+        if (formid == "frmAdresEkle" || formid == "frmAdres" || formid == "frmAdresGuncelle") {
+            var hatalar = false;
+            
+            // Ülke kontrolü
+            var ulkeId = $('#UlkeId').val();
+            if (!ulkeId || ulkeId == "0" || ulkeId == 0) {
+                hatalar = true;
+                $('#UlkeId').addClass('input-validation-error');
+                // Mevcut hata mesajını kaldır
+                $('#UlkeId').next('.field-validation-error').remove();
+                // Yeni hata mesajı ekle
+                $('#UlkeId').after('<span class="field-validation-error text-danger">Ülke seçmelisiniz.</span>');
+            } else {
+                $('#UlkeId').removeClass('input-validation-error');
+                $('#UlkeId').next('.field-validation-error').remove();
+            }
+            
+            // İl kontrolü
+            var ilId = $('#IlId').val();
+            if (!ilId || ilId == "0" || ilId == 0) {
+                hatalar = true;
+                $('#IlId').addClass('input-validation-error');
+                $('#IlId').next('.field-validation-error').remove();
+                $('#IlId').after('<span class="field-validation-error text-danger">İl seçmelisiniz.</span>');
+            } else {
+                $('#IlId').removeClass('input-validation-error');
+                $('#IlId').next('.field-validation-error').remove();
+            }
+            
+            // İlçe kontrolü
+            var ilceId = $('#AdresEkle_IlceId').val();
+            if (!ilceId || ilceId == "0" || ilceId == 0) {
+                hatalar = true;
+                $('#AdresEkle_IlceId').addClass('input-validation-error');
+                $('#AdresEkle_IlceId').next('.field-validation-error').remove();
+                $('#AdresEkle_IlceId').after('<span class="field-validation-error text-danger">İlçe seçmelisiniz.</span>');
+            } else {
+                $('#AdresEkle_IlceId').removeClass('input-validation-error');
+                $('#AdresEkle_IlceId').next('.field-validation-error').remove();
+            }
+            
+            if (hatalar) {
+                return false;
+            }
+        }
 
         if ($("#" + formid).valid()) {
 

@@ -33,6 +33,7 @@ namespace EticaretWebCoreService
         private readonly SepetServis _sepetServis;
         private readonly HelperServis _helperServis;
         private readonly UyelerServis _uyeServis;
+        private readonly LogsServis _logsServis;
 
 
 
@@ -43,7 +44,7 @@ namespace EticaretWebCoreService
 
 
         [Obsolete]
-        public KasaServis(AppDbContext _context, IHostingEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor, SepetServis shoppingCartService, HelperServis helperServis, UyelerServis uyeServis)
+        public KasaServis(AppDbContext _context, IHostingEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor, SepetServis shoppingCartService, HelperServis helperServis, UyelerServis uyeServis, LogsServis logsServis)
         {
             this._context = _context;
             _adresServis = new AdresServis(_context);
@@ -52,6 +53,7 @@ namespace EticaretWebCoreService
             _sepetServis = shoppingCartService;
             _helperServis = helperServis;
             _uyeServis = uyeServis;
+            _logsServis = logsServis;
 
         }
 
@@ -424,12 +426,15 @@ namespace EticaretWebCoreService
                     result.Mesaj = $"{entity} ekleme islemi basariyla tamamlanmistir.";
                     result.SayfaId = siparisEkle.Id;
 
+
                     transaction.Complete();
                 }
 
             }
             catch (Exception hata)
             {
+                await _logsServis.Hata(hata);
+                
                 result.Basarilimi = false;
                 result.MesajDurumu = "danger";
                 result.Mesaj = "Hata Oluştu." + hata.Message;

@@ -142,17 +142,54 @@
 
 
 <script>
+    // Custom validation metodu - 0 değerini kabul etme (global tanımla)
+    if (!$.validator.methods.notZero) {
+        $.validator.addMethod("notZero", function (value, element) {
+            return value != "0" && value != 0;
+        }, "Bu alanı seçmelisiniz.");
+    }
+
     $(document).ready(function () {
+        // Ülke, İl ve İlçe için validation ekle
+        setTimeout(function () {
+            if ($('#UlkeId').length) {
+                $('#UlkeId').rules('add', {
+                    notZero: true,
+                    messages: {
+                        notZero: "Ülke seçmelisiniz."
+                    }
+                });
+            }
+
+            if ($('#IlId').length) {
+                $('#IlId').rules('add', {
+                    notZero: true,
+                    messages: {
+                        notZero: "İl seçmelisiniz."
+                    }
+                });
+            }
+
+            if ($('#AdresEkle_IlceId').length) {
+                $('#AdresEkle_IlceId').rules('add', {
+                    notZero: true,
+                    messages: {
+                        notZero: "İlçe seçmelisiniz."
+                    }
+                });
+            }
+        }, 500);
+
         // Bireysel butonuna tıklandığında
         $('#bireyselBtn').click(function () {
-            $('#bireyselForm').show(); // Bireysel form alanını göster
-            $('#kurumsalForm').hide(); // Kurumsal form alanını gizle
+            $('#bireyselForm').show();
+            $('#kurumsalForm').hide();
         });
 
         // Kurumsal butonuna tıklandığında
         $('#kurumsalBtn').click(function () {
-            $('#kurumsalForm').show(); // Kurumsal form alanını göster
-            $('#bireyselForm').hide(); // Bireysel form alanını gizle
+            $('#kurumsalForm').show();
+            $('#bireyselForm').hide();
         });
     });
 </script>

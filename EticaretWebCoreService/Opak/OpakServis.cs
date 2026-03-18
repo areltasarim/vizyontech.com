@@ -743,8 +743,58 @@ namespace EticaretWebCoreService.OpakOdeme
 
             return result;
         }
+
+        public async Task<ResultViewModel> TblCariSbSifreGuncelleAsync(int UyeId, string yeniSifre)
+        {
+            var result = new ResultViewModel();
+
+            try
+            {
+                var uye = _context.Users.Find(UyeId);
+
+                if (uye == null)
+                {
+                    result.Basarilimi = false;
+                    result.MesajDurumu = "error";
+                    result.Mesaj = "Üye bulunamadı.";
+                    return result;
+                }
+
+                // Cari koduna göre Opak'taki kaydı bul
+                var opakCari = await _opakDbContext.TBLCARISB
+                    .FirstOrDefaultAsync(c => c.EMAIL == uye.Email);
+
+                if (opakCari == null)
+                {
+                    result.Basarilimi = false;
+                    result.MesajDurumu = "warning";
+                    result.Mesaj = "Opak'ta bu üyeye ait cari kaydı bulunamadı.";
+                    return result;
+                }
+
+                // B2B şifresini güncelle
+                opakCari.B2BSIFRE = yeniSifre;
+
+                _opakDbContext.Entry(opakCari).State = EntityState.Modified;
+                await _opakDbContext.SaveChangesAsync();
+
+                result.Basarilimi = true;
+                result.MesajDurumu = "success";
+                result.Mesaj = "Opak'taki cari şifresi başarıyla güncellendi.";
+            }
+            catch (Exception ex)
+            {
+                result.Basarilimi = false;
+                result.MesajDurumu = "error";
+                result.Mesaj = $"Opak şifre güncelleme hatası: {ex.Message}";
+            }
+
+            return result;
+        }
+
     }
 }
+
 
 
 

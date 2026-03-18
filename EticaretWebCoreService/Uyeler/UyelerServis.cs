@@ -4,6 +4,7 @@ using EticaretWebCoreEntity;
 using EticaretWebCoreEntity.Enums;
 using EticaretWebCoreHelper;
 using EticaretWebCoreService;
+using EticaretWebCoreService.OpakOdeme;
 using EticaretWebCoreViewModel;
 using GoogleReCaptcha.V3.Interface;
 using Microsoft.AspNetCore.Authentication;
@@ -47,8 +48,10 @@ namespace EticaretWebCoreService
         private readonly AlisverisListemServis _alisverisListemServis;
         private readonly ICaptchaValidator _captchaValidator;
         private readonly B2BSifreService _sifreService;
+        private readonly OpakServis _opakServis;
+        private readonly IHostingEnvironment _env;
 
-        public UyelerServis(AppDbContext _context, Microsoft.AspNetCore.Hosting.IHostingEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager, RoleManager<AppRole> _roleManager, AlisverisListemServis alisverisListemServis, AdresServis _adresServis, ICaptchaValidator _captchaValidator, B2BSifreService sifreService)
+        public UyelerServis(AppDbContext _context, Microsoft.AspNetCore.Hosting.IHostingEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor, UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager, RoleManager<AppRole> _roleManager, AlisverisListemServis alisverisListemServis, AdresServis _adresServis, ICaptchaValidator _captchaValidator, B2BSifreService sifreService, OpakServis opakServis, IHostingEnvironment env)
         {
             this._context = _context;
 
@@ -61,6 +64,8 @@ namespace EticaretWebCoreService
             this._adresServis = _adresServis;
             this._captchaValidator = _captchaValidator;
             _sifreService = sifreService;
+            _opakServis = opakServis;
+            _env = env;
         }
 
 
@@ -749,6 +754,18 @@ namespace EticaretWebCoreService
                         if (result.Succeeded)
                         {
                             await _userManager.UpdateSecurityStampAsync(user);
+
+                            // Opak'taki şifreyi de güncelle
+                            if (!_env.IsDevelopment())
+                            {
+                                var opakSifreGuncelle = await _opakServis.TblCariSbSifreGuncelleAsync(user.Id, Model.YeniSifre);
+                                
+                                if (!opakSifreGuncelle.Basarilimi)
+                                {
+                                    // Opak şifre güncellemesi başarısız olsa bile kullanıcıya başarılı mesajı göster
+                                    // Ama log'a kaydet (ileride loglama eklenebilir)
+                                }
+                            }
 
                             sonuc.Basarilimi = true;
                             sonuc.MesajDurumu = "alert alert-success";

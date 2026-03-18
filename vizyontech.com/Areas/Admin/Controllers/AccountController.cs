@@ -737,6 +737,21 @@ namespace vizyontech.com.Areas.Admin.Controllers
                         string token = await _userManager.GeneratePasswordResetTokenAsync(uye);
                         await _userManager.ResetPasswordAsync(uye, token, Model.Password);
                         await _userManager.UpdateSecurityStampAsync(uye);
+                        
+                        // Opak'taki şifreyi de güncelle
+                        if (!_env.IsDevelopment())
+                        {
+                            var opakSifreGuncelle = await _opakServis.TblCariSbSifreGuncelleAsync(Id, Model.Password);
+                            
+                            if (!opakSifreGuncelle.Basarilimi)
+                            {
+                                TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel()
+                                {
+                                    Type = opakSifreGuncelle.MesajDurumu,
+                                    Text = $"Şifre güncellendi ancak Opak şifresi güncellenemedi: {opakSifreGuncelle.Mesaj}"
+                                });
+                            }
+                        }
                     }
                     else
                     {

@@ -66,6 +66,7 @@ namespace vizyontech.com.Controllers
         private readonly ZiraatPayServis _ziraatPayServis;
         private readonly ZiraatPaySettings _ziraatPaySetting;
         private readonly OpakServis _opakServis;
+        private readonly LogsServis _logServis;
 
         private UserManager<AppUser> _userManager;
         private SignInManager<AppUser> _signInManager;
@@ -73,7 +74,7 @@ namespace vizyontech.com.Controllers
         private readonly IHostingEnvironment _hostingEnvironment;
 
         [Obsolete]
-        public SepetController(AppDbContext _context, UnitOfWork _uow, UrunlerServis _urunServis, IHostingEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor, AlisverisListemServis _alisverisListemServis, AdresServis _adresServis, SepetServis _sepetServis, KasaServis _kasaServis, PaytrServis _paytrServis, HelperServis _helperServis, ILogger<SepetController> logger, UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager, RoleManager<AppRole> _roleManager, ZiraatPayServis ziraatPayServis, IOptions<ZiraatPaySettings> options, OpakServis opakServis, OpakDbContext opakDbContext)
+        public SepetController(AppDbContext _context, UnitOfWork _uow, UrunlerServis _urunServis, IHostingEnvironment hostingEnvironment, IHttpContextAccessor httpContextAccessor, AlisverisListemServis _alisverisListemServis, AdresServis _adresServis, SepetServis _sepetServis, KasaServis _kasaServis, PaytrServis _paytrServis, HelperServis _helperServis, ILogger<SepetController> logger, UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager, RoleManager<AppRole> _roleManager, ZiraatPayServis ziraatPayServis, IOptions<ZiraatPaySettings> options, OpakServis opakServis, OpakDbContext opakDbContext, LogsServis logServis)
         {
             this._context = _context;
             this._uow = _uow;
@@ -99,6 +100,7 @@ namespace vizyontech.com.Controllers
             _ziraatPaySetting = options.Value;
             _opakServis = opakServis;
             _opakDbContext = opakDbContext;
+            _logServis = logServis;
         }
 
         [AllowAnonymous]
@@ -247,7 +249,6 @@ namespace vizyontech.com.Controllers
             return Json(model);
         }
 
-        [AllowAnonymous]
         [Route("kasa")]
         public IActionResult Kasa()
         {
@@ -327,14 +328,17 @@ namespace vizyontech.com.Controllers
                 }
                 else if (odemeMetodu.Id == (int)OdemeMetodTiplieri.ZiraatPay)
                 {
+                    
                     var ziraatPaySonuc = await _ziraatPayServis.OdemeAsync(Model, (int)siparisModel.SayfaId);
 
                     if (ziraatPaySonuc.Basarilimi == true)
                     {
+                        
                         TempData["ApiUrl"] = $"{_ziraatPaySetting.Active.ApiUrl}/post/sale3d/{ziraatPaySonuc.Sonuc}";
                     }
                     else
                     {
+                        
                         TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = ziraatPaySonuc.MesajDurumu, Text = ziraatPaySonuc.Mesaj });
                         return RedirectToAction("Kasa", "Sepet");
                     }
@@ -475,34 +479,44 @@ namespace vizyontech.com.Controllers
             var responseCode = Request.Form["responseCode"];
             var responseMsg = Request.Form["responseMsg"];
             var merchantPaymentId = Request.Form["merchantPaymentId"];
-            if (responseCode == "00")
+
+            // Callback bilgilerini logla
+
+            try
             {
-
-
-                var siparisno = merchantPaymentId.ToString();
-                var siparis = await _uow.Repository<Siparisler>().GetByFilterAsync(x => x.SiparisNo == siparisno);
-
-                if (siparis != null)
+                if (responseCode == "00")
                 {
-                    var cariHaraket = new CariHaraketKayitViewModel()
+                    var siparisno = merchantPaymentId.ToString();
+                    var siparis = await _uow.Repository<Siparisler>().GetByFilterAsync(x => x.SiparisNo == siparisno);
+
+                    if (siparis != null)
                     {
-                        UyeId = (int)siparis.UyeId,
-                        SiparisId = Convert.ToInt32(siparis.Id),
-                        Aciklama = "B2B ZiraatPay Kredi Kartı Tahsilat",
-                    };
-                    var cariKayitEkle = await _opakServis.TblCariHaraketKayitAsync(cariHaraket);
+                        
+                        var cariHaraket = new CariHaraketKayitViewModel()
+                        {
+                            UyeId = (int)siparis.UyeId,
+                            SiparisId = Convert.ToInt32(siparis.Id),
+                            Aciklama = "B2B ZiraatPay Kredi Kartı Tahsilat",
+                        };
+                        var cariKayitEkle = await _opakServis.TblCariHaraketKayitAsync(cariHaraket);
 
-                    TempData["SiparisId"] = siparis.Id;
-                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Ödemeniz başarıyla tamamlandı!" });
-                    return RedirectToAction("OdemeSonuc", "Sepet");
 
+                        TempData["SiparisId"] = siparis.Id;
+                        TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Ödemeniz başarıyla tamamlandı!" });
+                        return RedirectToAction("OdemeSonuc", "Sepet");
+                    }
+                }
+                else
+                {
+                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = responseMsg });
+                    return RedirectToAction("Kasa", "Sepet");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = responseMsg });
-                return RedirectToAction("Kasa", "Sepet");
+                await _logServis.Hata(ex);
             }
+
             return BadRequest("Geçersiz işlem");
         }
 
