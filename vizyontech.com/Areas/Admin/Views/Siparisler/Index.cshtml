@@ -43,24 +43,16 @@
                                 ViewData["pageName"] = item.Id;
 
                                 var siparisGecmisi = _context.SiparisGecmisleri.Where(x => x.SiparisId == item.Id).OrderBy(x => x.Id).LastOrDefault();
-
-                                var bayi = _context.Users.Find(item.UyeId);
-                                var fiyatTipi = bayi.IskontoOrani > 0 ? FiyatTipleri.BayiFiyat : FiyatTipleri.ListeFiyat;
-                                var genelToplam = _helperServis.GetKurTLCeviri(item.ToplamFiyat, fiyatTipi, ParaBirimi.USD).Result.ToString("C2");
+                                decimal genelToplamTL = item.ToplamFiyat * item.Kur;
 
                                 <tr>
                                     <partial name="_SayfaAltCheckbox" for="@item" />
+                                    <td>#@item.Id</td>
+                                    <td>@item.TeslimatAd @item.TeslimatSoyad</td>
+                                    <td>@item.KargoMetodu</td>
                                     <td>
-                                        #@item.Id
-                                    </td>
-                                    <td>
-                                        @item.TeslimatAd @item.TeslimatSoyad
-                                    </td>
-                                    <td>
-                                        @item.KargoMetodu
-                                    </td>
-                                    <td>
-                                        @genelToplam
+                                        <span style="display:block">@item.ToplamFiyat.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                        <span style="display:block">@genelToplamTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                                     </td>
                                     <td>
                                         @item.SiparisTarihi

@@ -112,9 +112,15 @@ namespace vizyontech.com.Controllers
             var siparis = _context.CariOdeme
                 .FirstOrDefault(x => x.ZiraatPaySiparisId == mpId);
 
+            foreach (var key in Request.Form.Keys)
+            {
+                var value = Request.Form[key];
+                Console.WriteLine($"{key} : {value}");
+            }
+
             if (responseCode == "00")
             {
-              
+
                 siparis.OdemeDurumu = ZiraatPayOdemeDurumu.Basarili;
                 _context.Entry(siparis).State = EntityState.Modified;
                 _context.SaveChanges();
@@ -125,15 +131,25 @@ namespace vizyontech.com.Controllers
                     UyeId = siparis.UyeId,
                     OdenenTutar = siparis.OdenenTutar,
                 };
-                await _opakServis.TblBankaHaraketKayitAsync(bankaHaraket);
-
-
-                if (siparis != null)
+                var opakSonuc = await _opakServis.TblBankaHaraketKayitAsync(bankaHaraket);
+                if (opakSonuc.Basarilimi)
                 {
-                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Ödemeniz başarıyla tamamlandı!" });
-                    return RedirectToAction("CariOdemeSonuc", "CariOdeme");
 
+                    if (siparis != null)
+                    {
+                        TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Ödemeniz başarıyla tamamlandı!" });
+                        return RedirectToAction("CariOdemeSonuc", "CariOdeme");
+
+                    }
                 }
+                else
+                {
+                    string idDecrypt = EncryptionHelper.Encrypt(siparis.UyeId.ToString());
+
+                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = opakSonuc.Mesaj });
+                    return Redirect("/cari-odeme/" + idDecrypt);
+                }
+               
             }
             else
             {

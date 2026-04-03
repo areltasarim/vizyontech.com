@@ -1,25 +1,28 @@
-﻿using EticaretWebCoreEntity;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using EticaretWebCoreEntity;
+using EticaretWebCoreEntity.Enums;
+using EticaretWebCoreEntity.Opak;
+using EticaretWebCoreHelper;
 using EticaretWebCoreViewModel;
+using EticaretWebCoreViewModel.Opak;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Exchange.WebServices.Data;
-using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EticaretWebCoreEntity.Enums;
 using System.Globalization;
-using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
-using Newtonsoft.Json;
+using System.Linq;
+using System.Runtime.Intrinsics.X86;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
-using EticaretWebCoreHelper;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using EticaretWebCoreEntity.Opak;
-using EticaretWebCoreViewModel.Opak;
-using Microsoft.Data.SqlClient;
 
 namespace EticaretWebCoreService.OpakOdeme
 {
@@ -31,14 +34,16 @@ namespace EticaretWebCoreService.OpakOdeme
         private readonly HelperServis _helperServis;
         private readonly HttpClient _httpClient;
         private static IHttpContextAccessor _httpContextAccessor;
+        private readonly B2BSifreService _sifreService;
 
-        public OpakServis(AppDbContext _context, IHttpContextAccessor httpContextAccessor, HttpClient httpClient, HelperServis helperServis, OpakDbContext opakDbContext)
+        public OpakServis(AppDbContext _context, IHttpContextAccessor httpContextAccessor, HttpClient httpClient, HelperServis helperServis, OpakDbContext opakDbContext, B2BSifreService sifreService)
         {
             _httpClient = httpClient;
             _helperServis = helperServis;
             this._context = _context;
             _httpContextAccessor = httpContextAccessor;
             _opakDbContext = opakDbContext;
+            _sifreService = sifreService;
         }
 
         public async Task<ResultViewModel> TblCariSbKayitEtAsync(int UyeId)
@@ -47,34 +52,28 @@ namespace EticaretWebCoreService.OpakOdeme
 
             var uye = _context.Users.Find(UyeId);
 
-            // Önce vergi numarası ile kayıt var mı kontrol et
-            if (!string.IsNullOrEmpty(uye.VergiNumarasi))
-            {
-                bool vergiNoKayitliMi = await _opakDbContext.TBLCARISB
-                    .AnyAsync(c => c.VERGINO == uye.VergiNumarasi);
-                
-                if (vergiNoKayitliMi)
-                {
-                    result.Basarilimi = false;
-                    result.MesajDurumu = "warning";
-                    result.Mesaj = "Bu vergi numarası ile Opak'ta kayıtlı bir cari bulunmaktadır.";
-                    return result;
-                }
-            }
+            var b2bsifre = _sifreService.Decrypt(uye.B2bSifre);
 
-            bool cariKaydiVarMi = await _opakDbContext.TBLCARISB.AnyAsync(c => c.KOD == uye.CariKodu);
+            bool cariKaydiVarMi = await _opakDbContext.TBLCARISB.AnyAsync(c =>
+                (!string.IsNullOrEmpty(uye.VergiNumarasi) && c.VERGINO == uye.VergiNumarasi) ||
+                (!string.IsNullOrEmpty(uye.Email) && c.EMAIL == uye.Email)
+            );
+
             if (!cariKaydiVarMi)
             {
+
                 // Son ID'yi al
                 int sonId = await _opakDbContext.TBLCARISB.MaxAsync(c => (int?)c.ID) ?? 0;
                 int yeniId = sonId + 1;
+
+                int plasiyerid = uye.PlasiyerId ?? 0;
 
                 string yeniKod = $"CR{yeniId}";
 
                 var YENICARI = new TBLCARISB
                 {
                     KOD = yeniKod,
-                    ADI = $"{uye.Ad} {uye.Soyad}",
+                    ADI = $"{uye.FirmaAdi}",
                     ILCE = uye.Ilceler.IlceAdi,
                     IL = uye.Ilceler.Iller.IlAdi,
                     ADRES = uye.Adres,
@@ -90,7 +89,7 @@ namespace EticaretWebCoreService.OpakOdeme
                     GRUP_KODU = "001",
                     EMAIL = uye.Email,
                     WEB = "",
-                    PLASIYERID = uye.PlasiyerId,
+                    PLASIYERID = plasiyerid,
                     ISKONTO = uye.IskontoOrani,
                     AKTIF = "E",
                     RAPORID1 = 0,
@@ -192,7 +191,7 @@ namespace EticaretWebCoreService.OpakOdeme
                     EFATURATIPI = "Temel",
                     NAKLIYEID = 0,
                     TOPLAMABOLUMID = 0,
-                    B2BSIFRE = "123456",
+                    B2BSIFRE = b2bsifre,
                     EIRSALIYENAKLIYEID = 0,
                     HESAPKESIMBILGIMAILI = "E",
                     HESAPKESIMGUNU = 0,
@@ -202,7 +201,9 @@ namespace EticaretWebCoreService.OpakOdeme
                     EIRSDIZAYNADI = "",
                     ODEMEPLANID = 0,
                     EKACIKLAMA = "",
-                    KURDEGERLENDIRME = "H"
+                    KURDEGERLENDIRME = "H",
+                    AVANSMUHASEBEID = 0,
+                    ALISODEMEPLANID = 0,
                 };
 
 
@@ -218,6 +219,8 @@ namespace EticaretWebCoreService.OpakOdeme
                 result.Basarilimi = false;
                 result.MesajDurumu = "info";
                 result.Mesaj = "Bu cari kodu ile zaten Opak'ta kayıt bulunmaktadır.";
+                return result;
+
             }
 
             return result;
@@ -729,11 +732,21 @@ namespace EticaretWebCoreService.OpakOdeme
                 await _opakDbContext.TBLCARIHAR.AddAsync(cariHarEkle);
                 await _opakDbContext.SaveChangesAsync();
 
+                result.Basarilimi = true;
+                result.MesajDurumu = "success";
+                result.Mesaj = "Başarılı";
 
                 await transaction.CommitAsync();
+
+
             }
             catch (Exception ex)
             {
+
+                result.Basarilimi = false;
+                result.MesajDurumu = "danger";
+                result.Mesaj = "Hata: " + ex.Message;
+
                 await transaction.RollbackAsync();
 
                 throw new Exception("Kayıt işlemi başarısız oldu. Tüm değişiklikler geri alındı.");

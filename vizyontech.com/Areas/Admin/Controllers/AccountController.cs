@@ -42,11 +42,12 @@ namespace vizyontech.com.Areas.Admin.Controllers
         private UserManager<AppUser> _userManager;
         private SignInManager<AppUser> _signInManager;
         private RoleManager<AppRole> _roleManager = null;
+        private readonly B2BSifreService _sifreService;
 
         [Obsolete]
         private readonly Microsoft.AspNetCore.Hosting.IHostingEnvironment _hostingEnvironment;
         [Obsolete]
-        public AccountController(AppDbContext _context, IHttpContextAccessor _httpContextAccessor, IHostingEnvironment _hostingEnvironment, UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager, RoleManager<AppRole> _roleManager, OpakDbContext opakDbContext, OpakServis opakServis, IWebHostEnvironment env)
+        public AccountController(AppDbContext _context, IHttpContextAccessor _httpContextAccessor, IHostingEnvironment _hostingEnvironment, UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager, RoleManager<AppRole> _roleManager, OpakDbContext opakDbContext, OpakServis opakServis, IWebHostEnvironment env, B2BSifreService sifreService)
         {
             this._context = _context;
             this._httpContextAccessor = _httpContextAccessor;
@@ -57,6 +58,7 @@ namespace vizyontech.com.Areas.Admin.Controllers
             this._roleManager = _roleManager;
             _opakServis = opakServis;
             _env = env;
+            _sifreService = sifreService;
         }
 
         public IActionResult Uyeler()
@@ -103,7 +105,7 @@ namespace vizyontech.com.Areas.Admin.Controllers
                         x.Id.ToString().Contains(searchValue)
                         || x.Tarih.ToShortDateString().Contains(searchValue)
                         || x.UyeKayitTipi.GetDisplayName().ToLower().Contains(searchValue)
-                        || (x.Ad?.ToLower().Contains(searchValue) ?? false)
+                        || ((x.CariKodu + " " + x.Soyad)?.ToLower().Contains(searchValue) ?? false)
                         || (x.CariKodu?.ToLower().Contains(searchValue) ?? false)
                         || "cariodeme".Contains(searchValue)
                         || (x.Email?.ToLower().Contains(searchValue) ?? false)
@@ -164,7 +166,8 @@ namespace vizyontech.com.Areas.Admin.Controllers
          Id = x.Id,
          Tarih = x.Tarih.ToString("dd.MM.yyyy HH:mm"),
          KayitTipi = $"<span class='badge badge-soft-{(x.UyeKayitTipi == UyeKayitTipi.Web ? "info" : "warning text-dark")}'>{x.UyeKayitTipi.GetDisplayName()}</span>",
-         AdSoyad = x.Ad,
+         Ad = x.Ad,
+         Soyad = x.Soyad,
          CariKodu = x.CariKodu,
          CariOdeme = $"<a target='_blank' href='{hostUrl}/cari-odeme/{EncryptionHelper.Encrypt(x.Id.ToString())}' class='text-primary'>Ödeme Linki</a>",
          Email = x.Email,
@@ -298,7 +301,8 @@ namespace vizyontech.com.Areas.Admin.Controllers
                         ModelState.AddModelError("", "Hesabınız bir süreliğine kilitlenmiştir. Lütfen daha sonra tekrar deneyiniz");
 
                         return View(Model);
-                    };
+                    }
+                    ;
 
                     if (_userManager.IsEmailConfirmedAsync(user).Result == false)
                     {
@@ -464,6 +468,7 @@ namespace vizyontech.com.Areas.Admin.Controllers
 
                 AppUser uye = new();
                 uye.Ad = Model.Ad;
+                uye.Soyad = Model.Soyad;
                 uye.Tarih = DateTime.Now;
                 uye.PlasiyerId = Model?.PlasiyerId;
                 uye.FirmaAdi = Model.FirmaAdi;
@@ -598,12 +603,12 @@ namespace vizyontech.com.Areas.Admin.Controllers
                     var hataMesaji = string.Join(", ", hataListesi.Select(e => e.Description));
 
                     TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "error", Text = hataMesaji });
-                    
+
                     // Dropdown'ları yeniden doldur
                     ViewData["Ulkeler"] = _context.Ulkeler.Select(x => new SelectListItem() { Text = x.UlkeAdi.ToString(), Value = x.Id.ToString() }).ToList();
                     ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() });
                     ViewData["Plasiyer"] = _context.Plasiyer.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.AdSoyad, Value = p.Id.ToString() });
-                    
+
                     IQueryable<AppRole> roles = _roleManager.Roles;
                     List<RoleAssignViewModel> roleAssignViewModel = new();
                     foreach (var role in roles)
@@ -615,7 +620,7 @@ namespace vizyontech.com.Areas.Admin.Controllers
                     }
                     ViewData["Roller"] = roleAssignViewModel;
                     Model.Roller = roleAssignViewModel;
-                    
+
                     return View(Model);
                 }
 
@@ -633,14 +638,16 @@ namespace vizyontech.com.Areas.Admin.Controllers
 
                 AppUser userName = await _userManager.FindByIdAsync(Id.ToString());
 
+
                 var uye = await _userManager.Users
                     .FirstOrDefaultAsync(x => x.UserName == userName.UserName);
 
                 uye.PlasiyerId = Model.PlasiyerId;
                 uye.Ad = Model.Ad;
+                uye.Soyad = Model.Soyad;
                 uye.FirmaAdi = Model.FirmaAdi;
                 uye.VergiDairesi = Model.VergiDairesi;
-                uye.VergiNumarasi =  Model.VergiNumarasi;
+                uye.VergiNumarasi = Model.VergiNumarasi;
                 uye.Gsm = Model.Gsm;
                 uye.Adres = Model.Adres;
                 uye.IlceId = Model.IlceId;
@@ -737,12 +744,12 @@ namespace vizyontech.com.Areas.Admin.Controllers
                         string token = await _userManager.GeneratePasswordResetTokenAsync(uye);
                         await _userManager.ResetPasswordAsync(uye, token, Model.Password);
                         await _userManager.UpdateSecurityStampAsync(uye);
-                        
+
                         // Opak'taki şifreyi de güncelle
                         if (!_env.IsDevelopment())
                         {
                             var opakSifreGuncelle = await _opakServis.TblCariSbSifreGuncelleAsync(Id, Model.Password);
-                            
+
                             if (!opakSifreGuncelle.Basarilimi)
                             {
                                 TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel()
@@ -810,85 +817,102 @@ namespace vizyontech.com.Areas.Admin.Controllers
                                     Type = opakSonuc.MesajDurumu,
                                     Text = $"Üye güncellendi ancak Opak kaydı yapılamadı: {opakSonuc.Mesaj}"
                                 });
+
+                                ViewData["Plasiyer"] = _context.Plasiyer.Select(x => new SelectListItem() { Text = x.AdSoyad.ToString(), Value = x.Id.ToString() }).ToList();
+                                var ilce = _context.Ilceler.Find(Model.IlceId);
+                                ViewData["Ulkeler"] = _context.Ulkeler.Select(x => new SelectListItem() { Text = x.UlkeAdi.ToString(), Value = x.Id.ToString() }).ToList();
+                                ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() });
+                                ViewData["Plasiyer"] = _context.Plasiyer.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.AdSoyad, Value = p.Id.ToString() });
+                                if (ilce != null)
+                                {
+                                    ViewData["Ilceler"] = _context.Ilceler.Where(x => x.IlId == ilce.IlId).ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
+                                }
+                                else
+                                {
+                                    ViewData["Ilceler"] = _context.Ilceler.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
+                                }
+                                return View(Model);
                             }
                         }
+                    }
+
+
                         #endregion
 
 
 
-                        //MailHelper.HostMailGonder(
-                        //             siteAyari?.EmailAdresi ?? "",
-                        //             siteAyari?.EmailSifre ?? "",
-                        //             siteAyari?.EmailHost ?? "",
-                        //             siteAyari.EmailSSL,
-                        //             siteAyari.EmailPort,
-                        //             konu: "Üye Kaydınız Onaylandı",
-                        //             mailBaslik: "Üye Kaydınız Onaylandı",
-                        //             body,
-                        //             dosya,
-                        //             gonderilecekMailler.ToList()
-                        //             );
-                    }
-
-                    //await _signInManager.SignOutAsync();
-                    //await _signInManager.SignInAsync(user, true);
-
-                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Üye Bilgileri Başarıyla Güncellendi." });
-
-
-                    #region Sayfa Butonlari
-                    if (submit == "Kaydet")
-                    {
-                        return RedirectToAction("Uyeler", "Account");
-
-                    }
-                    if (submit == "KaydetGuncelle")
-                    {
-                        return RedirectToAction("UyeEkleGuncelle", "Account", new { Id = uye.Id });
-                    }
-                    #endregion
+                    //MailHelper.HostMailGonder(
+                    //             siteAyari?.EmailAdresi ?? "",
+                    //             siteAyari?.EmailSifre ?? "",
+                    //             siteAyari?.EmailHost ?? "",
+                    //             siteAyari.EmailSSL,
+                    //             siteAyari.EmailPort,
+                    //             konu: "Üye Kaydınız Onaylandı",
+                    //             mailBaslik: "Üye Kaydınız Onaylandı",
+                    //             body,
+                    //             dosya,
+                    //             gonderilecekMailler.ToList()
+                    //             );
                 }
+
+                //await _signInManager.SignOutAsync();
+                //await _signInManager.SignInAsync(user, true);
+
+                TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Üye Bilgileri Başarıyla Güncellendi." });
+
+
+                #region Sayfa Butonlari
+                if (submit == "Kaydet")
+                {
+                    return RedirectToAction("Uyeler", "Account");
+
+                }
+                if (submit == "KaydetGuncelle")
+                {
+                    return RedirectToAction("UyeEkleGuncelle", "Account", new { Id = uye.Id });
+                }
+                #endregion
 
                 else
+            {
+
+                var hataMesaji = string.Join(", ", hataListesi.Select(e => e.Description));
+
+                TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = hataMesaji });
+
+                // Dropdown'ları yeniden doldur
+                var ilce = _context.Ilceler.Find(Model.IlceId);
+                ViewData["Ulkeler"] = _context.Ulkeler.Select(x => new SelectListItem() { Text = x.UlkeAdi.ToString(), Value = x.Id.ToString() }).ToList();
+                ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() });
+                ViewData["Plasiyer"] = _context.Plasiyer.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.AdSoyad, Value = p.Id.ToString() });
+                if (ilce != null)
                 {
-
-                    var hataMesaji = string.Join(", ", hataListesi.Select(e => e.Description));
-
-                    TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = hataMesaji });
-                    
-                    // Dropdown'ları yeniden doldur
-                    var ilce = _context.Ilceler.Find(Model.IlceId);
-                    ViewData["Ulkeler"] = _context.Ulkeler.Select(x => new SelectListItem() { Text = x.UlkeAdi.ToString(), Value = x.Id.ToString() }).ToList();
-                    ViewData["Iller"] = _context.Iller.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlAdi, Value = p.Id.ToString() });
-                    ViewData["Plasiyer"] = _context.Plasiyer.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.AdSoyad, Value = p.Id.ToString() });
-                    if (ilce != null)
-                    {
-                        ViewData["Ilceler"] = _context.Ilceler.Where(x => x.IlId == ilce.IlId).ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
-                    }
-                    else
-                    {
-                        ViewData["Ilceler"] = _context.Ilceler.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
-                    }
-                    
-                    IQueryable<AppRole> roles2 = _roleManager.Roles;
-                    List<RoleAssignViewModel> roleAssignViewModel2 = new();
-                    foreach (var role in roles2)
-                    {
-                        RoleAssignViewModel r = new RoleAssignViewModel
-                        {
-                            RoleId = role.Id.ToString(),
-                            RoleName = role.Name,
-                            Exist = Model.Roller?.FirstOrDefault(x => x.RoleName == role.Name)?.Exist ?? false
-                        };
-                        roleAssignViewModel2.Add(r);
-                    }
-                    Model.Roller = roleAssignViewModel2;
-                    
-                    return View(Model);
+                    ViewData["Ilceler"] = _context.Ilceler.Where(x => x.IlId == ilce.IlId).ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
+                }
+                else
+                {
+                    ViewData["Ilceler"] = _context.Ilceler.ToList().AsQueryable().Select(p => new SelectListItem() { Text = p.IlceAdi, Value = p.Id.ToString() });
                 }
 
+                IQueryable<AppRole> roles2 = _roleManager.Roles;
+                List<RoleAssignViewModel> roleAssignViewModel2 = new();
+                foreach (var role in roles2)
+                {
+                    RoleAssignViewModel r = new RoleAssignViewModel
+                    {
+                        RoleId = role.Id.ToString(),
+                        RoleName = role.Name,
+                        Exist = Model.Roller?.FirstOrDefault(x => x.RoleName == role.Name)?.Exist ?? false
+                    };
+                    roleAssignViewModel2.Add(r);
+                }
+                Model.Roller = roleAssignViewModel2;
 
+                return View(Model);
             }
+
+
+        }
             
             // Buraya hiç gelmemeli ama güvenlik için
             return RedirectToAction("Uyeler", "Account");

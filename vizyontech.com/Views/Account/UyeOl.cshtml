@@ -24,14 +24,14 @@
                     <div class="ps-form--review">
                         <h2 class="ps-form__title">@Localize("Genel.BayiOl")</h2>
                         <div class="ps-form__group">
-                            <label class="ps-form__label">@Localize("Genel.FirmaAdi") *</label>
-                            <input class="form-control ps-form__input" type="text" asp-for="FirmaAdi">
-                            <span asp-validation-for="FirmaAdi" class="text-danger"></span>
-                        </div>
-                        <div class="ps-form__group">
-                            <label class="ps-form__label">@Localize("Genel.YetkiliAdSoyad") *</label>
+                            <label class="ps-form__label">@Localize("Genel.YetkiliAd") *</label>
                             <input class="form-control ps-form__input" type="text" asp-for="Ad">
                             <span asp-validation-for="Ad" class="text-danger"></span>
+                        </div>
+                        <div class="ps-form__group">
+                            <label class="ps-form__label">@Localize("Genel.YetkiliSoyad") *</label>
+                            <input class="form-control ps-form__input" type="text" asp-for="Soyad">
+                            <span asp-validation-for="Soyad" class="text-danger"></span>
                         </div>
                         <div class="ps-form__group">
                             <label class="ps-form__label">@Localize("Genel.il") *</label>
@@ -53,9 +53,9 @@
                             <span asp-validation-for="Adres" class="text-danger"></span>
                         </div>
                         <div class="ps-form__group">
-                            <label class="ps-form__label">@Localize("Genel.FirmaAdresi") *</label>
-                            <input class="form-control ps-form__input" type="text" asp-for="Adres">
-                            <span asp-validation-for="Adres" class="text-danger"></span>
+                            <label class="ps-form__label">@Localize("Genel.FirmaAdi") *</label>
+                            <input class="form-control ps-form__input" type="text" asp-for="FirmaAdi">
+                            <span asp-validation-for="FirmaAdi" class="text-danger"></span>
                         </div>
                         <div class="ps-form__group">
                             <label class="ps-form__label">@Localize("Genel.VergiDairesi") *</label>

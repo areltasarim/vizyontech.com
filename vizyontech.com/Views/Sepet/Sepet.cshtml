@@ -18,13 +18,12 @@
     var araToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
     var kdvToplamTl = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
     var kargoToplam = (string)await _sepetServis.YeniSepetKargoAsync(FiyatTipleri.ListeFiyat, true, true);
+    string genelToplamTL = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
 
-    string genelToplamTL = (string)await _sepetServis.YeniSepetGenelToplamAsync(
-FiyatTipleri.BayiFiyat,
-dovizDurum: true,     // TL olarak
-formatted: true,      // Formatlı string
-paraBirimiGosterimi: true
-);
+    var listeToplamUSD = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var araToplamUSD = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var kdvToplamUSD = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var genelToplamUSD = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
 
     ViewBag.MetaTitle = "Sepet";
     ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
@@ -55,14 +54,11 @@ paraBirimiGosterimi: true
                                 var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
                                 var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
                                 var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
-                                var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
-                                var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
 
-                                var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
-                                string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
-
-                                var urunListeFiyatTl = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
-                                string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
+                                var urunBayiFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false, item.UrunId);
+                                var urunBayiFiyatTL = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.UrunId);
+                                var urunSatirToplamUSD = await _helperServis.GetLineSubtotalAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false, item.Adet, item.UrunId);
+                                var urunSatirToplamTL = await _helperServis.GetLineSubtotalAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.Adet, item.UrunId);
 
 
                                 <li>
@@ -80,9 +76,8 @@ paraBirimiGosterimi: true
                                             <div class="ps-product__row">
                                                 <div class="ps-product__label">@Localize("Genel.Fiyat"):</div>
                                                 <div class="ps-product__value">
-                                                    <span class="ps-product__price">
-                                                        @urunListeFiyatDecimaltxt
-                                                    </span>
+                                                    <span class="ps-product__price">@urunBayiFiyatDoviz.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                                    <span class="ps-product__is-price" style="text-decoration:none !important">@urunBayiFiyatTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                                                 </div>
                                             </div>
 
@@ -94,9 +89,8 @@ paraBirimiGosterimi: true
                                             <div class="ps-product__row">
                                                 <div class="ps-product__label">@Localize("Genel.AraToplamListeFiyat"):</div>
                                                 <div class="ps-product__value">
-                                                    <span class="ps-product__price">
-                                                        @_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString(), false)
-                                                    </span>
+                                                    <span class="ps-product__price" style="display:block">@urunSatirToplamUSD.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                                    <span class="ps-product__is-price" style="display:block; text-decoration:none !important">@urunSatirToplamTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                                                 </div>
                                             </div>
 
@@ -126,15 +120,11 @@ paraBirimiGosterimi: true
                                         var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
                                         var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
                                         var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
-                                        var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
 
-
-                                        var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
-                                        string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
-
-                                        var urunListeFiyatTl = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
-                                        string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
-                                        var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
+                                        var urunBayiFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false, item.UrunId);
+                                        var urunBayiFiyatTL = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.UrunId);
+                                        var urunSatirToplamUSD = await _helperServis.GetLineSubtotalAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false, item.Adet, item.UrunId);
+                                        var urunSatirToplamTL = await _helperServis.GetLineSubtotalAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.Adet, item.UrunId);
 
 
                                         <tr>
@@ -146,9 +136,8 @@ paraBirimiGosterimi: true
                                             </td>
                                             <td class="ps-product__name"> <a href="/@seoUrl">@urun.UrunAdi</a></td>
                                             <td class="ps-product__meta">
-                                                <span class="ps-product__price">
-                                                    @urunListeFiyatDecimaltxt
-                                                </span>
+                                                <span class="ps-product__price" style="display:block">@urunBayiFiyatDoviz.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                                <span class="ps-product__is-price" style="display:block; text-decoration:none !important">@urunBayiFiyatTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                                             </td>
                                             <td data-title="Quantity">
                                                 <span class="sr-only">@Localize("Genel.Adet")</span>
@@ -171,7 +160,8 @@ paraBirimiGosterimi: true
                                                 <!-- End Quantity -->
                                             </td>
                                             <td class="ps-product__subtotal">
-                                                @_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString(),false)
+                                                <span style="display:block">@urunSatirToplamUSD.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                                <span style="display:block">@urunSatirToplamTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                                             </td>
                                         </tr>
                                     }
@@ -193,15 +183,15 @@ paraBirimiGosterimi: true
                         <div class="ps-shopping__box">
                             <div class="ps-shopping__row">
                                 <div class="ps-shopping__label">@Localize("Genel.AraToplamListeFiyat")</div>
-                                <div class="ps-shopping__price"><span class="ps-product__is-price">@listeToplamTL</span> </div>
+                                <div class="ps-shopping__price"><span class="ps-product__is-price">@listeToplamUSD / @listeToplamTL</span> </div>
                             </div>
                             <div class="ps-shopping__row">
                                 <div class="ps-shopping__label">@Localize("Genel.AraToplamBayiFiyat")</div>
-                                <div class="ps-shopping__price">@araToplamTL</div>
+                                <div class="ps-shopping__price">@araToplamUSD / @araToplamTL</div>
                             </div>
                             <div class="ps-shopping__row">
                                 <div class="ps-shopping__label">@Localize("Genel.AraToplamKdv")</div>
-                                <div class="ps-shopping__price">@kdvToplamTl</div>
+                                <div class="ps-shopping__price">@kdvToplamUSD / @kdvToplamTl</div>
                             </div>
                             @if (!string.IsNullOrEmpty(sepetBilgi.KuponKodu))
                             {
@@ -216,7 +206,7 @@ paraBirimiGosterimi: true
                             </div>
                             <div class="ps-shopping__row">
                                 <div class="ps-shopping__label">@Localize("Genel.GenelToplam")</div>
-                                <div class="ps-shopping__price">@genelToplamTL</div>
+                                <div class="ps-shopping__price">@genelToplamUSD / @genelToplamTL</div>
                             </div>
                             <div class="ps-shopping__checkout">
                                 <a class="ps-btn ps-btn--warning" asp-controller="Sepet" asp-action="Kasa">@Localize("Genel.AlisverisiTamamla")</a>

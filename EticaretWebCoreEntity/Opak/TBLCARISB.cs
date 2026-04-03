@@ -177,5 +177,9 @@ namespace EticaretWebCoreEntity
         [StringLength(500)] public string? EKACIKLAMA { get; set; }
 
         [StringLength(1)] public string? KURDEGERLENDIRME { get; set; }
+        public int? AVANSMUHASEBEID { get; set; }
+
+        public int? ALISODEMEPLANID { get; set; }
+
     }
 }

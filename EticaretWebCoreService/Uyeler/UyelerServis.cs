@@ -101,7 +101,7 @@ namespace EticaretWebCoreService
 
 
                         var b2bsifre = _sifreService.Encrypt(Model.Password);
-                   
+
                         if (uyeVarmi == null)
                         {
                             AppUser uye = new();
@@ -204,7 +204,7 @@ namespace EticaretWebCoreService
                                         }
                                     }
 
-                                    
+
 
                                     string body;
                                     string hostUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
@@ -307,21 +307,10 @@ namespace EticaretWebCoreService
                     var resultmodel = new ResultViewModel();
 
                     //ViewBag.Gender = new SelectList(Enum.GetNames(typeof(Gender)));
-                    AppUser userName = await _userManager.FindByIdAsync(Id.ToString());
+                    AppUser uye = await _userManager.FindByIdAsync(Id.ToString());
 
                     var b2bsifre = _sifreService.Encrypt(Model.Password);
 
-
-                    var uye = _userManager.FindByNameAsync(userName.UserName).Result;
-                    if (uye != null)
-                    {
-                        var sonUye = _context.Users.Max(x => x.Id);
-                        uye.UserName = uye.UserName + sonUye;
-                    }
-                    else
-                    {
-                        uye.UserName = Replace.UrlSeo(Model.Ad.Replace(" ", "") + Model.Soyad.Replace(" ", ""));
-                    }
                     uye.Ad = Model.Ad;
                     uye.Soyad = Model.Soyad;
                     uye.FirmaAdi = Model.FirmaAdi;
@@ -390,27 +379,32 @@ namespace EticaretWebCoreService
                     }
                     #endregion
 
-                    IdentityResult result = await _userManager.UpdateAsync(uye);
+                    // Identity validator duplicate email hatası verdiği için doğrudan context üzerinden kaydediyoruz
+                    _context.Users.Update(uye);
+                    var saveResult = await _context.SaveChangesAsync();
 
                     #region Üye Şifre Güncelleme
 
                     if (Model.Password != null)
                     {
                         uye.B2bSifre = b2bsifre;
-                        AppUser user = await _userManager.FindByIdAsync(uye.Id.ToString());
 
-                        string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                        string token = await _userManager.GeneratePasswordResetTokenAsync(uye);
 
-                        await _userManager.ResetPasswordAsync(user, token, Model.Password);
+                        await _userManager.ResetPasswordAsync(uye, token, Model.Password);
 
-                        await _userManager.UpdateSecurityStampAsync(user);
+                        await _userManager.UpdateSecurityStampAsync(uye);
+
+
+                        // Opak'taki şifreyi de güncelle
+                        var opakSifreGuncelle = await _opakServis.TblCariSbSifreGuncelleAsync(uye.Id, Model.Password);
                     }
 
 
 
                     #endregion
 
-                    if (result.Succeeded)
+                    if (saveResult > 0)
                     {
                         await _userManager.UpdateSecurityStampAsync(uye);
 
@@ -424,12 +418,9 @@ namespace EticaretWebCoreService
 
                     else
                     {
-
-
                         sonuc.Basarilimi = false;
                         sonuc.MesajDurumu = "alert alert-danger";
-                        sonuc.Mesaj = result.ToString();
-
+                        sonuc.Mesaj = "Güncelleme sırasında bir hata oluştu.";
                     }
 
 
@@ -454,14 +445,14 @@ namespace EticaretWebCoreService
                 }
 
             }
-            catch(Exception hata)
+            catch (Exception hata)
             {
                 sonuc.Basarilimi = false;
                 sonuc.MesajDurumu = "alert alert-danger";
                 sonuc.Mesaj = "Hata Oluştu : " + hata.Message;
 
             }
-           
+
             return sonuc;
 
         }
@@ -528,7 +519,8 @@ namespace EticaretWebCoreService
                             sonuc.Mesaj = "Hesabınız bir süreliğine kilitlenmiştir. Lütfen daha sonra tekrar deneyiniz";
                             return sonuc;
 
-                        };
+                        }
+                        ;
 
                         if (_userManager.IsEmailConfirmedAsync(user).Result == false)
                         {
@@ -592,7 +584,7 @@ namespace EticaretWebCoreService
                             }
 
                             var alisveriscookieValue = _httpContextAccessor.HttpContext.Request.Cookies["AlisverisCookie"];
-                            if(alisveriscookieValue != null)
+                            if (alisveriscookieValue != null)
                             {
                                 await _alisverisListemServis.AlisverisListesiUyeKaydet();
                             }
@@ -759,7 +751,7 @@ namespace EticaretWebCoreService
                             if (!_env.IsDevelopment())
                             {
                                 var opakSifreGuncelle = await _opakServis.TblCariSbSifreGuncelleAsync(user.Id, Model.YeniSifre);
-                                
+
                                 if (!opakSifreGuncelle.Basarilimi)
                                 {
                                     // Opak şifre güncellemesi başarısız olsa bile kullanıcıya başarılı mesajı göster

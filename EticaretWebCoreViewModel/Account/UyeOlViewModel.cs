@@ -25,12 +25,15 @@ namespace EticaretWebCoreViewModel
         public string Ad { get; set; }
 
         [DataType(DataType.Text)]
+        [Display(Name = "Soyad")]
+        [Required(ErrorMessage = "{0} alanı boş bırakılamaz..!")]
+        public string Soyad { get; set; }
+
+        [DataType(DataType.Text)]
         [Display(Name = "Firma Adı")]
         public string FirmaAdi { get; set; }
 
-        [DataType(DataType.Text)]
-        [Display(Name = "Soyad")]
-        public string Soyad { get; set; }
+
         public string ProfilResmi { get; set; }
 
         [DataType(DataType.Password)]

@@ -7,6 +7,15 @@
 
     var odemeMetodu = _context.OdemeMetodlariTranslate.SingleOrDefault(x => x.OdemeMetodId == (int)OdemeMetodTiplieri.BankaHavalesi && x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
 
+    var araToplamTL = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var kdvToplamTL = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+    var kargoToplam = (string)await _sepetServis.YeniSepetKargoAsync(FiyatTipleri.BayiFiyat, true, true);
+    var genelToplamTL = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
+
+    var araToplamUSD = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var kdvToplamUSD = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var genelToplamUSD = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+
 }
 <style>
     .well {
@@ -36,44 +45,46 @@
                 {
                     var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == _helperServis.GetCurrentCulture());
                     var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
-                    var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
 
-
-                    var urunListeFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: false);
-                    string urunListeFiyatDecimaltxt = urunListeFiyatDoviz.Format(true);          // => "₺x.xx"
-
-                    var urunListeFiyatTl = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD, dovizDurum: true);
-                    string urunListeFiyatTlDecimaltxt = urunListeFiyatTl.Format(true);          // => "₺x.xx"
-
-
-                    var urunAraToplam = await _helperServis.GetLineSubtotalAsync(
-    fiyat: item.Urunler.ListeFiyat,
-    fiyatTipi: FiyatTipleri.ListeFiyat,
-    paraBirimi: ParaBirimi.USD,
-    dovizDurum: false,      // TRY’ye çevir
-    adet: item.Adet,
-    urunId: urun.Id,
-    roundPerUnit: false     // satırda yuvarla
-    );
+                    var urunBayiFiyatDoviz = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false, item.UrunId);
+                    var urunBayiFiyatTL = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.UrunId);
+                    var urunSatirToplamUSD = await _helperServis.GetLineSubtotalAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: false, item.Adet, item.UrunId);
+                    var urunSatirToplamTL = await _helperServis.GetLineSubtotalAsync(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.Adet, item.UrunId);
 
                     <tr>
-                        <td class="ps-product__name"> <a href="@seoUrl">@urun.UrunAdi</a></td>
+                        <td class="ps-product__name"><a href="@seoUrl">@urun.UrunAdi</a></td>
                         <td class="ps-product__meta">
-                            <span class="ps-product__price">
-                                @urunListeFiyatDecimaltxt
-                            </span>
+                            <span class="ps-product__price" style="display:block">@urunBayiFiyatDoviz.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                            <span style="display:block">@urunBayiFiyatTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                         </td>
                         <td class="ps-product__quantity">
                             <span>@item.Adet</span>
                         </td>
                         <td class="ps-product__subtotal">
-                            <span class="ps-product__price">
-                                @urunAraToplam.Format(true)
-                            </span>
+                            <span style="display:block">@urunSatirToplamUSD.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                            <span style="display:block">@urunSatirToplamTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                         </td>
                     </tr>
                 }
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Ara Toplam</strong></td>
+                    <td><strong>@araToplamUSD / @araToplamTL</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>KDV</strong></td>
+                    <td><strong>@kdvToplamUSD / @kdvToplamTL</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Kargo</strong></td>
+                    <td><strong>@kargoToplam</strong></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Genel Toplam</strong></td>
+                    <td><strong>@genelToplamUSD / @genelToplamTL</strong></td>
+                </tr>
+            </tfoot>
         </table>
         <div class="mt-5">
             <h2 style="color: #646464 !important">Banka Havalesi/EFT Talimatları</h2>
@@ -83,7 +94,7 @@
                     string odemeaciklama = odemeMetodu.Aciklama;
                     var odemeList = !string.IsNullOrWhiteSpace(odemeaciklama)
                         ? odemeaciklama.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                        : Array.Empty<string>(); // Daha temiz bir yol ile boş liste oluşturuldu
+                        : Array.Empty<string>();
                 }
                 <p>
                     <ul style="list-style:none; padding-left:0 !important">
@@ -93,7 +104,7 @@
                         }
                     </ul>
                 </p>
-                <p>@Localize("Genel.SiparisiiptalSuresi")</p>
+                <p>@Localize("SiparisiiptalSuresi")</p>
             </div>
             <div class="clearfix">
                 <button type="submit" class="ps-btn ps-btn--warning font-size-20 mb-3 py-3 float-right" style="width:auto !important">
@@ -104,4 +115,3 @@
 
     </form>
 </div>
-

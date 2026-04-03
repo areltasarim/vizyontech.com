@@ -58,7 +58,13 @@ namespace EticaretWebCoreService.CariOdeme
             var uyeBilgi = _context.Users.Where(x => x.Id == cariId).FirstOrDefault();
             var random = new Random();
 
-            var ipAdresi = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
+            var ip = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            if (string.IsNullOrEmpty(ip) || ip == "::1" || ip == "127.0.0.1")
+            {
+                ip = "85.105.1.1"; // rastgele gerçek bir TR IP (test için)
+            }
+
             string hostUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
 
             string merchant = aktif.Merchant;
@@ -74,7 +80,7 @@ namespace EticaretWebCoreService.CariOdeme
                 { "MERCHANT", merchant },
                { "MERCHANTUSER", merchantuser },
                 { "MERCHANTPASSWORD", merchantpassword },
-                { "AMOUNT", OdenenTutar.ToString() },
+                { "AMOUNT", OdenenTutar.ToString("F2", CultureInfo.InvariantCulture) },
                 { "CURRENCY", "TRY" },
                 { "MERCHANTPAYMENTID", $"{siparisId}" },
                 { "RETURNURL",hostUrl+ "/CariOdeme/CariOdemeZiraatPayCallback" },

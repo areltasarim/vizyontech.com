@@ -499,11 +499,21 @@ namespace vizyontech.com.Controllers
                             Aciklama = "B2B ZiraatPay Kredi Kartı Tahsilat",
                         };
                         var cariKayitEkle = await _opakServis.TblCariHaraketKayitAsync(cariHaraket);
+                        if(cariKayitEkle.Basarilimi)
+                        {
+                            TempData["SiparisId"] = siparis.Id;
+                            TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Ödemeniz başarıyla tamamlandı!" });
+                            return RedirectToAction("OdemeSonuc", "Sepet");
+                        }
+                        else
+                        {
+                            string idDecrypt = EncryptionHelper.Encrypt(cariHaraket.UyeId.ToString());
+
+                            TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "danger", Text = cariKayitEkle.Mesaj });
+                            return Redirect("/cari-odeme/" + idDecrypt);
+                        }
 
 
-                        TempData["SiparisId"] = siparis.Id;
-                        TempDataExtensions.Put(TempData, "BilgiMesaji", new PageMessageModel() { Type = "success", Text = "Ödemeniz başarıyla tamamlandı!" });
-                        return RedirectToAction("OdemeSonuc", "Sepet");
                     }
                 }
                 else

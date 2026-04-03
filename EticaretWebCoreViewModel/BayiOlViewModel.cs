@@ -67,6 +67,7 @@ namespace EticaretWebCoreViewModel
         [Display(Name = "Adres")]
         public string Adres { get; set; }
 
+
         [Required(ErrorMessage = "{0} alanı boş bırakılamaz..!")]
         [DataType(DataType.MultilineText)]
         public string VergiLevhasi { get; set; }

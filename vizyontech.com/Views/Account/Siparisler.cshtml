@@ -60,7 +60,10 @@
                                         <td>@siparisGecmisi.SiparisDurumlari.SiparisDurumlariTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == dil)?.SiparisDurumu</td>
                                         <td><a style="color:dodgerblue" href="http://service.mngkargo.com.tr/iactive/popup/kargotakip.asp?k=@item.KargoUrl" target="_blank">@item.KargoKodu</a></td>
                                         <td>@item.OdemeMetodu</td>
-                                        <td>@(_helperServis.FormatCurrency(_helperServis.GetKurTLCeviri(item.ToplamFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result, FiyatTipleri.BayiFiyat, ParaBirimi.TRY.ToString()))</td>
+                                        <td>
+                                            <span style="display:block">@item.ToplamFiyat.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                            <span style="display:block">@((item.ToplamFiyat * item.Kur).ToString("C2", new System.Globalization.CultureInfo("tr-TR")))</span>
+                                        </td>
                                         <td>@item.SiparisTarihi</td>
                                         <td>
                                             <a asp-controller="Account" asp-action="SiparisDetay" asp-route-id="@item.Id">

@@ -36,10 +36,12 @@ namespace vizyontech.com.Code
             _connectionString = configuration.GetConnectionString("OpakSqlServer");
         }
 
+        // :contentReference[oaicite:0]{index=0}
+
         public virtual async Task Execute(IJobExecutionContext context)
         {
             AppDbContext _context = new AppDbContext();
-            _context.ChangeTracker.AutoDetectChangesEnabled = false;
+            _context.ChangeTracker.AutoDetectChangesEnabled = true;
 
             using (var connection = new SqlConnection(_connectionString))
             {
@@ -47,7 +49,6 @@ namespace vizyontech.com.Code
                 {
                     connection.Open();
                     SqlCommand cmd = new SqlCommand("SELECT * FROM TBLCARISB WHERE GRUP_KODU = '001'", connection);
-
                     using (SqlDataReader dr = cmd.ExecuteReader())
                     {
                         var yeniUyeler = new List<AppUser>();
@@ -72,40 +73,64 @@ namespace vizyontech.com.Code
                             var adi = dr["ADI"]?.ToString().Trim();
                             var adres = dr["ADRES"]?.ToString().Trim();
                             var email = dr["EMAIL"]?.ToString().Trim();
-                            int plasiyerid = Convert.ToInt32(dr["PLASIYERID"]);
+                            var vergino = dr["VERGINO"]?.ToString().Trim();
+                            int plasiyerid = Convert.ToInt32(dr["PLASIYERID"] ?? 0);
                             int cariid = Convert.ToInt32(dr["ID"]);
                             decimal iskonto = 0;
                             if (dr["ISKONTO"] != null && !string.IsNullOrWhiteSpace(dr["ISKONTO"].ToString()))
-                            {
                                 decimal.TryParse(dr["ISKONTO"].ToString().Trim(), out iskonto);
-                            }
 
                             decimal risk = 0;
                             if (dr["RISK"] != null && !string.IsNullOrWhiteSpace(dr["RISK"].ToString()))
-                            {
                                 decimal.TryParse(dr["RISK"].ToString().Trim(), out risk);
-                            }
 
                             var telefon = dr["TELEFON"]?.ToString().Trim();
                             var b2bSifre = dr["B2BSIFRE"]?.ToString().Trim();
 
                             if (string.IsNullOrEmpty(kod)) continue;
 
-                            var mevcutUye = _context.Users.FirstOrDefault(u => u.CariKodu == kod);
+                            AppUser mevcutUye = null;
+
+                            // 🔥 SIRALI EŞLEŞME (kritik fix)
+                            if (!string.IsNullOrEmpty(vergino))
+                                mevcutUye = _context.Users.FirstOrDefault(u => u.VergiNumarasi == vergino);
+
+                            if (mevcutUye == null && !string.IsNullOrEmpty(kod))
+                                mevcutUye = _context.Users.FirstOrDefault(u => u.CariKodu == kod);
+
+                            if (mevcutUye == null && !string.IsNullOrEmpty(email))
+                                mevcutUye = _context.Users.FirstOrDefault(u => u.Email == email);
 
                             if (mevcutUye != null)
                             {
                                 mevcutUye.OpakCariId = cariid;
                                 mevcutUye.PlasiyerId = plasiyerid == 0 ? null : plasiyerid;
-                                mevcutUye.CariKodu = kod;
-                                mevcutUye.Ad = cariAdi ?? mevcutUye.Ad;
-                                mevcutUye.Soyad = cariSoyadi ?? mevcutUye.Soyad;
-                                mevcutUye.FirmaAdi = adi ?? mevcutUye.FirmaAdi;
-                                mevcutUye.Email = email ?? mevcutUye.Email;
-                                mevcutUye.Adres = adres ?? mevcutUye.Adres;
-                                mevcutUye.IskontoOrani = iskonto > 0 ? iskonto : mevcutUye.IskontoOrani;
+
+                                if (!string.IsNullOrWhiteSpace(kod))
+                                    mevcutUye.CariKodu = kod;
+
+                                if (!string.IsNullOrWhiteSpace(cariAdi))
+                                    mevcutUye.Ad = cariAdi;
+
+                                if (!string.IsNullOrWhiteSpace(cariSoyadi))
+                                    mevcutUye.Soyad = cariSoyadi;
+
+                                if (!string.IsNullOrWhiteSpace(adi))
+                                    mevcutUye.FirmaAdi = adi;
+
+                                if (!string.IsNullOrWhiteSpace(email))
+                                    mevcutUye.Email = email;
+
+                                if (!string.IsNullOrWhiteSpace(adres))
+                                    mevcutUye.Adres = adres;
+
+                                if (iskonto > 0)
+                                    mevcutUye.IskontoOrani = iskonto;
+
                                 mevcutUye.CariLimit = risk;
-                                mevcutUye.PhoneNumber = telefon ?? mevcutUye.PhoneNumber;
+
+                                if (!string.IsNullOrWhiteSpace(telefon))
+                                    mevcutUye.PhoneNumber = telefon;
 
                                 if (!string.IsNullOrWhiteSpace(b2bSifre))
                                 {
@@ -113,15 +138,24 @@ namespace vizyontech.com.Code
                                     mevcutUye.PasswordHash = hasher.HashPassword(null, b2bSifre);
                                 }
 
+            
                                 mevcutUye.UyeDurumu = UyeDurumlari.Onaylandi;
-                                _context.Users.Update(mevcutUye);
+
+                                mevcutUye.Ad = cariAdi;
+                                mevcutUye.Soyad = cariSoyadi;
+                                mevcutUye.FirmaAdi = adi;
+                                mevcutUye.Adres = adres;
+                                mevcutUye.VergiNumarasi = vergino;
+                                mevcutUye.Gsm = telefon;
+                                mevcutUye.IskontoOrani = iskonto;
+                                mevcutUye.CariLimit = risk;
+
                             }
                             else
                             {
                                 var userNameBase = NormalizeUserName(kod);
                                 var userName = MakeUserNameUnique(userNameBase, mevcutUserNames, yeniUserNames);
 
-                                // ✅ Bellekte aynı UserName var mı? (çok kritik)
                                 if (yeniUyeler.Any(u => u.UserName.Equals(userName, StringComparison.OrdinalIgnoreCase)))
                                 {
                                     Console.WriteLine($"⛔ Aynı UserName zaten yeniUyeler listesinde: {userName} – ATLANDI");
@@ -151,14 +185,13 @@ namespace vizyontech.com.Code
                                     EmailConfirmed = true,
                                     LockoutEnabled = false,
                                     UyeDurumu = UyeDurumlari.Onaylandi,
-                                    SecurityStamp = Guid.NewGuid().ToString("D")
+                                    SecurityStamp = Guid.NewGuid().ToString("D"),
+                                    OpakCariId = cariid,
+                                    PlasiyerId = plasiyerid == 0 ? null : plasiyerid
                                 };
 
                                 yeniUyeler.Add(yeniUye);
                             }
-
-
-
                         }
 
                         if (yeniUyeler.Any())
@@ -166,7 +199,7 @@ namespace vizyontech.com.Code
                             AddUsersWithRoles(_context, yeniUyeler);
                         }
 
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                     }
 
                     Console.WriteLine("✅ İşlem başarılı bir şekilde tamamlandı.");

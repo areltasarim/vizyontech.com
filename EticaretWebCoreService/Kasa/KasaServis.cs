@@ -76,7 +76,9 @@ namespace EticaretWebCoreService
             var odemeMetodu = _context.OdemeMetodlariTranslate.SingleOrDefault(x => x.OdemeMetodId == Model.SiparisOdemeMetodId && x.Diller.DilKodlari.DilKodu == "tr-TR");
             var kargoMetodu = _context.KargoMetodlariTranslate.SingleOrDefault(x => x.KargoMetodId == Model.SiparisKargoMetodId && x.Diller.DilKodlari.DilKodu == "tr-TR");
 
-            var sartliKargoFiyati = _helperServis.GetAktifKargo((decimal)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat));
+            // Kargo eşiği TL bazlı hesaplanır
+            var araToplamTLKargo = (decimal)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: false, paraBirimiGosterimi: false);
+            var sartliKargoFiyati = _helperServis.GetAktifKargo(araToplamTLKargo);
 
             decimal kargoFiyati = 0;
             if (sartliKargoFiyati.KargoMetodId == (int)EticaretWebCoreEntity.Enums.KargoMetodlari.SartliOdeme)
@@ -251,11 +253,8 @@ namespace EticaretWebCoreService
                     //var testlimatAdresi = uyeId == 0 ? Model.KasaSiparis.TeslimatAdres : teslimatAdresi.Adres;
                     //var testlimatTelefon = uyeId == 0 ? Model.KasaSiparis.TeslimatTelefon : teslimatAdresi.Telefon;
 
-                    FiyatTipleri fiyatTipi = FiyatTipleri.ListeFiyat;
-                    if (uye.IskontoOrani > 0)
-                    {
-                        fiyatTipi = FiyatTipleri.BayiFiyat;
-                    }
+                    // Sistem sadece bayilere açık, her zaman BayiFiyat kullanılır
+                    FiyatTipleri fiyatTipi = FiyatTipleri.BayiFiyat;
 
                     var email = uyeId == 0 ? Model.KasaSiparis.TeslimatEmail : teslimatAdresi.Uyeler.Email;
                     var telefon = uyeId == 0 ? Model.KasaSiparis.TeslimatTelefon : teslimatAdresi.Uyeler.PhoneNumber;
@@ -325,19 +324,26 @@ namespace EticaretWebCoreService
 
 
 
-                        var urunFiyat = await _helperServis.GetPriceAsync(item.Urunler.ListeFiyat, fiyatTipi, ParaBirimi.USD, dovizDurum: false, item.UrunId);
+                        // Birim fiyat (BayiFiyat, döviz cinsinden, adet=1)
+                        var urunBirimFiyat = await _helperServis.GetPriceAsync(
+                            item.Urunler.ListeFiyat, fiyatTipi, (ParaBirimi)siteAyari.ParaBirimId, dovizDurum: false, item.UrunId);
 
-                        var kdvToplam = (decimal)await _helperServis.KdvToplamByUrunAsync((int)item.UrunId, fiyatTipi, dovizDurum: false, formatted: false);
+                        // Satır ara toplam = birimFiyat * adet (döviz cinsinden)
                         var urunAraToplam = await _helperServis.GetLineSubtotalAsync(
-                           fiyat: item.Urunler.ListeFiyat,
-                           fiyatTipi: fiyatTipi,
-                           paraBirimi: (ParaBirimi)siteAyari.ParaBirimId,
-                           dovizDurum: false,
-                           adet: item.Adet,
-                           urunId: item.UrunId,
-                           roundPerUnit: false
-                           );
-                        var urungenelToplam = urunAraToplam.Net + kdvToplam;
+                            fiyat: item.Urunler.ListeFiyat,
+                            fiyatTipi: fiyatTipi,
+                            paraBirimi: (ParaBirimi)siteAyari.ParaBirimId,
+                            dovizDurum: false,
+                            adet: item.Adet,
+                            urunId: item.UrunId,
+                            roundPerUnit: false);
+
+                        // Satır KDV = araToplam * kdvOrani%
+                        decimal kdvOrani = (item.Urunler.Kdv?.KdvOrani ?? 0m) / 100m;
+                        decimal satirKdv = Math.Round(urunAraToplam.Net * kdvOrani, 2, MidpointRounding.AwayFromZero);
+
+                        decimal urungenelToplam = urunAraToplam.Net + satirKdv;
+
                         var sepet = new SiparisUrunleri()
                         {
                             SiparisId = siparisEkle.Id,
@@ -345,10 +351,9 @@ namespace EticaretWebCoreService
                             UrunAdi = item.Urunler.UrunlerTranslate.SingleOrDefault(p => p.Diller.DilKodlari.DilKodu == "tr-TR").UrunAdi,
                             UrunKodu = item.Urunler.UrunKodu,
                             Adet = item.Adet,
-                            Fiyat = urunFiyat.Net,
-                            Kdv = kdvToplam,
-                            Toplam = urungenelToplam,
-
+                            Fiyat = urunBirimFiyat.Net,       // birim fiyat (döviz)
+                            Kdv = satirKdv,                    // satır KDV (döviz)
+                            Toplam = urungenelToplam,          // araToplam + KDV (döviz)
                         };
                         _context.Entry(sepet).State = EntityState.Added;
                         await _context.SaveChangesAsync();
@@ -538,8 +543,17 @@ namespace EticaretWebCoreService
 
                     foreach (var item in sepetListesi)
                     {
-                        var kurCeviri = _helperServis.GetKurTLCeviri(item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
-                        var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
+                        // BayiFiyat, TL cinsinden gösterim
+                        var birimFiyatTL = await _helperServis.GetPriceAsync(
+                            item.Urunler.ListeFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD, dovizDurum: true, item.UrunId);
+                        var satirAraToplam = await _helperServis.GetLineSubtotalAsync(
+                            fiyat: item.Urunler.ListeFiyat,
+                            fiyatTipi: FiyatTipleri.BayiFiyat,
+                            paraBirimi: ParaBirimi.USD,
+                            dovizDurum: true,
+                            adet: item.Adet,
+                            urunId: item.UrunId,
+                            roundPerUnit: false);
 
                         sb.AppendLine("<tr>");
                         sb.AppendLine("<td valign=\"top\" style=\"padding: 0 15px;\">");
@@ -552,13 +566,12 @@ namespace EticaretWebCoreService
                         sb.AppendLine("<h5 style=\"font-size: 14px; color:#444;margin-top:15px;\"><b>" + item.Adet + "</b></h5>");
                         sb.AppendLine("</td>");
                         sb.AppendLine("<td valign=\"top\" style=\"padding: 0 15px;\">");
-                        sb.AppendLine("<h5 style=\"font-size: 14px; color:#444;margin-top:15px;\"><b>" + _helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString()) + "</b></h5>");
+                        sb.AppendLine("<h5 style=\"font-size: 14px; color:#444;margin-top:15px;\"><b>" + birimFiyatTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR")) + "</b></h5>");
                         sb.AppendLine("</td>");
                         sb.AppendLine("<td valign=\"top\" style=\"padding: 0 15px;\">");
-                        sb.AppendLine("<h5 style=\"font-size: 14px; color:#444;margin-top:15px;\"><b>" + _helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString()) + "</b></h5>");
+                        sb.AppendLine("<h5 style=\"font-size: 14px; color:#444;margin-top:15px;\"><b>" + satirAraToplam.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR")) + "</b></h5>");
                         sb.AppendLine("</td>");
                         sb.AppendLine("</tr>");
-
                     }
 
                     var items = sb.ToString();
@@ -646,9 +659,9 @@ namespace EticaretWebCoreService
                     }
 
 
-                    body = body.Replace("{Ara_Toplam}", (string)_sepetServis.SepetAraToplam(FiyatTipleri.BayiFiyat, true));
+                    body = body.Replace("{Ara_Toplam}", (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true));
 
-                    var geneltoplam = (string)_sepetServis.SepetGenelToplam(FiyatTipleri.BayiFiyat, true);
+                    var geneltoplam = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: true, formatted: true, paraBirimiGosterimi: true);
 
                     body = body.Replace("{Genel_Toplam}", geneltoplam);
 

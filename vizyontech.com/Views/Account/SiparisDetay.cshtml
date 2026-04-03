@@ -6,7 +6,13 @@
 
     var siteAyariHelper = await _helperServis.GetSiteAyari();
     var siteAyari = siteAyariHelper?.SiteAyarlari;
-    var kurCeviri = _helperServis.GetKurTLCeviri(Model.ToplamFiyat, FiyatTipleri.BayiFiyat, ParaBirimi.USD).Result;
+
+    // Sipariş kaydedilmiş kur üzerinden TL hesabı
+    decimal kur = Model.Kur;
+    decimal araToplamTL = Model.SiparisUrunleri.Sum(x => x.Toplam - x.Kdv) * kur;
+    decimal kdvToplamTL = Model.SiparisUrunleri.Sum(x => x.Kdv) * kur;
+    decimal kargoTL = Model.KargoUcreti * kur;
+    decimal genelToplamTL = Model.ToplamFiyat * kur;
 
     ViewBag.MetaTitle = "Sipariş Detayı";
     ViewBag.MetaAnahtar = siteAyariHelper?.MetaAnahtar ?? "";
@@ -91,9 +97,9 @@
                         <tbody>
                             @foreach (var item in Model.SiparisUrunleri)
                             {
-                                var urunresim = _helperServis.GetUrunResim(Convert.ToInt32(item.UrunId)).Result;
-                                var urunFiyat = (decimal)_helperServis.GetUrunFiyat((int)item.UrunId);
-                                var urunAraToplam = (decimal)_helperServis.GetUrunAraFiyat((int)item.UrunId, item.Adet);
+                                var urunresim = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
+                                decimal birimFiyatTL = item.Fiyat * kur;
+                                decimal satirToplamTL = item.Toplam * kur;
 
                                 <tr>
                                     <td scope="row">
@@ -101,28 +107,45 @@
                                     </td>
                                     <td scope="row">@item.UrunAdi</td>
                                     <td>@item.UrunKodu</td>
-                                    <td>@_helperServis.FormatCurrency(urunFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</td>
+                                    <td>
+                                        <span style="display:block">@item.Fiyat.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                        <span style="display:block">@birimFiyatTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
+                                    </td>
                                     <td>@item.Adet</td>
-                                    <td> @_helperServis.FormatCurrency(urunAraToplam, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString())</td>
+                                    <td>
+                                        <span style="display:block">@item.Toplam.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                                        <span style="display:block">@satirToplamTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
+                                    </td>
                                 </tr>
                             }
                             <tr>
-                                <td scope="row"></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>@Localize("Genel.Toplam")</td>
-                                <td>@_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</td>
+                                <td colspan="5" class="text-right"><strong>Ara Toplam</strong></td>
+                                <td>
+                                    <strong style="display:block">@((araToplamTL / kur).ToString("C2", new System.Globalization.CultureInfo("en-US")))</strong>
+                                    <strong style="display:block">@araToplamTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</strong>
+                                </td>
                             </tr>
                             <tr>
-                                <td scope="row"></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>@Localize("Genel.GenelToplam")</td>
-                                <td> @_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString())</td>
+                                <td colspan="5" class="text-right"><strong>KDV</strong></td>
+                                <td>
+                                    <strong style="display:block">@((kdvToplamTL / kur).ToString("C2", new System.Globalization.CultureInfo("en-US")))</strong>
+                                    <strong style="display:block">@kdvToplamTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</strong>
+                                </td>
                             </tr>
-
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>Kargo</strong></td>
+                                <td>
+                                    <strong style="display:block">@((kargoTL / kur).ToString("C2", new System.Globalization.CultureInfo("en-US")))</strong>
+                                    <strong style="display:block">@kargoTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="text-right"><strong>@Localize("Genel.GenelToplam")</strong></td>
+                                <td>
+                                    <strong style="display:block">@Model.ToplamFiyat.ToString("C2", new System.Globalization.CultureInfo("en-US"))</strong>
+                                    <strong style="display:block">@genelToplamTL.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</strong>
+                                </td>
+                            </tr>
                         </tbody>
 
                     </table>

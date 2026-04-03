@@ -65,16 +65,23 @@
                                 <label for="example-text-input" class="col-md-1 col-form-label">Plasiyer</label>
                                 <div class="col-md-9">
                                     <select class="form-control" asp-for="PlasiyerId" asp-items="@ViewData["Plasiyer"] as IEnumerable<SelectListItem>">
-                                        <option>Seçiniz</option>
+                                        <option value="">Seçiniz</option>
                                     </select>
                                     <span asp-validation-for="PlasiyerId" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="row mb-3">
-                                <label for="example-text-input" class="col-md-1 col-form-label">Ad Soyad</label>
+                                <label for="example-text-input" class="col-md-1 col-form-label">Ad</label>
                                 <div class="col-md-9">
                                     <input class="form-control" asp-for="Ad" type="text">
                                     <span asp-validation-for="Ad" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="example-text-input" class="col-md-1 col-form-label">Soyad</label>
+                                <div class="col-md-9">
+                                    <input class="form-control" asp-for="Soyad" type="text">
+                                    <span asp-validation-for="Soyad" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="row mb-3">

@@ -56,6 +56,12 @@
     // string (sembolsüz)
     var kargoToplam = (string)await _sepetServis.YeniSepetKargoAsync(FiyatTipleri.ListeFiyat, true, true);
 
+    // USD değerleri
+    var listeToplamUSD = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.ListeFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var araToplamUSD = (string)await _sepetServis.YeniSepetAraToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var kdvToplamUSD = (string)await _sepetServis.YeniSepetKdvToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+    var genelToplamUSD = (string)await _sepetServis.YeniSepetGenelToplamAsync(FiyatTipleri.BayiFiyat, dovizDurum: false, formatted: true, paraBirimiGosterimi: true);
+
 }
 
 @if (sepet.Count > 0)
@@ -67,27 +73,42 @@
             var seoUrl = _helperServis.GetSeoUrl(Convert.ToInt32(item.UrunId), SeoUrlTipleri.Urun).Result.Url;
             var urun = item.Urunler.UrunlerTranslate.SingleOrDefault(x => x.Diller.DilKodlari.DilKodu == dil);
             var urunResimFirst = _helperServis.GetUrunResimFirst(Convert.ToInt32(item.UrunId), UrunResimKategorileri.UrunResim).Resim;
-            var kurCeviri = _helperServis.GetKurTLCeviri(item.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD).Result;
+            var satirToplamTL = await _helperServis.GetLineSubtotalAsync(
+                fiyat: item.Urunler.ListeFiyat,
+                fiyatTipi: FiyatTipleri.BayiFiyat,
+                paraBirimi: ParaBirimi.USD,
+                dovizDurum: true,
+                adet: item.Adet,
+                urunId: item.UrunId,
+                roundPerUnit: false);
+            var satirToplamUSD = await _helperServis.GetLineSubtotalAsync(
+                fiyat: item.Urunler.ListeFiyat,
+                fiyatTipi: FiyatTipleri.BayiFiyat,
+                paraBirimi: ParaBirimi.USD,
+                dovizDurum: false,
+                adet: item.Adet,
+                urunId: item.UrunId,
+                roundPerUnit: false);
 
             <li class="ps-cart__item">
                 <div class="ps-product--mini-cart">
                     <a class="ps-product__thumbnail" href="@seoUrl"><img src="@urunResimFirst" alt="" loading="lazy" /></a>
                     <div class="ps-product__content">
-                        <a class="ps-product__name" href="@seoUrl">@urun.UrunAdi</a>
+                        <a class="ps-product__name" href="@seoUrl">@urun.UrunAdi <span class="ps-product__quantity">x@(item.Adet)</span></a>
                         <p class="ps-product__meta">
-                            <span class="ps-product__sale">@_helperServis.FormatCurrency(urun.Urunler.ListeFiyat, FiyatTipleri.ListeFiyat, ParaBirimi.USD.ToString(), false)</span>
-                            <span class="ps-product__is-price" style="text-decoration:none !important">@_helperServis.FormatCurrency(kurCeviri, FiyatTipleri.ListeFiyat, ParaBirimi.TRY.ToString(), false)</span>
+                            <span class="ps-product__sale" style="display:block">@satirToplamUSD.Net.ToString("C2", new System.Globalization.CultureInfo("en-US"))</span>
+                            <span class="ps-product__is-price" style="text-decoration:none !important; display:block">@satirToplamTL.Net.ToString("C2", new System.Globalization.CultureInfo("tr-TR"))</span>
                         </p>
                     </div><a class="ps-product__remove" href="javascript: void(0)" onclick="SepetUrunSil(@item.UrunId)"><i class="icon-cross"></i></a>
                 </div>
             </li>
         }
     </ul>
-    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamListeFiyat") </span><span class="ps-product__is-price">@listeToplamTL</span></div>
-    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamBayiFiyat") </span><span>@araToplamTL</span></div>
-    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamKdv") </span><span>@kdvToplamTl</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamListeFiyat") </span><span class="ps-product__is-price">@listeToplamUSD / @listeToplamTL</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamBayiFiyat") </span><span>@araToplamUSD / @araToplamTL</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.AraToplamKdv") </span><span>@kdvToplamUSD / @kdvToplamTl</span></div>
     <div class="ps-cart__total"><span>@Localize("Genel.Kargo") </span><span>@kargoToplam</span></div>
-    <div class="ps-cart__total"><span>@Localize("Genel.GenelToplam") </span><span>@genelToplamTL</span></div>
+    <div class="ps-cart__total"><span>@Localize("Genel.GenelToplam") </span><span>@genelToplamUSD / @genelToplamTL</span></div>
 
 
     @*<div class="ps-cart__total"><span>@Localize("Genel.TestAraToplam") </span><span>@araToplamTL</span></div>*@
